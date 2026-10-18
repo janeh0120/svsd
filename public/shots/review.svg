@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" font-family="Inter, -apple-system, Helvetica, Arial, sans-serif">
+<rect width="1440" height="900" fill="#FBFAF7"/>
+<text x="720" y="130" font-size="20" fill="#5B5BF0" font-weight="700" text-anchor="middle">NEW: WEEKLY REVIEW</text>
+<text x="720" y="200" font-size="54" font-weight="800" fill="#111" text-anchor="middle" letter-spacing="-1.5">Look back. Then plan ahead.</text>
+<text x="720" y="250" font-size="21" fill="#666" text-anchor="middle">Every Friday, Lumen sums up your week and drafts the next one.</text>
+<g>
+<rect x="100" y="320" width="390" height="480" rx="24" fill="#fff" stroke="#E6E4DE" stroke-width="2"/><rect x="140" y="360" width="56" height="56" rx="16" fill="#ECEBFF"/><text x="155" y="398" font-size="26">✓</text>
+<text x="140" y="470" font-size="26" font-weight="800" fill="#111">Wins, collected</text><text x="140" y="510" font-size="18" fill="#666">Everything you finished,</text><text x="140" y="538" font-size="18" fill="#666">grouped by project.</text>
+<rect x="140" y="590" width="310" height="170" rx="14" fill="#F7F6F2"/><text x="165" y="635" font-size="16" fill="#333">Onboarding redesign ✓</text><text x="165" y="675" font-size="16" fill="#333">Q4 roadmap ✓</text><text x="165" y="715" font-size="16" fill="#333">Launch notes ✓</text>
+<rect x="525" y="320" width="390" height="480" rx="24" fill="#111"/><rect x="565" y="360" width="56" height="56" rx="16" fill="#2A2A2A"/><text x="578" y="398" font-size="26" fill="#fff">↻</text>
+<text x="565" y="470" font-size="26" font-weight="800" fill="#fff">Carry over, kindly</text><text x="565" y="510" font-size="18" fill="#aaa">Unfinished tasks move</text><text x="565" y="538" font-size="18" fill="#aaa">without the guilt.</text>
+<rect x="565" y="590" width="310" height="170" rx="14" fill="#222"/><text x="590" y="640" font-size="16" fill="#ddd">3 tasks → next week</text><rect x="590" y="670" width="260" height="12" rx="6" fill="#333"/><rect x="590" y="670" width="170" height="12" rx="6" fill="#5B5BF0"/>
+<rect x="950" y="320" width="390" height="480" rx="24" fill="#fff" stroke="#E6E4DE" stroke-width="2"/><rect x="990" y="360" width="56" height="56" rx="16" fill="#ECEBFF"/><text x="1005" y="398" font-size="26">✦</text>
+<text x="990" y="470" font-size="26" font-weight="800" fill="#111">Next week, drafted</text><text x="990" y="510" font-size="18" fill="#666">Focus blocks placed around</text><text x="990" y="538" font-size="18" fill="#666">your meetings.</text>
+<g fill="#5B5BF0"><rect x="990" y="600" width="140" height="40" rx="10"/><rect x="1150" y="600" width="150" height="40" rx="10" fill="#C9C9FA"/><rect x="990" y="655" width="200" height="40" rx="10" fill="#C9C9FA"/><rect x="1210" y="655" width="90" height="40" rx="10"/><rect x="990" y="710" width="110" height="40" rx="10"/></g>
+</g>
+</svg>

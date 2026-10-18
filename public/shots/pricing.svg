@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" font-family="Inter, -apple-system, Helvetica, Arial, sans-serif">
+<rect width="1440" height="900" fill="#111"/>
+<text x="720" y="170" font-size="60" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing="-2">A calmer week starts today.</text>
+<text x="720" y="225" font-size="22" fill="#999" text-anchor="middle">Free for personal use. Teams from $8 per seat.</text>
+<rect x="290" y="300" width="400" height="440" rx="24" fill="#1C1C1C" stroke="#333" stroke-width="2"/>
+<text x="330" y="360" font-size="22" fill="#aaa" font-weight="600">Personal</text><text x="330" y="440" font-size="64" font-weight="800" fill="#fff">$0</text>
+<g font-size="18" fill="#ccc"><text x="330" y="510">✓ Unlimited tasks</text><text x="330" y="550">✓ Weekly review</text><text x="330" y="590">✓ Calendar sync</text></g>
+<rect x="330" y="650" width="320" height="56" rx="28" fill="#2A2A2A"/><text x="490" y="685" font-size="18" fill="#fff" font-weight="700" text-anchor="middle">Start free</text>
+<rect x="750" y="300" width="400" height="440" rx="24" fill="#5B5BF0"/>
+<text x="790" y="360" font-size="22" fill="#D9D9FF" font-weight="600">Team</text><text x="790" y="440" font-size="64" font-weight="800" fill="#fff">$8</text><text x="900" y="440" font-size="20" fill="#D9D9FF">/ seat</text>
+<g font-size="18" fill="#fff"><text x="790" y="510">✓ Everything in Personal</text><text x="790" y="550">✓ Shared focus time</text><text x="790" y="590">✓ Team reviews</text></g>
+<rect x="790" y="650" width="320" height="56" rx="28" fill="#fff"/><text x="950" y="685" font-size="18" fill="#5B5BF0" font-weight="700" text-anchor="middle">Try Lumen for teams</text>
+<rect x="595" y="800" width="28" height="28" rx="8" fill="#5B5BF0"/><text x="635" y="822" font-size="22" font-weight="700" fill="#fff">Lumen</text><text x="730" y="822" font-size="18" fill="#777">lumen.app</text>
+</svg>
