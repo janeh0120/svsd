@@ -1,9 +1,9 @@
 import { arrayMove } from '@dnd-kit/sortable'
 import { DEFAULT_CUT, sameTarget, uid } from './board'
-import { mockDraft } from './mock/draft'
-import type { Cut, Frame, Layer, Message, Mode, Pin, Storyboard, Target } from './types'
+import type { Cut, Frame, Layer, Message, Mode, Phase, Pin, Storyboard, Target } from './types'
 
 export type State = {
+  phase: Phase
   board: Storyboard
   selection: Target | null
   mode: Mode
@@ -17,6 +17,9 @@ export type State = {
 }
 
 export type Action =
+  | { type: 'phase'; phase: Phase }
+  | { type: 'load'; board: Storyboard }
+  | { type: 'messageUpdate'; id: string; patch: Partial<Message> }
   | { type: 'select'; target: Target | null }
   | { type: 'mode'; mode: Mode }
   | { type: 'tab'; tab: State['tab'] }
@@ -36,8 +39,9 @@ export type Action =
   | { type: 'playhead'; ms: number }
 
 export const initialState: State = {
-  board: mockDraft(),
-  selection: { kind: 'layer', frameId: 'i2', layerId: 'phone' },
+  phase: 'empty',
+  board: { acts: [], frames: {}, cuts: {} },
+  selection: null,
   mode: 'select',
   pins: [],
   composing: null,
@@ -53,6 +57,12 @@ const dropDrafts = (pins: Pin[]) => pins.filter((p) => p.status !== 'draft')
 export function reducer(state: State, action: Action): State {
   const { board } = state
   switch (action.type) {
+    case 'phase':
+      return { ...state, phase: action.phase }
+    case 'load':
+      return { ...state, board: action.board }
+    case 'messageUpdate':
+      return { ...state, messages: state.messages.map((m) => (m.id === action.id ? { ...m, ...action.patch } : m)) }
     case 'select':
       return { ...state, selection: action.target }
     case 'mode':

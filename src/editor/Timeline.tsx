@@ -42,7 +42,7 @@ export function Timeline({ height, nameWidth: LEFT }: { height: number; nameWidt
   const { board, playhead } = state
   const t = timing(board)
   const total = t.total
-  const tracks = buildTracks(board)
+  const tracks = state.phase === 'ready' ? buildTracks(board) : []
   const [playing, setPlaying] = useState(false)
   const [loop, setLoop] = useState(false)
   const [width, setWidth] = useState(1200)
@@ -79,8 +79,8 @@ export function Timeline({ height, nameWidth: LEFT }: { height: number; nameWidt
     return () => cancelAnimationFrame(raf)
   }, [playing]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  const seconds = Math.ceil(total / 5000) * 5
-  const pxPerMs = (width - 48) / Math.max(total, 1)
+  const seconds = Math.max(5, Math.ceil(total / 5000) * 5)
+  const pxPerMs = (width - 48) / Math.max(total, 5000)
   const x = (ms: number) => ms * pxPerMs
   const current = t.frames.find((f) => playhead < f.end) ?? t.frames[t.frames.length - 1]
   const sel = state.selection
@@ -136,7 +136,7 @@ export function Timeline({ height, nameWidth: LEFT }: { height: number; nameWidt
       {/* Controls + ruler */}
       <div className="flex h-8 shrink-0 border-y border-[#E6E6E6]">
         <div className="flex shrink-0 items-center gap-2 px-2" style={{ width: LEFT }}>
-          <button onClick={() => setPlaying(!playing)} title={playing ? 'Pause' : 'Play'}>
+          <button onClick={() => total > 0 && setPlaying(!playing)} title={playing ? 'Pause' : 'Play'}>
             {playing ? <Icon.Pause size={12} /> : <Icon.Play size={12} />}
           </button>
           <Icon.Diamond size={12} />
@@ -164,6 +164,11 @@ export function Timeline({ height, nameWidth: LEFT }: { height: number; nameWidt
 
       {/* Tracks */}
       <div className="min-h-0 flex-1 overflow-y-auto">
+        {state.phase !== 'ready' && (
+          <p className="py-3 text-[11px] text-[#B3B3B3]" style={{ paddingLeft: LEFT + 12 }}>
+            {state.phase === 'animating' ? 'Animating…' : state.phase === 'empty' ? '' : 'Animation tracks appear once you approve the storyboard.'}
+          </p>
+        )}
         {tracks.map((tr) => (
           <div key={tr.id}>
             <div className="flex h-8 border-b border-[#F0F0F0]">

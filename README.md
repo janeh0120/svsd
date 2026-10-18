@@ -7,8 +7,15 @@ npm install
 npm run dev
 ```
 
+## The flow
+1. **Blank project.** Type a prompt in the Agent panel: your product URL and an outline of the reel.
+2. **The agent drafts.** It reads the site, captures screens (shown in the chat), outlines the narrative arc, and fills in the storyboard on the canvas act by act, with copy and screenshots.
+3. **Approve or request changes.** The agent asks "Does this storyboard look right?" Request changes, or comment on frames, cuts or acts, and it asks again.
+4. **The agent animates.** Once you approve, it records the screen flows and animates the frames together. The timeline tracks fill in and ▷ previews the reel.
+
+Everything the agent does is **mocked** (`src/context.tsx`, `src/mock/`). Reload to start over.
+
 ## The editor
-Opens straight into the editor with a drafted storyboard (**mocked** in `src/mock/draft.ts`).
 - **Canvas**: acts side by side in one horizontal row (Introduction, Demo, Features, Build, Outro), each a group of frames. The gap between two frames is the cut.
 - **Left**: **Agent** chat (queued comments and replies) or **Layers** (acts › frames › layers).
 - **Right**: properties for the selection (Animations, Transform, Layout, Appearance, Fill). ▷ at the top opens a preview.

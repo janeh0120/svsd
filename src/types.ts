@@ -58,6 +58,21 @@ export type Pin = {
   reply?: string
 }
 
-export type Message = { id: string; author: 'you' | 'agent'; text: string }
+// Agent chat items: plain text, a working step (like a tool call), captured
+// screenshots, or an approval question the user answers.
+export type Message = {
+  id: string
+  author: 'you' | 'agent'
+  kind?: 'text' | 'step' | 'shots' | 'approval'
+  text: string
+  detail?: string
+  status?: 'running' | 'done'
+  shots?: string[]
+  answer?: 'approved' | 'changes'
+}
+
+// Where the project is: blank → agent drafts the storyboard → user reviews it →
+// agent records and animates → ready to preview and refine.
+export type Phase = 'empty' | 'drafting' | 'review' | 'animating' | 'ready'
 
 export type Mode = 'select' | 'comment'

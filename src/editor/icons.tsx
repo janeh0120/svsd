@@ -163,9 +163,9 @@ export const Icon = {
       <path d="M4 12h16M12 4v16" />
     </Svg>
   ),
-  Wave: (p: P) => (
-    <Svg {...p} strokeWidth={2}>
-      <path d="M6 10v4M9 7v10M12 9v6M15 6v12M18 10v4" />
+  Send: (p: P) => (
+    <Svg {...p} strokeWidth={2.2}>
+      <path d="M12 19V5M6 11l6-6 6 6" />
     </Svg>
   ),
 }

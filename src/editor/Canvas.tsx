@@ -1,3 +1,4 @@
+import { motion } from 'motion/react'
 import { Fragment, useRef, useState } from 'react'
 import { FRAME_H, FRAME_W, cutKey, sameTarget, timing } from '../board'
 import { LayerBody, layerStyle } from '../components/Layer'
@@ -26,7 +27,7 @@ export function Canvas() {
           else if (state.composing) dispatch({ type: 'compose', id: null })
         }}
       >
-        <div className="flex w-max items-start gap-16 px-8 pt-16 pb-24">
+        <div className="flex w-max items-start gap-12 px-8 pt-16 pb-24">
           {state.board.acts.map((act, i) => (
             <ActGroup key={act.id} act={act} prevAct={state.board.acts[i - 1]} />
           ))}
@@ -37,44 +38,55 @@ export function Canvas() {
   )
 }
 
+// An act is a group of frames: label inside the top-left, thin border, and a
+// blue fill and label when selected.
 function ActGroup({ act, prevAct }: { act: Act; prevAct?: Act }) {
   const { state, dispatch, startComment } = useApp()
   const target = { kind: 'act' as const, actId: act.id }
+  const selected = sameTarget(state.selection, target)
   const prevLast = prevAct?.frameIds[prevAct.frameIds.length - 1]
 
+  const pick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (state.mode === 'comment') startComment(target)
+    else dispatch({ type: 'select', target })
+  }
+
   return (
-    <section id={`act-${act.id}`} className="shrink-0 scroll-m-6">
-      <div className="relative mb-3 flex items-center">
-        <h2
-          onClick={(e) => {
-            e.stopPropagation()
-            if (state.mode === 'comment') startComment(target)
-            else dispatch({ type: 'select', target })
-          }}
-          className="cursor-default text-[22px] leading-none font-normal"
-        >
-          {act.name}
-        </h2>
+    <motion.section
+      id={`act-${act.id}`}
+      onClick={pick}
+      className={`relative shrink-0 scroll-m-6 rounded-xl border p-2 pt-0 ${
+        selected ? 'border-[#A6D5F3] bg-[#BEE3F8]' : 'border-[#D9D9D9]'
+      } ${state.mode === 'comment' ? 'hover:border-orange-400' : ''}`}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4, ease: 'easeOut' }}
+    >
+      <div className="flex h-7 items-center px-0.5">
+        <h2 className={`text-[12px] leading-none font-normal ${selected ? 'text-[#1A8CE0]' : 'text-[#5C5C5C]'}`}>{act.name}</h2>
         {pinsFor(state.pins, target).map((p, i) => (
           <PinMarker key={p.id} pin={p} style={{ position: 'relative', marginLeft: i ? 4 : 8 }} />
         ))}
       </div>
-      <div className="relative flex rounded-[20px] border-2 border-[#E6E6E6] bg-white p-12">
-        {/* The cut from the previous act sits in this act's left padding. */}
-        {prevLast && act.frameIds[0] && <Gap from={prevLast} to={act.frameIds[0]} className="absolute top-12 left-1 w-10" />}
+      {/* The cut from the previous act sits in the space between the two groups. */}
+      {prevLast && act.frameIds[0] && <Gap from={prevLast} to={act.frameIds[0]} className="absolute top-7 -left-10 w-8" />}
+      <div className="flex">
         {act.frameIds.map((id, i) => (
           <Fragment key={id}>
             {i > 0 && <Gap from={act.frameIds[i - 1]} to={id} />}
-            <FrameCard frameId={id} />
+            <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15 + i * 0.12, duration: 0.3 }}>
+              <FrameCard frameId={id} />
+            </motion.div>
           </Fragment>
         ))}
       </div>
-    </section>
+    </motion.section>
   )
 }
 
 // The space between two frames is the cut: click it to select or comment on the motion.
-function Gap({ from, to, className = 'relative w-10 shrink-0' }: { from: string; to: string; className?: string }) {
+function Gap({ from, to, className = 'relative w-2 shrink-0' }: { from: string; to: string; className?: string }) {
   const { state, dispatch, startComment } = useApp()
   const key = cutKey(from, to)
   const target = { kind: 'cut' as const, key }
@@ -90,8 +102,14 @@ function Gap({ from, to, className = 'relative w-10 shrink-0' }: { from: string;
         else dispatch({ type: 'select', target })
       }}
       style={{ height: CARD_H }}
-      className={`${className} rounded-lg ${comment ? 'hover:bg-orange-100/60' : selected ? 'bg-[#0D99FF]/10' : ''}`}
+      className={`${className} group/gap`}
     >
+      {/* Hit area is wider than the visible gap so the cut is easy to click. */}
+      <div
+        className={`absolute -inset-x-1 inset-y-0 z-10 rounded ${
+          comment ? 'group-hover/gap:bg-orange-300/50' : selected ? 'bg-[#0D99FF]/40' : 'group-hover/gap:bg-[#0D99FF]/20'
+        }`}
+      />
       {pinsFor(state.pins, target).map((p, i) => (
         <PinMarker key={p.id} pin={p} style={{ top: CARD_H / 2, left: 8 + i * 26, transform: 'translateY(-100%)' }} />
       ))}
@@ -162,7 +180,7 @@ function FrameCard({ frameId }: { frameId: string }) {
       className={`relative shrink-0 rounded-lg ${frameSelected || playing ? 'outline-2 outline-[#0D99FF]' : ''}`}
       style={{ width: CARD_W, height: CARD_H }}
     >
-      <div className="absolute inset-0 overflow-hidden rounded-lg ring-1 ring-black/5" onClick={onFrameClick}>
+      <div className="absolute inset-0 overflow-hidden rounded-lg ring-1 ring-white" onClick={onFrameClick}>
         <div
           ref={inner}
           className="absolute top-0 left-0 origin-top-left"

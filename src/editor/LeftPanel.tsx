@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { order, sameTarget, targetLabel } from '../board'
 import { domId, useApp } from '../context'
-import type { Layer, Target } from '../types'
+import type { Layer, Message, Target } from '../types'
 import { Icon } from './icons'
 
 export function LeftPanel({ width }: { width: number }) {
@@ -44,9 +44,7 @@ function AgentPanel() {
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-2">
         {state.messages.map((m) => (
-          <div key={m.id} className={`flex ${m.author === 'you' ? 'justify-end' : ''}`}>
-            <p className={`max-w-[90%] rounded-lg px-2 py-1.5 whitespace-pre-line ${m.author === 'you' ? 'bg-[#F0F0F0]' : ''}`}>{m.text}</p>
-          </div>
+          <ChatItem key={m.id} m={m} />
         ))}
         {state.working && <p className="animate-pulse text-[11px] text-[#8C8C8C]">Working…</p>}
         <div ref={end} />
@@ -86,7 +84,7 @@ function AgentPanel() {
             onChange={(e) => {
               const v = e.target.value
               // "@ for context": typing @ lets you point at something on the canvas.
-              if (v.endsWith('@') && state.mode !== 'comment') dispatch({ type: 'mode', mode: 'comment' })
+              if (v.endsWith('@') && state.board.acts.length && state.mode !== 'comment') dispatch({ type: 'mode', mode: 'comment' })
               setText(v)
             }}
             onKeyDown={(e) => {
@@ -95,7 +93,8 @@ function AgentPanel() {
                 submit()
               }
             }}
-            placeholder="Plan, Build, / for skills, @ for context"
+            disabled={state.phase === 'drafting' || state.phase === 'animating'}
+            placeholder={state.phase === 'empty' ? 'Paste your product URL and an outline of the reel' : 'Plan, Build, / for skills, @ for context'}
             className="min-h-0 w-full flex-1 resize-none outline-none placeholder:text-[#B3B3B3]"
           />
           <div className="flex items-center justify-between">
@@ -103,11 +102,70 @@ function AgentPanel() {
               <Icon.Plus size={12} />
             </button>
             <button onClick={submit} className="flex size-5 items-center justify-center rounded-full bg-[#1E1E1E] text-white">
-              <Icon.Wave size={12} />
+              <Icon.Send size={12} />
             </button>
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+function ChatItem({ m }: { m: Message }) {
+  const { answer } = useApp()
+
+  if (m.kind === 'step') {
+    return (
+      <div className="flex items-start gap-2 px-2">
+        {m.status === 'running' ? (
+          <span className="mt-0.5 size-3 shrink-0 animate-spin rounded-full border-[1.5px] border-[#D9D9D9] border-t-[#1E1E1E]" />
+        ) : (
+          <span className="mt-0.5 flex size-3 shrink-0 items-center justify-center rounded-full bg-[#1E1E1E] text-[8px] text-white">✓</span>
+        )}
+        <div className="min-w-0">
+          <p className={m.status === 'running' ? '' : 'text-[#8C8C8C]'}>{m.text}</p>
+          {m.detail && <p className="text-[11px] text-[#8C8C8C]">{m.detail}</p>}
+        </div>
+      </div>
+    )
+  }
+
+  if (m.kind === 'shots') {
+    return (
+      <div className="grid grid-cols-3 gap-1 px-2">
+        {m.shots?.map((src) => (
+          <img key={src} src={src} className="aspect-[1.6] w-full rounded border border-[#E6E6E6] bg-[#F5F5F5] object-contain" />
+        ))}
+      </div>
+    )
+  }
+
+  if (m.kind === 'approval') {
+    return (
+      <div className="rounded-lg border border-[#E6E6E6] p-2">
+        <p className="font-medium">{m.text}</p>
+        <p className="mt-0.5 text-[11px] text-[#8C8C8C]">Once you approve, I'll record the screen flows and animate the frames together.</p>
+        {m.answer ? (
+          <p className="mt-2 text-[11px] text-[#8C8C8C]">{m.answer === 'approved' ? '✓ Approved, continuing' : 'Changes requested'}</p>
+        ) : (
+          <div className="mt-2 space-y-1">
+            <button onClick={() => answer(m.id, 'approved')} className="flex h-7 w-full items-center gap-2 rounded-md bg-[#1E1E1E] px-2 text-left font-medium text-white">
+              <span className="text-[11px] text-white/60">1</span>
+              Yes, continue
+            </button>
+            <button onClick={() => answer(m.id, 'changes')} className="flex h-7 w-full items-center gap-2 rounded-md border border-[#E6E6E6] px-2 text-left hover:bg-[#F5F5F5]">
+              <span className="text-[11px] text-[#8C8C8C]">2</span>
+              No, request changes
+            </button>
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  return (
+    <div className={`flex ${m.author === 'you' ? 'justify-end' : ''}`}>
+      <p className={`max-w-[90%] rounded-lg px-2 py-1.5 whitespace-pre-line ${m.author === 'you' ? 'bg-[#F0F0F0]' : ''}`}>{m.text}</p>
     </div>
   )
 }
