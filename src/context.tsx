@@ -3,7 +3,7 @@ import { FRAME_H, FRAME_W, order, targetLabel, timing, uid } from './board'
 import { agentRespond } from './mock/agent'
 import { mockDraft } from './mock/draft'
 import { initialState, reducer, type Action, type State } from './store'
-import type { Message, Target } from './types'
+import type { Answer, Message, Target } from './types'
 
 type Ctx = {
   state: State
@@ -11,7 +11,7 @@ type Ctx = {
   startComment: (target: Target, at?: { x: number; y: number }) => void
   send: () => void
   chat: (text: string) => void
-  answer: (messageId: string, answer: 'approved' | 'changes') => void
+  answer: (messageId: string, question: number, answer: Answer) => void
 }
 
 const AppContext = createContext<Ctx | null>(null)
@@ -44,7 +44,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   )
 
   const askApproval = useCallback(() => {
-    say({ author: 'agent', kind: 'approval', text: 'Does this storyboard look right?' })
+    say({
+      author: 'agent',
+      kind: 'question',
+      purpose: 'approval',
+      text: '',
+      questions: [{ text: 'Does this storyboard look right?', options: ['Yes, continue', 'No, request changes'] }],
+    })
   }, [say])
 
   // Blank project → the agent reads the site, captures screens, outlines the
@@ -81,7 +87,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await sleep(400)
       say({
         author: 'agent',
-        text: `Here's the first storyboard: ${draft.acts.length} acts and ${order(draft).length} frames. Have a look on the canvas. You can comment on any frame, cut or act (C or @) before I continue.`,
+        text: `Here's the first storyboard: ${draft.acts.length} acts and ${order(draft).length} frames. Have a look on the canvas. You can comment on any frame, cut or act (C or @). Once you approve, I'll record the screen flows and animate the frames together.`,
       })
       dispatch({ type: 'phase', phase: 'review' })
       askApproval()
@@ -104,17 +110,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
     })
   }, [step, say])
 
+  // Record the answer on the card, then act on it. Only the approval
+  // question has behavior today; other cards just keep the answers.
   const answer = useCallback(
-    (messageId: string, a: 'approved' | 'changes') => {
-      dispatch({ type: 'messageUpdate', id: messageId, patch: { answer: a } })
-      if (a === 'approved') animate()
-      else
+    (messageId: string, question: number, a: Answer) => {
+      const m = latest.current.messages.find((x) => x.id === messageId)
+      if (!m) return
+      const answers = [...(m.answers ?? [])]
+      answers[question] = a
+      dispatch({ type: 'messageUpdate', id: messageId, patch: { answers } })
+      if (m.purpose !== 'approval') return
+
+      if (a !== 'skip' && 'option' in a && a.option === 0) animate()
+      else if (a !== 'skip' && 'option' in a)
         say({
           author: 'agent',
           text: 'What should change? Point at a frame, a cut or an act (press C or type @) and leave a comment, or describe it here.',
         })
+      else if (a !== 'skip') {
+        // "Something else": treat it as feedback on the storyboard, then ask again.
+        setTimeout(() => {
+          say({ author: 'agent', text: "Noted. I'll fold that into the storyboard." })
+          askApproval()
+        }, 700)
+      } else say({ author: 'agent', text: 'No problem. Tell me when you want me to continue.' })
     },
-    [animate, say],
+    [animate, say, askApproval],
   )
 
   // Drop a draft pin on a target and open its composer.

@@ -163,6 +163,26 @@ export const Icon = {
       <path d="M4 12h16M12 4v16" />
     </Svg>
   ),
+  Pencil: (p: P) => (
+    <Svg {...p}>
+      <path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z" />
+    </Svg>
+  ),
+  ArrowRight: (p: P) => (
+    <Svg {...p}>
+      <path d="M5 12h14M13 6l6 6-6 6" />
+    </Svg>
+  ),
+  ChevronLeft: (p: P) => (
+    <Svg {...p}>
+      <path d="M15 6l-6 6 6 6" />
+    </Svg>
+  ),
+  ChevronRight: (p: P) => (
+    <Svg {...p}>
+      <path d="M9 6l6 6-6 6" />
+    </Svg>
+  ),
   Send: (p: P) => (
     <Svg {...p} strokeWidth={2.2}>
       <path d="M12 19V5M6 11l6-6 6 6" />

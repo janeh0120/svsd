@@ -58,17 +58,25 @@ export type Pin = {
   reply?: string
 }
 
+export type Question = { text: string; options: string[] }
+
+// What the user did with a question: picked an option, typed their own
+// answer, or skipped it.
+export type Answer = { option: number } | { text: string } | 'skip'
+
 // Agent chat items: plain text, a working step (like a tool call), captured
-// screenshots, or an approval question the user answers.
+// screenshots, or a card of questions the user answers one by one.
 export type Message = {
   id: string
   author: 'you' | 'agent'
-  kind?: 'text' | 'step' | 'shots' | 'approval'
+  kind?: 'text' | 'step' | 'shots' | 'question'
   text: string
   detail?: string
   status?: 'running' | 'done'
   shots?: string[]
-  answer?: 'approved' | 'changes'
+  purpose?: 'approval'
+  questions?: Question[]
+  answers?: Answer[]
 }
 
 // Where the project is: blank → agent drafts the storyboard → user reviews it →

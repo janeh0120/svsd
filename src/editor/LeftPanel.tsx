@@ -3,6 +3,7 @@ import { order, sameTarget, targetLabel } from '../board'
 import { domId, useApp } from '../context'
 import type { Layer, Message, Target } from '../types'
 import { Icon } from './icons'
+import { QuestionCard } from './QuestionCard'
 
 export function LeftPanel({ width }: { width: number }) {
   const { state, dispatch } = useApp()
@@ -112,8 +113,6 @@ function AgentPanel() {
 }
 
 function ChatItem({ m }: { m: Message }) {
-  const { answer } = useApp()
-
   if (m.kind === 'step') {
     return (
       <div className="flex items-start gap-2 px-2">
@@ -140,28 +139,7 @@ function ChatItem({ m }: { m: Message }) {
     )
   }
 
-  if (m.kind === 'approval') {
-    return (
-      <div className="rounded-lg border border-[#E6E6E6] p-2">
-        <p className="font-medium">{m.text}</p>
-        <p className="mt-0.5 text-[11px] text-[#8C8C8C]">Once you approve, I'll record the screen flows and animate the frames together.</p>
-        {m.answer ? (
-          <p className="mt-2 text-[11px] text-[#8C8C8C]">{m.answer === 'approved' ? '✓ Approved, continuing' : 'Changes requested'}</p>
-        ) : (
-          <div className="mt-2 space-y-1">
-            <button onClick={() => answer(m.id, 'approved')} className="flex h-7 w-full items-center gap-2 rounded-md bg-[#1E1E1E] px-2 text-left font-medium text-white">
-              <span className="text-[11px] text-white/60">1</span>
-              Yes, continue
-            </button>
-            <button onClick={() => answer(m.id, 'changes')} className="flex h-7 w-full items-center gap-2 rounded-md border border-[#E6E6E6] px-2 text-left hover:bg-[#F5F5F5]">
-              <span className="text-[11px] text-[#8C8C8C]">2</span>
-              No, request changes
-            </button>
-          </div>
-        )}
-      </div>
-    )
-  }
+  if (m.kind === 'question') return <QuestionCard m={m} />
 
   return (
     <div className={`flex ${m.author === 'you' ? 'justify-end' : ''}`}>

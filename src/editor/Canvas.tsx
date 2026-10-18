@@ -177,10 +177,10 @@ function FrameCard({ frameId }: { frameId: string }) {
   return (
     <div
       id={`frame-${frameId}`}
-      className={`relative shrink-0 rounded-lg ${frameSelected || playing ? 'outline-2 outline-[#0D99FF]' : ''}`}
+      className={`relative shrink-0 ${frameSelected || playing ? 'outline-2 outline-[#0D99FF]' : ''}`}
       style={{ width: CARD_W, height: CARD_H }}
     >
-      <div className="absolute inset-0 overflow-hidden rounded-lg ring-1 ring-white" onClick={onFrameClick}>
+      <div className="absolute inset-0 overflow-hidden ring-1 ring-white" onClick={onFrameClick}>
         <div
           ref={inner}
           className="absolute top-0 left-0 origin-top-left"

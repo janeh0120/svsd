@@ -6,9 +6,10 @@ import { LeftPanel } from './LeftPanel'
 import { PropertiesPanel } from './PropertiesPanel'
 import { Timeline } from './Timeline'
 
-const DEFAULTS = { left: 240, right: 248, bottom: 220 }
+// Both sidebars start at the same width; each can be resized on its own.
+const DEFAULTS = { left: 240, right: 240, bottom: 220 }
 type Sizes = typeof DEFAULTS
-const KEY = 'svsd.panel-sizes'
+const KEY = 'svsd.panel-sizes.v3'
 
 // Panel sizes are a per-viewer convenience, so they live in localStorage.
 function usePanelSizes() {
@@ -55,7 +56,7 @@ export function Editor() {
     <div className="flex h-screen flex-col overflow-hidden bg-white text-[12px] text-[#1E1E1E]">
       <div className="flex min-h-0 flex-1">
         <LeftPanel width={sizes.left} />
-        <Resizer axis="x" value={sizes.left} min={180} max={420} sign={1} onChange={set('left')} onReset={() => set('left')(DEFAULTS.left)} />
+        <Resizer axis="x" value={sizes.left} min={200} max={420} sign={1} onChange={set('left')} onReset={() => set('left')(DEFAULTS.left)} />
         <Canvas />
         <Resizer axis="x" value={sizes.right} min={200} max={420} sign={-1} onChange={set('right')} onReset={() => set('right')(DEFAULTS.right)} />
         <PropertiesPanel width={sizes.right} />
