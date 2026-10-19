@@ -100,7 +100,7 @@ function AgentPanel() {
             </button>
             <button title="Video length" className="flex h-5 items-center gap-1 rounded-md px-1 text-[11px] text-muted hover:bg-control-hover">
               <Icon.Clock size={12} />
-              30s
+              1m
             </button>
             <button
               onClick={submit}

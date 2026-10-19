@@ -5,7 +5,7 @@ import { Icon } from './icons'
 // Each property cycles through its options on click. They only shape the brief for now.
 const ASPECTS = ['16:9', '9:16', '1:1', '4:5']
 const RESOLUTIONS = ['720p', '1080p', '4K']
-const LENGTHS = ['15s', '30s', '60s']
+const LENGTHS = ['15s', '1m', '2m']
 const AUDIO = ['Off', 'On']
 const VARIATIONS = ['1', '2', '3', '4']
 
