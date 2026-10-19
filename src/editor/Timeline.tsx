@@ -6,6 +6,8 @@ import type { Target } from '../types'
 import { Icon } from './icons'
 import { PinMarker } from './Pin'
 
+// Room either side of the reel so the playhead pill stays centred on its line at 0 and at the end.
+const EDGE = 24
 const ACCENT = 'var(--accent)' // lime: the act under the playhead
 const ACCENT_LINE = 'var(--accent-line)' // lime strokes: playhead, selected clip
 const THUMB_H = 28
@@ -28,7 +30,7 @@ export function Timeline({ height }: { height: number }) {
 
   useEffect(() => {
     if (!area.current) return
-    const ro = new ResizeObserver(([e]) => setWidth(e.contentRect.width))
+    const ro = new ResizeObserver(([e]) => setWidth(e.contentRect.width - 2 * EDGE))
     ro.observe(area.current)
     return () => ro.disconnect()
   }, [])
@@ -236,6 +238,7 @@ export function Timeline({ height }: { height: number }) {
 
       {/* Ruler, acts and thumbnails share one horizontal scroll */}
       <div ref={area} className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden">
+        <div style={{ width: contentW + 2 * EDGE, paddingInline: EDGE }}>
         <div ref={content} className="relative" style={{ width: contentW }}>
           <div className={`relative h-8 ${comment ? 'cursor-ai hover:bg-accent-soft' : 'cursor-pointer'}`} onPointerDown={scrub}>
             {ticks.map((s) => {
@@ -314,13 +317,13 @@ export function Timeline({ height }: { height: number }) {
             <div className="pointer-events-none absolute top-0 bottom-0" style={{ left: x(playhead) }}>
               <div
                 className="absolute top-1 flex h-5 -translate-x-1/2 items-center rounded-full bg-accent px-2 text-[11px] font-medium text-on-accent tabular-nums"
-                style={{ marginLeft: x(playhead) < 22 ? 22 - x(playhead) : x(playhead) > contentW - 22 ? contentW - 22 - x(playhead) : 0 }}
               >
                 {(playhead / 1000).toFixed(2)}
               </div>
               <div className="absolute top-[22px] bottom-0 left-0 w-px" style={{ background: ACCENT_LINE }} />
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>
