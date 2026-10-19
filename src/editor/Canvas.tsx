@@ -1,7 +1,8 @@
 import { motion } from 'motion/react'
 import { Fragment, createContext, useContext, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { DEFAULT_CUT, FRAME_H, FRAME_W, cutKey, cutMs, cutTransition, frameTitle, getCut, order, sameTarget, timing } from '../board'
-import { LayerBody, layerBox, layerStyle } from '../components/Layer'
+import { LayerBody, arrival, layerBox, layerStyle } from '../components/Layer'
+import { onZoomRequest, publishZoom } from './canvasZoom'
 import { useApp } from '../context'
 import { pinsFor } from '../store'
 import type { Act, Layer } from '../types'
@@ -148,8 +149,21 @@ export function Canvas() {
       setZoom(next)
     }
     el.addEventListener('wheel', onWheel, { passive: false })
-    return () => el.removeEventListener('wheel', onWheel)
+    // The zoom menu in the right panel asks for an exact zoom.
+    const stopRequests = onZoomRequest((z) => {
+      const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, z))
+      if (next === zoomRef.current) return
+      anchor.current ??= { fx: (el.scrollLeft + el.clientWidth / 2) / el.scrollWidth, fy: (el.scrollTop + el.clientHeight / 2) / el.scrollHeight }
+      zoomRef.current = next
+      setZoom(next)
+    })
+    return () => {
+      el.removeEventListener('wheel', onWheel)
+      stopRequests()
+    }
   }, [])
+
+  useEffect(() => publishZoom(zoom), [zoom])
 
   useLayoutEffect(() => {
     const el = scroller.current!
@@ -173,9 +187,9 @@ export function Canvas() {
         ref={scroller}
         className={`h-full overflow-auto ${
           comment
-            ? 'cursor-crosshair select-none shadow-[inset_0_0_0_2px_var(--accent-line)] [&_*]:cursor-crosshair!'
+            ? 'cursor-ai select-none shadow-[inset_0_0_0_2px_var(--accent-line)] [&_*]:cursor-ai!'
             : hand
-              ? `select-none ${panning ? '[&_*]:cursor-grabbing!' : '[&_*]:cursor-grab!'}`
+              ? `select-none ${panning ? '[&_*]:cursor-hand-grabbing!' : '[&_*]:cursor-hand!'}`
               : ''
         }`}
         onPointerDownCapture={(e) => {
@@ -251,14 +265,14 @@ function ActGroup({ act, prevAct }: { act: Act; prevAct?: Act }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
     >
-      <div className="flex h-7 items-center px-0.5">
+      <div className="mb-3 flex h-7 items-center px-0.5">
         <h2 className={`text-[13px] leading-none font-normal ${selected ? 'text-accent-text' : 'text-muted'}`}>{act.name}</h2>
         {pinsFor(state.pins, target).map((p, i) => (
           <PinMarker key={p.id} pin={p} style={{ position: 'relative', marginLeft: i ? 4 : 8 }} />
         ))}
       </div>
       {/* The cut from the previous act runs across the space between the two groups. */}
-      {prevLast && act.frameIds[0] && <Connector from={prevLast} to={act.frameIds[0]} className="absolute top-9 -left-12" width={48} />}
+      {prevLast && act.frameIds[0] && <Connector from={prevLast} to={act.frameIds[0]} className="absolute top-[48px] -left-12" width={48} />}
       <div className="flex">
         {act.frameIds.map((id, i) => (
           <Fragment key={id}>
@@ -304,7 +318,10 @@ function Connector({
   const x0 = -inset
   const x1 = width + inset
   // Starts at the middle of the nub, so the wire never pokes out past it.
-  const wire = `M${x0 + 2} ${y0} C ${mid} ${y0}, ${mid} ${y1}, ${x1} ${y1}`
+  // The tip stops short of the box edge by the card's 1px ring plus half the stroke (round join), so its outer edge just touches.
+  const sw = selected ? 3 : 1
+  const tip = x1 - 1 - sw / 2
+  const wire = `M${x0 + 2} ${y0} C ${mid} ${y0}, ${mid} ${y1}, ${tip} ${y1}`
 
   const pick = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -327,7 +344,7 @@ function Connector({
             <stop offset="1" stopColor="var(--ink)" />
           </linearGradient>
         </defs>
-        <path d={wire} fill="none" stroke={selected ? `url(#${gradient})` : 'var(--line)'} strokeWidth={selected ? 3 : 1} />
+        <path d={wire} fill="none" stroke={selected ? `url(#${gradient})` : 'var(--line)'} strokeWidth={sw} />
         {/* Wide invisible stroke so the whole wire is easy to hit. */}
         <path d={wire} fill="none" stroke="transparent" strokeWidth={16} style={{ pointerEvents: 'stroke', cursor: 'pointer' }} onClick={pick}>
           <title>Edit the animation between these frames</title>
@@ -335,10 +352,10 @@ function Connector({
         <rect x={x0} y={y0 - 5} width={4} height={10} rx={2} fill={selected ? 'var(--ink)' : 'var(--line)'} />
         {/* Every cut ends in an arrowhead. */}
         <path
-          d={`M${x1 - 6} ${y1 - 5} L${x1} ${y1} L${x1 - 6} ${y1 + 5}`}
+          d={`M${tip - 6} ${y1 - 5} L${tip} ${y1} L${tip - 6} ${y1 + 5}`}
           fill="none"
           stroke={selected ? 'var(--accent)' : 'var(--line)'}
-          strokeWidth={selected ? 3 : 1}
+          strokeWidth={sw}
           strokeLinecap="round"
           strokeLinejoin="round"
         />
@@ -429,7 +446,7 @@ function FrameCard({ frameId }: { frameId: string }) {
     >
       <div className="flex h-7 items-center gap-1.5 px-0.5 text-[12px]" style={{ width: CARD_W }}>
         <span className={`font-medium ${frameSelected ? 'text-accent-text' : 'text-muted'}`}>{n}</span>
-        <span className={`min-w-0 flex-1 truncate ${frameSelected ? 'text-accent-text' : 'text-ink'}`}>{frameTitle(frame)}</span>
+        <span className={`mr-3 min-w-0 flex-1 truncate ${frameSelected ? 'text-accent-text' : 'text-ink'}`}>{frameTitle(frame)}</span>
         {span && (
           <span className={`shrink-0 text-[11px] tabular-nums ${frameSelected ? 'text-accent-text' : 'text-muted'}`}>
             {`${span.from.toFixed(1)}\u00a0–\u00a0${span.to.toFixed(1)}s\u00a0\u00a0\u00a0·\u00a0\u00a0\u00a0${(span.to - span.from).toFixed(1)}s`}
@@ -441,7 +458,7 @@ function FrameCard({ frameId }: { frameId: string }) {
             dispatch({ type: 'preview', open: true, from: frameId })
           }}
           title="Preview from this frame"
-          className={`flex size-4 shrink-0 items-center justify-center rounded-full ${frameSelected ? 'bg-accent text-on-accent' : 'bg-ink text-surface'}`}
+          className={`flex size-4 shrink-0 items-center justify-center rounded-full ${frameSelected ? 'bg-accent text-on-accent' : 'bg-secondary-container text-on-secondary-container'}`}
         >
           <Icon.Play size={7} fill="currentColor" className="ml-px" />
         </button>
@@ -507,13 +524,15 @@ function CutIn({ frameId }: { frameId: string }) {
       {frame.layers.map((l) => {
         // The same layer in the previous frame morphs; a recording or a new picture arrives fresh.
         const before = prev?.layers.find((p) => p.id === l.id && l.kind !== 'video' && (l.kind !== 'image' || p.src === l.src))
-        const initial = instant ? layerBox(l) : before ? layerBox(before) : { ...layerBox(l), opacity: 0, top: dissolve ? l.y : l.y + 24 }
+        const initial = instant ? layerBox(l) : before
+            ? layerBox(before)
+            : (arrival(l) ?? { ...layerBox(l), opacity: 0, top: dissolve ? l.y : l.y + 24 })
         const from = l.text?.startsWith(before?.text ?? '') ? (before?.text ?? '') : ''
         const chars = (l.text?.length ?? 0) - from.length
         const window = prev ? cutMs(cut) : frame.hold * 1000 * 0.75
         const typing = l.typing ? { from, delay: 100, duration: Math.min(Math.max(300, window - 200), chars * 70) } : undefined
         return (
-          <motion.div key={l.id} className="pointer-events-none absolute" initial={initial} animate={layerBox(l)} transition={transition}>
+          <motion.div key={l.id} className="pointer-events-none absolute" initial={initial} animate={layerBox(l)} transition={l.delay ? { ...transition, delay: l.delay } : transition}>
             <LayerBody layer={l} playing typing={typing} />
           </motion.div>
         )

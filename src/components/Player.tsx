@@ -4,7 +4,7 @@ import { DEFAULT_CAMERA, DEFAULT_CUT, FRAME_H, FRAME_W, cutMs, cutTransition, ge
 import { Icon } from '../editor/icons'
 import { useApp } from '../context'
 import type { Storyboard } from '../types'
-import { LayerBody, layerBox } from './Layer'
+import { LayerBody, arrival, departure, layerBox } from './Layer'
 
 // Width of an element that may mount later (the stage only exists once there are frames).
 function useWidth<T extends HTMLElement>() {
@@ -83,7 +83,7 @@ export function Player({ board, autoPlay = false, compact = false, startId }: { 
     <div
       ref={ref}
       onClick={annotate}
-      className={`group/stage relative overflow-hidden ${comment ? 'cursor-crosshair' : ''}`}
+      className={`group/stage relative overflow-hidden ${comment ? 'cursor-ai' : ''}`}
       style={{ height: (width * FRAME_H) / FRAME_W }}
     >
       {comment && (
@@ -114,10 +114,10 @@ export function Player({ board, autoPlay = false, compact = false, startId }: { 
                 key={dissolve ? `${frame.id}:${l.id}` : l.kind === 'image' ? `${l.id}:${l.src}` : l.kind === 'video' ? `${frame.id}:${l.id}` : l.id}
                 className={`absolute ${comment ? 'hover:outline-2 hover:outline-dashed hover:outline-accent-line' : ''}`}
                 data-layer={l.id}
-                initial={{ ...layerBox(l), opacity: 0, y: dissolve ? 0 : 24 }}
+                initial={arrival(l) ?? { ...layerBox(l), opacity: 0, y: dissolve ? 0 : 24 }}
                 animate={{ ...layerBox(l), y: 0 }}
-                exit={{ opacity: 0, transition: { duration: dissolve ? cutMs(cut) / 1000 : 0.35 } }}
-                transition={transition}
+                exit={{ opacity: 0, ...departure(l), transition: { duration: l.exit && dissolve ? Math.max(0.2, cutMs(cut) / 1000 - (l.exitDelay ?? 0)) : dissolve ? cutMs(cut) / 1000 : 0.35, delay: l.exitDelay ?? 0 } }}
+                transition={l.delay ? { ...transition, delay: l.delay } : transition}
               >
                 <LayerBody layer={l} playing={playing} typing={l.typing ? typingFor(l) : undefined} />
               </motion.div>

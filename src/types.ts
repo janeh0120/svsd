@@ -2,6 +2,21 @@ export type Feel = 'snappy' | 'smooth' | 'bouncy' | 'cinematic'
 
 // Layers live in a 1440×900 frame. A layer keeps its id across frames, so
 // playback can move it from one frame to the next (like Magic Move).
+export type EnterPreset =
+  | 'rise'
+  | 'fade'
+  | 'slide-up'
+  | 'slide-down'
+  | 'slide-left'
+  | 'slide-right'
+  | 'grow'
+  | 'shrink'
+  | 'spin'
+  | 'twist'
+  | 'blur'
+  | 'blur-scale'
+  | 'blur-slide'
+
 export type Layer = {
   id: string
   name: string
@@ -28,6 +43,10 @@ export type Layer = {
   start?: number // video: seconds into the clip where this frame begins
   typing?: boolean // text: types itself out in the preview, continuing from the previous frame's text
   shadow?: boolean
+  enter?: EnterPreset // how it arrives when new in a frame (Jitter-style presets); default rise
+  exit?: EnterPreset // how it leaves when the next frame drops it, when that cut is played in the preview; default fade
+  exitDelay?: number // seconds after the cut starts before this layer leaves, for staggered exits
+  delay?: number // seconds after the cut starts before this layer moves, for staggered arrivals
 }
 
 // Where the camera looks in a frame, in 0–1 units of the frame. The box keeps

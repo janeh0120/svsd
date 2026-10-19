@@ -1,5 +1,5 @@
 import { arrayMove } from '@dnd-kit/sortable'
-import { DEFAULT_CUT, sameTarget, uid } from './board'
+import { DEFAULT_CUT, sameTarget, timing, uid } from './board'
 import type { Cut, Frame, Layer, Message, Mode, Phase, Pin, Storyboard, Target } from './types'
 
 export type State = {
@@ -65,8 +65,12 @@ export function reducer(state: State, action: Action): State {
       return { ...state, board: action.board }
     case 'messageUpdate':
       return { ...state, messages: state.messages.map((m) => (m.id === action.id ? { ...m, ...action.patch } : m)) }
-    case 'select':
-      return { ...state, selection: action.target }
+    case 'select': {
+      // Selecting a frame (or something in it) moves the playhead to the moment that frame lands.
+      const t = action.target
+      const at = t && (t.kind === 'frame' || t.kind === 'layer') ? timing(board).frames.find((f) => f.id === t.frameId) : undefined
+      return { ...state, selection: t, playhead: at ? at.start : state.playhead }
+    }
     case 'mode':
       // Leaving comment mode throws away a half-typed comment.
       return { ...state, mode: action.mode, pins: dropDrafts(state.pins), composing: null }

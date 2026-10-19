@@ -278,13 +278,20 @@ function Dropdown({ value, options, onChange, full = false }: { value: string; o
   )
 }
 
+// A fill or color: a hex gets a picker and its code; a gradient (or any other CSS background) shows
+// a swatch of itself and its kind, never the raw CSS.
 function ColorRow({ value, onChange, onRemove }: { value: string; onChange: (c: string) => void; onRemove?: () => void }) {
+  const hex = /^#[0-9a-f]{6}$/i.test(value)
   return (
     <div className="flex items-center gap-1">
-      <label className="flex h-7 flex-1 items-center gap-2 rounded-md bg-control px-2">
-        <input type="color" value={value} onChange={(e) => onChange(e.target.value)} className="size-4 cursor-pointer rounded border-0 bg-transparent p-0" />
-        <span className="flex-1">{value.replace('#', '').toUpperCase()}</span>
-        <span className="border-l border-line pl-2 text-ink">
+      <label className="flex h-7 min-w-0 flex-1 items-center gap-2 rounded-md bg-control px-2">
+        {hex ? (
+          <input type="color" value={value} onChange={(e) => onChange(e.target.value)} className="size-4 cursor-pointer rounded border-0 bg-transparent p-0" />
+        ) : (
+          <span className="size-4 shrink-0 rounded border border-line" style={{ background: value }} />
+        )}
+        <span className="min-w-0 flex-1 truncate">{hex ? value.replace('#', '').toUpperCase() : value.includes('gradient(') ? 'Gradient' : 'Custom'}</span>
+        <span className="shrink-0 border-l border-line pl-2 text-ink">
           100 <span className="text-muted">%</span>
         </span>
       </label>

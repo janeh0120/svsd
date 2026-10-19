@@ -28,9 +28,10 @@ Everything the agent does is **mocked** (`src/context.tsx`, `src/mock/`). Reload
 - **Bottom**: the timeline: transport controls, a ruler, act blocks and frame thumbnails, all sized by duration, across the full width. Click an act or thumbnail to jump there; zoom with the slider. **Trim** like a video editor: drag a thumbnail's right edge to change how long the frame holds, its left edge to change the cut into it, or an act's right edge to stretch the whole act. Later clips ripple along.
 
 ## Brand and color
-Colors are **roles**, not hex values: `canvas`, `surface`, `raised`, `control`, `ink`, `muted`, `subtle`, `line`, `accent` (lime), `on-accent` (lime ink), `accent-soft`, `accent-line`, `accent-text`, `inverse`. The product is **dark only**. They're defined once in `src/index.css` and used as Tailwind classes (`bg-surface`, `text-muted`, `bg-accent text-on-accent`…).
-- **Dark is not inverted light**: tinted near-black surfaces (never #000) that get lighter as they rise, off-white text (never #fff), a softer lime, almost no shadows.
+Colors are **roles**, not hex values: `canvas`, `surface`, `raised`, `control`, `ink`, `muted`, `subtle`, `line`, `accent` (lime), `on-accent` (lime ink), `accent-soft`, `accent-line`, `accent-text`, `secondary` (soft pink #F3C9D5), `on-secondary`, `secondary-container`, `on-secondary-container`, `inverse`. The product is **dark only**. They're defined once in `src/index.css` and used as Tailwind classes (`bg-surface`, `text-muted`, `bg-accent text-on-accent`…).
+- **Dark is not inverted light**: rose-tinted near-black surfaces (never #000; Material 3 neutral tones at the secondary's hue) that get lighter as they rise, off-white text (never #fff), a softer lime, almost no shadows.
 - **Lime is the one on/active signal**: at most one lime fill per region (the primary action, the act under the playhead, the active tool, the selected frame). Inactive controls are tonal grey.
+- **Secondary pink** (`secondary` / `on-secondary`, and the tonal `secondary-container` / `on-secondary-container`) supports lime: use it for non-primary emphasis, never as a second competing active signal.
 - Every text-on-fill pair is at least 4.5:1, and lime ink on lime is 10:1 or better.
 
 ## Commenting (inline prompting)

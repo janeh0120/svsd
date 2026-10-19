@@ -200,7 +200,7 @@ export function Timeline({ height }: { height: number }) {
           <button
             onClick={() => total > 0 && setPlaying(!playing)}
             title={playing ? 'Pause' : 'Play'}
-            className="flex size-7 items-center justify-center rounded-full bg-ink text-surface"
+            className="flex size-7 items-center justify-center rounded-full bg-secondary text-on-secondary"
           >
             {playing ? <Icon.Pause size={12} /> : <Icon.Play size={11} fill="currentColor" />}
           </button>
@@ -237,7 +237,7 @@ export function Timeline({ height }: { height: number }) {
       {/* Ruler, acts and thumbnails share one horizontal scroll */}
       <div ref={area} className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden">
         <div ref={content} className="relative" style={{ width: contentW }}>
-          <div className={`relative h-8 ${comment ? 'cursor-crosshair hover:bg-accent-soft' : 'cursor-pointer'}`} onPointerDown={scrub}>
+          <div className={`relative h-8 ${comment ? 'cursor-ai hover:bg-accent-soft' : 'cursor-pointer'}`} onPointerDown={scrub}>
             {ticks.map((s) => {
               const major = Math.abs(s / step - Math.round(s / step)) < 1e-6
               return (

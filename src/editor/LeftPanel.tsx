@@ -10,10 +10,10 @@ import { StartForm } from './StartForm'
 export function LeftPanel({ width }: { width: number }) {
   return (
     <aside className="flex shrink-0 flex-col bg-surface" style={{ width }}>
-      {/* App bar: logo (placeholder) and the file name */}
+      {/* App bar: the Sequence logo and the file name */}
       <div className="flex h-10 shrink-0 items-center">
         <div className="flex h-full w-10 shrink-0 items-center justify-center">
-          <span className="size-5 rounded-md border border-dashed border-line-strong bg-control" title="Logo" />
+          <img src="/sequence-logo.svg" alt="Sequence" title="Sequence" draggable={false} className="h-5 w-auto select-none" />
         </div>
         <button className="flex min-w-0 items-center gap-1.5 px-3 font-display text-[13px] font-semibold">
           <span className="truncate">Design File</span>
@@ -152,7 +152,7 @@ function ChatItem({ m }: { m: Message }) {
         {m.status === 'running' ? (
           <span className="mt-0.5 size-3 shrink-0 animate-spin rounded-full border-[1.5px] border-line border-t-ink" />
         ) : (
-          <span className="mt-0.5 flex size-3 shrink-0 items-center justify-center rounded-full bg-ink text-[8px] text-surface">✓</span>
+          <span className="mt-0.5 flex size-3 shrink-0 items-center justify-center rounded-full bg-secondary-container text-[8px] text-on-secondary-container">✓</span>
         )}
         <div className="min-w-0">
           <p className={m.status === 'running' ? '' : 'text-muted'}>{m.text}</p>

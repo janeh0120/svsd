@@ -1,6 +1,6 @@
 # svsd: session context (hand-off doc)
 
-Attach this file to a new chat to pick up where the last session left off. Last updated 2026-10-19. Nothing below is committed yet (see "State of the repo").
+Attach this file to a new chat to pick up where the last session left off. Last updated 2026-10-19 (second session). See "State of the repo" for what is committed.
 
 ## What this is
 A storyboard-based motion editor (React 19 + Vite + TypeScript + Tailwind 4 + `motion`). Frames (1440×900, layers) are grouped into **acts** (the "story chapters"); the gap between frames is a **cut** (the motion). An AI agent is fully mocked (`src/context.tsx`, `src/mock/`). Dark UI only. See `README.md` for the product flow and `../svsd-notes.md` for an older repo map.
@@ -8,6 +8,32 @@ A storyboard-based motion editor (React 19 + Vite + TypeScript + Tailwind 4 + `m
 - Run: `cd SVSD/svsd && npm run dev` (preview config in `.claude/launch.json`, port **5174**). There is no `lint` script; typecheck with `npx tsc -b`.
 - Reload resets all state (in-memory only).
 - The parent folder's `SVSD/CLAUDE.md` describes the older "Sequence" prototype (different codebase, folder-ownership rules, `Video.tsx`). It does not describe this repo. Ignore its folder rules here.
+
+## Second session: ElevenAgents-style launch reel (TenAgents Builder)
+The sample board is no longer Relay Playbooks. `mock/agentChatDraft.ts` now builds a **31-shot, 67.2 s reel in 5 acts** (Intro 1–4, Demo 5–12, Features 13–20, Build-up 21–29, Outro 30–31), taken from the stills in `public/shots/elevenagents/*.jpg` (1600×900 covers of the 1920×1080 PNGs; titles, order and timings come from the user's `shots.md` and design canvas).
+- **Shots 5–7 are built from layers** (ids `c2`, `c3`, `c4`): prompt close-up, prompt send with the cursor, analysis (flow graph, transcript, system tools, "Gathering data" card). The prompt box, chip and cursor keep their layer ids so they morph across cuts. These three keep their own cuts (`s04->c2` dissolve 700 ms, `c2->c3` 1000 ms, `c3->c4` 500 ms with a staggered pop-in, `c4->s08` dissolve 600 ms).
+- **Every other cut defaults to Smart animate, 300 ms Snappy.** Each such cut takes 0.3 s out of the next shot's hold so the reel stays 1:07.
+- **Branding:** shot 1 is the play-triangle logo (`public/shots/logo-play.svg`); shots 4 and 31 cover the printed wordmark with a patch and set "TenAgents Builder" as layers (staggered in/out). The app logo (`public/sequence-logo.svg`) replaces the placeholder in the left panel header.
+- Frame ids: shots 5–7 are `c2`–`c4`; the stills are `sNN` (e.g. `s04`, `s08`).
+
+### Engine additions (`src/types.ts`, `components/Layer.tsx`, `Player.tsx`, `Canvas.tsx` CutIn)
+- `Layer.enter` (`EnterPreset`, Jitter-style names: fade, slide-up/down/left/right, grow, shrink, spin, twist, blur, blur-scale, blur-slide; empty = default rise), `Layer.delay` (stagger the arrival), `Layer.exit` and `Layer.exitDelay` (how a layer leaves when the next cut drops it; **preview player only**, not the in-card playback). `arrival()` and `departure()` live in `Layer.tsx`.
+- `store.ts`: selecting a frame or layer moves the playhead to that frame's start.
+
+### Right panel (`editor/PropertiesPanel.tsx`, `MotionControls.tsx`)
+- Header has **Preview** (opens the full preview) and Export; the tab row ends with a **zoom %** menu. The canvas publishes its zoom through `editor/canvasZoom.ts` (module store) and accepts requests from the menu.
+- Cuts between chapters (acts) label their first control **Transition**; others say Animation. Both Transition and Easing are floating picker panels (`PickerField`). Easing presets: Linear, Ease in/out/in-out, and the three "back" curves, plus Custom bezier.
+- The Animate preview is a mini A→B cut that follows the chosen transition, easing and duration.
+- **Entrance** section (bottom, only for a selected layer): empty by default, "+" adds a preset, "−" clears it. The cut owns timing and easing; the preset only overrides this layer's arrival style.
+- `DesignPanel.tsx`: gradient fills show a swatch and "Gradient" instead of raw CSS.
+- `Pin.tsx`: the comment box's `+` is now "+ Reference" (image/video picker; names only, nothing is sent).
+- Canvas: more space under act headers; frame titles truncate before the time text; connector arrow tips stop at the shot edge.
+
+### Brand colors
+Text stays the M3 off-white (`--ink: #ECDFE1`). Pink `#F3C9D5` (`--secondary`) is a supporting accent only (play button, frame-number badge, checklist ticks, one stop in the gradients); lime is the main accent.
+
+### Jitter MCP
+`https://mcp.jitter.video` is connected in the user's Claude (not in this repo). Its preset names informed the entrance presets; it was not used to read the user's files.
 
 ## Design rules we've been following
 - Colours, radii and sizes come from the tokens in `src/index.css` (`--canvas`, `--surface`, `--raised`, `--control`, `--ink`, `--muted`, `--subtle`, `--line`, `--line-strong`, `--accent` lime, `--secondary` pink). Never `#000` or `#fff`; use `--ink` for "white".
@@ -62,8 +88,17 @@ Misc
 - Time-label and pill colours/format were verified in the pane but not tuned against the user's references pixel-for-pixel.
 
 ## State of the repo
-Branch `main`, base commit `c18e482`. Uncommitted: `package.json`/`package-lock.json` (agentation), `index.html`, `src/App.tsx`, `src/index.css`, `src/editor/{Canvas,DesignPanel,LeftPanel,PropertiesPanel,QuestionCard,Timeline,icons}.tsx`, `src/mock/agentChatDraft.ts`, new `src/editor/StartForm.tsx`, `.mcp.json`, `CONTEXT.md`. `README.md` also shows as modified but wasn't edited in this session. `tsconfig.tsbuildinfo` is a build artifact (consider gitignoring). Typecheck (`npx tsc -b`) passes.
+(Older note from session one, now committed in `19cc4b4`.) Uncommitted at that time: `package.json`/`package-lock.json` (agentation), `index.html`, `src/App.tsx`, `src/index.css`, `src/editor/{Canvas,DesignPanel,LeftPanel,PropertiesPanel,QuestionCard,Timeline,icons}.tsx`, `src/mock/agentChatDraft.ts`, new `src/editor/StartForm.tsx`, `.mcp.json`, `CONTEXT.md`. `README.md` also shows as modified but wasn't edited in this session. `tsconfig.tsbuildinfo` is a build artifact (consider gitignoring). Typecheck (`npx tsc -b`) passes.
 
 ## How the user works
 - They give feedback by clicking elements with Agentation; each message includes the component, source line and a note. Reference screenshots are often attached; match their look using the established tokens rather than copying colours.
 - They prefer short summaries and decisions flagged when a request was ambiguous (say which reading you took and how to flip it).
+
+## State of the repo (end of second session)
+Branch `storyboard-polish`, pushed to `origin` (`janeh0120/svsd`). Session two's work is one commit on top of `19cc4b4`. `.DS_Store` and `tsconfig.tsbuildinfo` are not committed (the latter is gitignored). `public/cursors/*.svg` and the `cursor-ai` class on the timeline ruler are the user's own in-progress custom-cursor work, committed as found. Typecheck (`npx tsc -b`) passes.
+
+## Known gaps / next ideas (second session)
+- Jitter's move-then-scale and mask-reveal presets are not implemented; exits only play in the full preview.
+- Shot 7's card does not blur out and the two purple placeholder squares are missing (a dissolve stands in).
+- The wordmark patch hides the thin tile lines behind the text; shots 4 and 31 still use the printed still underneath.
+- Pin "Reference" files are listed in the box only; nothing is stored or sent.
