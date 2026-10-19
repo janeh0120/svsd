@@ -43,29 +43,28 @@ export function agentChatDraft(): Storyboard {
 
   const frames: Frame[] = [
     {
-      id: 'c1', name: 'Introducing Relay', hold: 2.2, background: '#F5F2ED',
+      id: 'c1', name: 'Introducing Relay', hold: 5, background: '#F5F2ED',
       layers: [
         { id: 'title', name: 'Title', kind: 'text', text: 'Introducing Relay Playbooks', x: 320, y: 400, w: 800, h: 100, fontSize: 34, color: '#1E1E1E', fontWeight: 500, ...base },
         // The prompt box waits here, small and invisible, then grows into frame 2.
         ...prompt('', { f: 0.5, x: 570, y: 520 }, true),
       ],
     },
-    { id: 'c2', name: 'Ask Relay', hold: 1.8, background: '#A3ABBA', layers: [...prompt('', { f: 2.2, x: 300, y: 170 })] },
-    { id: 'c3', name: 'The question', hold: 2.2, background: '#A3ABBA', layers: [...prompt('Why are customers asking for a person?'), cursor(978, 494)] },
-    { id: 'c4', name: 'Analyzing handoffs', hold: 3.2, background: '#26252B', layers: [bg('ac-workspace'), img('card', 'Analyzing handoffs', 'ac-gathering', 460, 300, 520, 290)] },
-    { id: 'c5', name: 'Proposed playbook', hold: 3.2, background: '#FBFAF8', layers: [bg('ac-thought')] },
-    { id: 'c6', name: 'Login recovery', hold: 3, background: '#FBFAF8', layers: [bg('ac-steps'), cursor(900, 520)] },
-    { id: 'c7', name: 'Approve playbook', hold: 2.5, background: '#FBFAF8', layers: [bg('ac-steps', 2, 1190, 820), cursor(1075, 745)] },
+    { id: 'c2', name: 'Ask Relay', hold: 6, background: '#A3ABBA', layers: [...prompt('', { f: 2.2, x: 300, y: 170 })] },
+    { id: 'c3', name: 'The question', hold: 8, background: '#A3ABBA', layers: [...prompt('Why are customers asking for a person?'), cursor(978, 494)] },
+    { id: 'c4', name: 'Analyzing handoffs', hold: 10, background: '#26252B', layers: [bg('ac-workspace'), img('card', 'Analyzing handoffs', 'ac-gathering', 460, 300, 520, 290)] },
+    { id: 'c5', name: 'Proposed playbook', hold: 11, background: '#FBFAF8', layers: [bg('ac-thought')] },
+    { id: 'c6', name: 'Login recovery', hold: 10, background: '#FBFAF8', layers: [bg('ac-steps'), cursor(900, 520)] },
+    { id: 'c7', name: 'Approve playbook', hold: 9.2, background: '#FBFAF8', layers: [bg('ac-steps', 2, 1190, 820), cursor(1075, 745)] },
   ]
 
   return {
     acts: [
       { id: 'a1', name: 'Intro', label: 'Intro', frameIds: ['c1'] },
-      { id: 'a2', name: 'Ask', label: 'Ask', frameIds: ['c2', 'c3'] },
-      { id: 'a3', name: 'Investigate', label: 'Investigate', frameIds: ['c4'] },
-      { id: 'a4', name: 'Propose', label: 'Propose', frameIds: ['c5'] },
-      { id: 'a5', name: 'Build', label: 'Build', frameIds: ['c6'] },
-      { id: 'a6', name: 'Approve', label: 'Approve', frameIds: ['c7'] },
+      { id: 'a2', name: 'Demo', label: 'Demo', frameIds: ['c2', 'c3'] },
+      { id: 'a3', name: 'Features', label: 'Features', frameIds: ['c4', 'c5'] },
+      { id: 'a4', name: 'Build-up', label: 'Build-up', frameIds: ['c6'] },
+      { id: 'a5', name: 'Outro', label: 'Outro', frameIds: ['c7'] },
     ],
     frames: Object.fromEntries(frames.map((f) => [f.id, f])),
     cuts: {

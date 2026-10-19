@@ -216,6 +216,68 @@ export const Icon = {
       <path d="M8 20h8M12 16v4" />
     </Svg>
   ),
+  Clock: (p: P) => (
+    <Svg {...p}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 7v5l3 2" />
+    </Svg>
+  ),
+  Hand: (p: P) => (
+    <Svg {...p}>
+      <path d="M18 11V6a2 2 0 0 0-4 0v5" />
+      <path d="M14 10V4a2 2 0 0 0-4 0v2" />
+      <path d="M10 10.5V6a2 2 0 0 0-4 0v8" />
+      <path d="M18 8a2 2 0 1 1 4 0v6a8 8 0 0 1-8 8h-2c-2.8 0-4.5-.86-5.99-2.34l-3.6-3.6a2 2 0 0 1 2.83-2.82L7 15" />
+    </Svg>
+  ),
+  Sparkle: (p: P) => (
+    <Svg {...p}>
+      <path d="M11 3l1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z" />
+      <path d="M19 15v5M16.5 17.5h5" />
+    </Svg>
+  ),
+  Upload: (p: P) => (
+    <Svg {...p}>
+      <path d="M12 16V4M7 9l5-5 5 5" />
+      <path d="M4 15v4a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-4" />
+    </Svg>
+  ),
+  Globe: (p: P) => (
+    <Svg {...p}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" />
+    </Svg>
+  ),
+  Image: (p: P) => (
+    <Svg {...p}>
+      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <circle cx="9" cy="9" r="1.5" />
+      <path d="M20 16l-4.5-4.5L7 20" />
+    </Svg>
+  ),
+  Resolution: (p: P) => (
+    <Svg {...p}>
+      <path d="M4 9V4h5M20 15v5h-5M4 4l6 6M20 20l-6-6" />
+    </Svg>
+  ),
+  Volume: (p: P) => (
+    <Svg {...p}>
+      <path d="M4 10v4h4l5 4V6l-5 4z" />
+      <path d="M17 9.5a4 4 0 0 1 0 5M19.5 7a7.5 7.5 0 0 1 0 10" />
+    </Svg>
+  ),
+  VolumeOff: (p: P) => (
+    <Svg {...p}>
+      <path d="M4 10v4h4l5 4V6l-5 4z" />
+      <path d="M17 10l4 4M21 10l-4 4" />
+    </Svg>
+  ),
+  Layers: (p: P) => (
+    <Svg {...p}>
+      <path d="M12 3l9 5-9 5-9-5z" />
+      <path d="M3 12l9 5 9-5M3 16l9 5 9-5" />
+    </Svg>
+  ),
   Pointer: (p: P) => (
     <Svg {...p}>
       <path d="M5 3l6.5 17 2.4-7.1L21 10.5z" />

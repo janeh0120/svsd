@@ -202,7 +202,7 @@ export function Timeline({ height }: { height: number }) {
             title={playing ? 'Pause' : 'Play'}
             className="flex size-7 items-center justify-center rounded-full bg-ink text-surface"
           >
-            {playing ? <Icon.Pause size={12} /> : <Icon.Play size={11} className="ml-0.5" fill="currentColor" />}
+            {playing ? <Icon.Pause size={12} /> : <Icon.Play size={11} fill="currentColor" />}
           </button>
           <button onClick={nextFrame} title="Next frame" className="hover:text-ink">
             <Icon.FastForward size={12} />
@@ -261,7 +261,7 @@ export function Timeline({ height }: { height: number }) {
                     left: x(from),
                     width: Math.max(8, x(to) - x(from) - 2),
                     background: active ? ACCENT : 'var(--raised)',
-                    borderColor: active ? ACCENT : 'var(--line)',
+                    borderColor: active ? 'var(--on-accent)' : 'var(--subtle)', // same grey as the ruler labels
                     color: active ? 'var(--on-accent)' : 'var(--ink)',
                   }}
                 >
@@ -309,11 +309,16 @@ export function Timeline({ height }: { height: number }) {
             p.target.kind === 'time' ? <PinMarker key={p.id} pin={p} style={{ left: x(p.target.ms), top: 4, transform: 'translateX(-2px)' }} /> : null,
           )}
 
-          {/* Playhead */}
+          {/* Playhead: a pill with the time sits on the ruler, and the line runs down through the clips. */}
           {total > 0 && (
             <div className="pointer-events-none absolute top-0 bottom-0" style={{ left: x(playhead) }}>
-              <div className="absolute top-8 -left-[4px] size-0 border-x-[4px] border-t-[5px] border-x-transparent border-t-muted" />
-              <div className="absolute top-[38px] bottom-0 left-0 w-px" style={{ background: ACCENT_LINE }} />
+              <div
+                className="absolute top-1 flex h-5 -translate-x-1/2 items-center rounded-full bg-accent px-2 text-[11px] font-medium text-on-accent tabular-nums"
+                style={{ marginLeft: x(playhead) < 22 ? 22 - x(playhead) : x(playhead) > contentW - 22 ? contentW - 22 - x(playhead) : 0 }}
+              >
+                {(playhead / 1000).toFixed(2)}
+              </div>
+              <div className="absolute top-[22px] bottom-0 left-0 w-px" style={{ background: ACCENT_LINE }} />
             </div>
           )}
         </div>

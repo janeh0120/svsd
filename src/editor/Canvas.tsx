@@ -1,7 +1,7 @@
 import { motion } from 'motion/react'
-import { Fragment, useEffect, useRef, useState } from 'react'
-import { FRAME_H, FRAME_W, cutKey, cutMs, frameTitle, getCut, order, sameTarget, timing } from '../board'
-import { LayerBody, layerStyle } from '../components/Layer'
+import { Fragment, createContext, useContext, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
+import { DEFAULT_CUT, FRAME_H, FRAME_W, cutKey, cutMs, cutTransition, frameTitle, getCut, order, sameTarget, timing } from '../board'
+import { LayerBody, layerBox, layerStyle } from '../components/Layer'
 import { useApp } from '../context'
 import { pinsFor } from '../store'
 import type { Act, Layer } from '../types'
@@ -14,13 +14,151 @@ const CARD_H = Math.round((CARD_W * FRAME_H) / FRAME_W)
 // Card chrome: 2px border + 6px padding + 28px header above the frame image.
 const CARD_TOP = 2 + 6 + 28
 const CARD_FULL_H = CARD_TOP + CARD_H + 6 + 2
-const LINK_W = 44 // space between cards, where the connector runs
+// How far a frame's image sits inside its card: 2px border + 6px padding.
+const CARD_INSET = 8
+const LINK_W = 64 // space between cards, where the connector runs
 
-// The storyboard canvas: acts side by side, each a row of frames.
+const MIN_ZOOM = 0.3
+const MAX_ZOOM = 2
+// The canvas zoom, so drags and clicks inside a frame can undo the scale.
+const ZoomContext = createContext(1)
+
+// The storyboard canvas: acts side by side, each a row of frames. Pinch (or
+// ctrl/cmd + scroll) zooms the storyboard around the middle of the view; it is
+// centered whenever it fits and scrolls once it outgrows the canvas.
 export function Canvas() {
-  const { state, dispatch } = useApp()
+  const { state, dispatch, startComment } = useApp()
   const comment = state.mode === 'comment'
   const current = currentFrameId(state)
+  const scroller = useRef<HTMLDivElement>(null)
+  const content = useRef<HTMLDivElement>(null)
+  const [zoom, setZoom] = useState(1)
+  const [size, setSize] = useState<{ w: number; h: number } | null>(null)
+  const zoomRef = useRef(1)
+  const anchor = useRef<{ fx: number; fy: number } | null>(null)
+
+  // Pointer modes: cursor (select and move), hand (pan) and AI (point and prompt: cross
+  // cursor, click a thing or press and drag to lasso a section, then say what to change).
+  const [hand, setHand] = useState(false)
+  const pointer: PointerMode = comment ? 'ai' : hand ? 'hand' : 'select'
+  const setPointer = (m: PointerMode) => {
+    setHand(m === 'hand')
+    dispatch({ type: 'mode', mode: m === 'ai' ? 'comment' : 'select' })
+  }
+  const [panning, setPanning] = useState(false)
+  const [lasso, setLasso] = useState<{ x0: number; y0: number; x1: number; y1: number } | null>(null)
+  const swallowClick = useRef(false)
+
+  const startPan = (e: React.PointerEvent) => {
+    const el = scroller.current!
+    let lx = e.clientX
+    let ly = e.clientY
+    setPanning(true)
+    const move = (ev: PointerEvent) => {
+      el.scrollLeft -= ev.clientX - lx
+      el.scrollTop -= ev.clientY - ly
+      lx = ev.clientX
+      ly = ev.clientY
+    }
+    const up = () => {
+      setPanning(false)
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+  }
+
+  // A plain click still pins a comment to what is under it; dragging draws a lasso.
+  const startLasso = (e: React.PointerEvent) => {
+    if (e.button !== 0 || (e.target as Element).closest('input,textarea')) return
+    const sx = e.clientX
+    const sy = e.clientY
+    let dragging = false
+    let rect = { x0: sx, y0: sy, x1: sx, y1: sy }
+    const move = (ev: PointerEvent) => {
+      if (!dragging && Math.hypot(ev.clientX - sx, ev.clientY - sy) < 6) return
+      dragging = true
+      rect = { x0: sx, y0: sy, x1: ev.clientX, y1: ev.clientY }
+      setLasso(rect)
+    }
+    const up = () => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+      if (!dragging) return
+      setLasso(null)
+      swallowClick.current = true
+      setTimeout(() => (swallowClick.current = false), 0)
+      lassoTarget(rect)
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+  }
+
+  // What a lasso is about: several frames of one act → the act; otherwise the frame it covers most.
+  const lassoTarget = (r: { x0: number; y0: number; x1: number; y1: number }) => {
+    const l = Math.min(r.x0, r.x1)
+    const t = Math.min(r.y0, r.y1)
+    const rr = Math.max(r.x0, r.x1)
+    const b = Math.max(r.y0, r.y1)
+    const hits = order(state.board)
+      .map((id) => {
+        const box = document.getElementById(`frame-${id}`)?.getBoundingClientRect()
+        if (!box) return null
+        const area = Math.max(0, Math.min(rr, box.right) - Math.max(l, box.left)) * Math.max(0, Math.min(b, box.bottom) - Math.max(t, box.top))
+        return area > 0 ? { id, box, area } : null
+      })
+      .filter((h) => h !== null)
+    if (!hits.length) return
+    const acts = new Set(hits.map((h) => state.board.acts.find((a) => a.frameIds.includes(h.id))?.id))
+    if (hits.length > 1 && acts.size === 1) {
+      startComment({ kind: 'act', actId: [...acts][0]! })
+      return
+    }
+    const best = hits.reduce((a, h) => (h.area > a.area ? h : a))
+    const z = zoomRef.current
+    const px = (v: number, origin: number, extent: number) => Math.round(Math.min(extent, Math.max(0, (v - origin) / (SCALE * z))))
+    startComment(
+      { kind: 'frame', frameId: best.id },
+      { x: px((l + rr) / 2, best.box.left + CARD_INSET * z, FRAME_W), y: px((t + b) / 2, best.box.top + CARD_TOP * z, FRAME_H) },
+    )
+  }
+
+  // The storyboard's natural size, so the scaled box takes up the room it shows.
+  useLayoutEffect(() => {
+    const el = content.current!
+    const measure = () => setSize({ w: el.offsetWidth, h: el.offsetHeight })
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  // Pinch on a trackpad arrives as a ctrl+wheel; it has to be a non-passive listener to stop the page zooming.
+  useEffect(() => {
+    const el = scroller.current!
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey && !e.metaKey) return
+      e.preventDefault()
+      const next = Math.min(MAX_ZOOM, Math.max(MIN_ZOOM, zoomRef.current * Math.exp(-Math.max(-25, Math.min(25, e.deltaY)) * 0.01)))
+      if (next === zoomRef.current) return
+      // Remember what is in the middle of the view, so it stays there as the content resizes.
+      anchor.current ??= { fx: (el.scrollLeft + el.clientWidth / 2) / el.scrollWidth, fy: (el.scrollTop + el.clientHeight / 2) / el.scrollHeight }
+      zoomRef.current = next
+      setZoom(next)
+    }
+    el.addEventListener('wheel', onWheel, { passive: false })
+    return () => el.removeEventListener('wheel', onWheel)
+  }, [])
+
+  useLayoutEffect(() => {
+    const el = scroller.current!
+    if (anchor.current) {
+      el.scrollLeft = anchor.current.fx * el.scrollWidth - el.clientWidth / 2
+      el.scrollTop = anchor.current.fy * el.scrollHeight - el.clientHeight / 2
+      anchor.current = null
+    }
+  }, [zoom])
 
   // Keep the frame under the playhead centered while the timeline plays or is scrubbed.
   useEffect(() => {
@@ -32,19 +170,49 @@ export function Canvas() {
     <div className="relative min-w-0 flex-1 bg-canvas">
       <div
         id="canvas"
-        className={`h-full overflow-auto ${comment ? 'cursor-crosshair shadow-[inset_0_0_0_2px_var(--accent-line)]' : ''}`}
+        ref={scroller}
+        className={`h-full overflow-auto ${
+          comment
+            ? 'cursor-crosshair select-none shadow-[inset_0_0_0_2px_var(--accent-line)] [&_*]:cursor-crosshair!'
+            : hand
+              ? `select-none ${panning ? '[&_*]:cursor-grabbing!' : '[&_*]:cursor-grab!'}`
+              : ''
+        }`}
+        onPointerDownCapture={(e) => {
+          if (hand && e.button === 0) {
+            e.preventDefault()
+            e.stopPropagation()
+            startPan(e)
+          } else if (comment) startLasso(e)
+        }}
+        onClickCapture={(e) => {
+          if (hand || swallowClick.current) e.stopPropagation()
+        }}
         onClick={() => {
           if (!comment) dispatch({ type: 'select', target: null })
           else if (state.composing) dispatch({ type: 'compose', id: null })
         }}
       >
-        <div className="flex w-max items-start gap-12 px-8 pt-16 pb-24">
-          {state.board.acts.map((act, i) => (
-            <ActGroup key={act.id} act={act} prevAct={state.board.acts[i - 1]} />
-          ))}
+        {/* At least as big as the viewport, so the acts sit in the middle at any zoom and scroll once they outgrow it. */}
+        <div className="flex min-h-full w-max min-w-full items-center justify-center">
+          <div className="shrink-0" style={size ? { width: size.w * zoom, height: size.h * zoom } : undefined}>
+            <ZoomContext value={zoom}>
+              <div ref={content} className="flex w-max origin-top-left items-start gap-12 px-8 py-16" style={{ transform: `scale(${zoom})` }}>
+                {state.board.acts.map((act, i) => (
+                  <ActGroup key={act.id} act={act} prevAct={state.board.acts[i - 1]} />
+                ))}
+              </div>
+            </ZoomContext>
+          </div>
         </div>
       </div>
-      <Toolbar />
+      {lasso && (
+        <div
+          className="pointer-events-none fixed z-40 rounded-md border border-dashed border-accent-line bg-accent/15"
+          style={{ left: Math.min(lasso.x0, lasso.x1), top: Math.min(lasso.y0, lasso.y1), width: Math.abs(lasso.x1 - lasso.x0), height: Math.abs(lasso.y1 - lasso.y0) }}
+        />
+      )}
+      <Toolbar pointer={pointer} setPointer={setPointer} />
     </div>
   )
 }
@@ -67,25 +235,34 @@ function ActGroup({ act, prevAct }: { act: Act; prevAct?: Act }) {
     <motion.section
       id={`act-${act.id}`}
       onClick={pick}
-      className={`relative shrink-0 scroll-m-6 rounded-xl border p-2 pt-0 ${
-        selected ? 'border-accent-line bg-accent-soft' : 'border-line'
+      className={`relative shrink-0 scroll-m-6 rounded-xl border p-2 ${
+        selected ? 'border-transparent' : 'border-line'
       } ${state.mode === 'comment' ? 'hover:border-accent-line' : ''}`}
+      // Selected: a tinted fill inside a border that runs off-white → lime → pink → off-white.
+      style={
+        selected
+          ? {
+              background:
+                'linear-gradient(var(--accent-soft), var(--accent-soft)) padding-box, linear-gradient(90deg, var(--ink), var(--accent), var(--secondary), var(--ink)) border-box',
+            }
+          : undefined
+      }
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
     >
       <div className="flex h-7 items-center px-0.5">
-        <h2 className={`text-[12px] leading-none font-normal ${selected ? 'text-accent-text' : 'text-muted'}`}>{act.name}</h2>
+        <h2 className={`text-[13px] leading-none font-normal ${selected ? 'text-accent-text' : 'text-muted'}`}>{act.name}</h2>
         {pinsFor(state.pins, target).map((p, i) => (
           <PinMarker key={p.id} pin={p} style={{ position: 'relative', marginLeft: i ? 4 : 8 }} />
         ))}
       </div>
       {/* The cut from the previous act runs across the space between the two groups. */}
-      {prevLast && act.frameIds[0] && <Connector from={prevLast} to={act.frameIds[0]} className="absolute top-7 -left-[50px]" width={58} />}
+      {prevLast && act.frameIds[0] && <Connector from={prevLast} to={act.frameIds[0]} className="absolute top-9 -left-12" width={48} />}
       <div className="flex">
         {act.frameIds.map((id, i) => (
           <Fragment key={id}>
-            {i > 0 && <Connector from={act.frameIds[i - 1]} to={id} />}
+            {i > 0 && <Connector from={act.frameIds[i - 1]} to={id} inset={CARD_INSET} />}
             <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15 + i * 0.12, duration: 0.3 }}>
               <FrameCard frameId={id} />
             </motion.div>
@@ -96,47 +273,82 @@ function ActGroup({ act, prevAct }: { act: Act; prevAct?: Act }) {
   )
 }
 
-// The cut between two frames, drawn as a line with a node. Select the node to
-// edit the animation between the frames (or comment on it in annotate mode).
-function Connector({ from, to, className = 'relative shrink-0', width = LINK_W }: { from: string; to: string; className?: string; width?: number }) {
+// The cut between two frames, drawn in the act-border colour until selected, then as a gradient wire (off-white → pink → lime
+// → off-white) from a solid nub on the outgoing frame to a ring on the incoming
+// one. Select the wire or the ring to edit the animation between the frames (or
+// comment on it in annotate mode).
+// The wire runs `inset` px past each end of the gap, so the arrow's tip lands on the edge of the box it points at.
+function Connector({
+  from,
+  to,
+  className = 'relative shrink-0',
+  width = LINK_W,
+  inset = 0,
+}: {
+  from: string
+  to: string
+  className?: string
+  width?: number
+  inset?: number
+}) {
   const { state, dispatch, startComment } = useApp()
+  const gradient = useId()
   const key = cutKey(from, to)
   const target = { kind: 'cut' as const, key }
   const selected = sameTarget(state.selection, target)
   const comment = state.mode === 'comment'
   const y = CARD_TOP + CARD_H / 2
   const mid = width / 2
+  const y0 = y - 8
+  const y1 = y + 8
+  const x0 = -inset
+  const x1 = width + inset
+  // Starts at the middle of the nub, so the wire never pokes out past it.
+  const wire = `M${x0 + 2} ${y0} C ${mid} ${y0}, ${mid} ${y1}, ${x1} ${y1}`
+
+  const pick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (comment) startComment(target)
+    else dispatch({ type: 'select', target })
+  }
 
   return (
     <div id={`cut-${key}`} className={`${className} group/link`} style={{ width, height: CARD_FULL_H }}>
-      <svg width={width} height={CARD_FULL_H} className="pointer-events-none absolute inset-0 overflow-visible">
+      <svg
+        width={width}
+        height={CARD_FULL_H}
+        className="pointer-events-none absolute inset-0 overflow-visible"
+      >
+        <defs>
+          <linearGradient id={gradient} gradientUnits="userSpaceOnUse" x1={x0} y1={0} x2={x1} y2={0}>
+            <stop offset="0" stopColor="var(--ink)" />
+            <stop offset="0.38" stopColor="var(--secondary)" />
+            <stop offset="0.7" stopColor="var(--accent)" />
+            <stop offset="1" stopColor="var(--ink)" />
+          </linearGradient>
+        </defs>
+        <path d={wire} fill="none" stroke={selected ? `url(#${gradient})` : 'var(--line)'} strokeWidth={selected ? 3 : 1} />
+        {/* Wide invisible stroke so the whole wire is easy to hit. */}
+        <path d={wire} fill="none" stroke="transparent" strokeWidth={16} style={{ pointerEvents: 'stroke', cursor: 'pointer' }} onClick={pick}>
+          <title>Edit the animation between these frames</title>
+        </path>
+        <rect x={x0} y={y0 - 5} width={4} height={10} rx={2} fill={selected ? 'var(--ink)' : 'var(--line)'} />
+        {/* Every cut ends in an arrowhead. */}
         <path
-          d={`M0 ${y - 6} C ${mid} ${y - 6}, ${mid} ${y + 6}, ${width} ${y + 6}`}
+          d={`M${x1 - 6} ${y1 - 5} L${x1} ${y1} L${x1 - 6} ${y1 + 5}`}
           fill="none"
-          style={{ stroke: selected ? 'var(--accent-line)' : 'var(--line-strong)' }}
-          strokeWidth={selected ? 2 : 1.5}
+          stroke={selected ? 'var(--accent)' : 'var(--line)'}
+          strokeWidth={selected ? 3 : 1}
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </svg>
       <button
-        onClick={(e) => {
-          e.stopPropagation()
-          if (comment) startComment(target)
-          else dispatch({ type: 'select', target })
-        }}
+        onClick={pick}
         title="Edit the animation between these frames"
         className="absolute z-10 flex size-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center"
-        style={{ left: mid, top: y }}
-      >
-        <span
-          className={`block rounded-full border-2 transition-all ${
-            selected
-              ? 'size-3.5 border-canvas bg-accent shadow-[0_0_0_2px_var(--accent-line)]'
-              : comment
-                ? 'size-3 border-canvas bg-line-strong group-hover/link:bg-accent'
-                : 'size-3 border-canvas bg-line-strong group-hover/link:size-3.5 group-hover/link:bg-muted'
-          }`}
-        />
-      </button>
+        style={{ left: x1, top: y1 }}
+      />
       {pinsFor(state.pins, target).map((p) => (
         <PinMarker key={p.id} pin={p} style={{ left: mid, top: y }} />
       ))}
@@ -148,6 +360,7 @@ function FrameCard({ frameId }: { frameId: string }) {
   const { state, dispatch, startComment } = useApp()
   const frame = state.board.frames[frameId]
   const inner = useRef<HTMLDivElement>(null)
+  const zoom = useContext(ZoomContext)
   const [hover, setHover] = useState<string | null>(null)
   const comment = state.mode === 'comment'
   const sel = state.selection
@@ -160,7 +373,7 @@ function FrameCard({ frameId }: { frameId: string }) {
 
   const toFrame = (e: React.MouseEvent) => {
     const r = inner.current!.getBoundingClientRect()
-    return { x: Math.round((e.clientX - r.left) / SCALE), y: Math.round((e.clientY - r.top) / SCALE) }
+    return { x: Math.round((e.clientX - r.left) / (SCALE * zoom)), y: Math.round((e.clientY - r.top) / (SCALE * zoom)) }
   }
 
   // Select tool: press to select, drag to move.
@@ -172,8 +385,8 @@ function FrameCard({ frameId }: { frameId: string }) {
     const sy = e.clientY
     let moved = false
     const onMove = (ev: PointerEvent) => {
-      const dx = (ev.clientX - sx) / SCALE
-      const dy = (ev.clientY - sy) / SCALE
+      const dx = (ev.clientX - sx) / (SCALE * zoom)
+      const dy = (ev.clientY - sy) / (SCALE * zoom)
       if (!moved && Math.hypot(dx, dy) < 6) return
       moved = true
       dispatch({ type: 'layer', frameId, layerId: l.id, patch: { x: Math.round(l.x + dx), y: Math.round(l.y + dy) } })
@@ -219,7 +432,7 @@ function FrameCard({ frameId }: { frameId: string }) {
         <span className={`min-w-0 flex-1 truncate ${frameSelected ? 'text-accent-text' : 'text-ink'}`}>{frameTitle(frame)}</span>
         {span && (
           <span className={`shrink-0 text-[11px] tabular-nums ${frameSelected ? 'text-accent-text' : 'text-muted'}`}>
-            {span.from.toFixed(1)}–{span.to.toFixed(1)}s · {(span.to - span.from).toFixed(1)}s
+            {`${span.from.toFixed(1)}\u00a0–\u00a0${span.to.toFixed(1)}s\u00a0\u00a0\u00a0·\u00a0\u00a0\u00a0${(span.to - span.from).toFixed(1)}s`}
           </span>
         )}
         <button
@@ -240,7 +453,8 @@ function FrameCard({ frameId }: { frameId: string }) {
             className="absolute top-0 left-0 origin-top-left"
             style={{ width: FRAME_W, height: FRAME_H, transform: `scale(${SCALE})`, background: frame.background }}
           >
-            {frame.layers.map((l) => (
+            {playing && <CutIn key={frameId} frameId={frameId} />}
+            {!playing && frame.layers.map((l) => (
               <div
                 key={l.id}
                 style={layerStyle(l)}
@@ -249,7 +463,7 @@ function FrameCard({ frameId }: { frameId: string }) {
                 onPointerEnter={() => setHover(l.id)}
                 onPointerLeave={() => setHover((h) => (h === l.id ? null : h))}
               >
-                <LayerBody layer={l} playing={playing} />
+                <LayerBody layer={l} />
               </div>
             ))}
           </div>
@@ -270,6 +484,41 @@ function FrameCard({ frameId }: { frameId: string }) {
         ))}
       </div>
     </div>
+  )
+}
+
+// The frame's own shot, played in its card: its layers move in from where the
+// previous frame left them over the cut's duration, and typed text types itself.
+// Mounted while the timeline plays through the frame, so it restarts each pass.
+function CutIn({ frameId }: { frameId: string }) {
+  const { state } = useApp()
+  const board = state.board
+  const ids = order(board)
+  const idx = ids.indexOf(frameId)
+  const frame = board.frames[frameId]
+  const prev = idx > 0 ? board.frames[ids[idx - 1]] : undefined
+  const cut = prev ? getCut(board, prev.id, frameId) : DEFAULT_CUT
+  const instant = !prev || cut.animation === 'instant'
+  const dissolve = cut.animation === 'dissolve'
+  const transition = instant ? { duration: 0 } : cutTransition(cut)
+
+  return (
+    <>
+      {frame.layers.map((l) => {
+        // The same layer in the previous frame morphs; a recording or a new picture arrives fresh.
+        const before = prev?.layers.find((p) => p.id === l.id && l.kind !== 'video' && (l.kind !== 'image' || p.src === l.src))
+        const initial = instant ? layerBox(l) : before ? layerBox(before) : { ...layerBox(l), opacity: 0, top: dissolve ? l.y : l.y + 24 }
+        const from = l.text?.startsWith(before?.text ?? '') ? (before?.text ?? '') : ''
+        const chars = (l.text?.length ?? 0) - from.length
+        const window = prev ? cutMs(cut) : frame.hold * 1000 * 0.75
+        const typing = l.typing ? { from, delay: 100, duration: Math.min(Math.max(300, window - 200), chars * 70) } : undefined
+        return (
+          <motion.div key={l.id} className="pointer-events-none absolute" initial={initial} animate={layerBox(l)} transition={transition}>
+            <LayerBody layer={l} playing typing={typing} />
+          </motion.div>
+        )
+      })}
+    </>
   )
 }
 
@@ -310,35 +559,79 @@ function Outline({ layer, tone, label }: { layer: Layer; tone: 'hover' | 'select
   )
 }
 
-// Bottom-center tool bar, as in the reference: select, frame, shape, pen, text.
-function Toolbar() {
-  const { state, dispatch } = useApp()
-  const [tool, setTool] = useState('select')
+type PointerMode = 'select' | 'hand' | 'ai'
+const POINTER_MODES: { id: PointerMode; label: string; hint: string; key?: string; icon: (typeof Icon)[keyof typeof Icon] }[] = [
+  { id: 'select', label: 'Cursor', hint: 'Select and move things', key: 'V', icon: Icon.Cursor },
+  { id: 'hand', label: 'Hand', hint: 'Drag to pan the canvas', icon: Icon.Hand },
+  { id: 'ai', label: 'AI', hint: 'Point at something, or drag to lasso a section, and say what to change', key: 'C', icon: Icon.Sparkle },
+]
+
+// Bottom-center tool bar, as in the reference: pointer (cursor, hand or AI), frame, shape, pen, text.
+function Toolbar({ pointer, setPointer }: { pointer: PointerMode; setPointer: (m: PointerMode) => void }) {
+  const [tool, setTool] = useState('pointer')
+  const [menu, setMenu] = useState(false)
   const tools = [
-    { id: 'select', icon: Icon.Cursor },
     { id: 'frame', icon: Icon.Frame },
     { id: 'rect', icon: Icon.Square },
     { id: 'pen', icon: Icon.Pen },
     { id: 'text', icon: Icon.Text },
   ]
-  const active = state.mode === 'comment' ? null : tool
+  const active = pointer === 'ai' ? 'pointer' : tool
+  const current = POINTER_MODES.find((m) => m.id === pointer)!
+  const Current = current.icon
   return (
     <div className="absolute bottom-3 left-1/2 z-30 flex h-8 -translate-x-1/2 items-center gap-0.5 rounded-lg bg-raised px-1 shadow-[0_1px_4px_rgba(0,0,0,0.12)]">
+      <div className="relative flex items-center">
+        <button
+          onClick={() => setTool('pointer')}
+          title={current.label}
+          className={`flex size-6 items-center justify-center rounded-md ${active === 'pointer' ? 'bg-accent text-on-accent' : 'hover:bg-control-hover'}`}
+        >
+          <Current size={14} />
+        </button>
+        <button onClick={() => setMenu((m) => !m)} title="Cursor, hand or AI" className="flex h-6 w-4 items-center justify-center rounded-md hover:bg-control-hover">
+          <Icon.ChevronDown size={12} />
+        </button>
+        {menu && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={() => setMenu(false)} />
+            <div className="absolute bottom-full left-0 z-50 mb-2 w-64 rounded-lg bg-raised p-1 shadow-xl ring-1 ring-line">
+              {POINTER_MODES.map(({ id, label, hint, key, icon: I }) => (
+                <button
+                  key={id}
+                  onClick={() => {
+                    setPointer(id)
+                    setTool('pointer')
+                    setMenu(false)
+                  }}
+                  className="flex w-full items-start gap-2 rounded-md p-2 text-left hover:bg-control-hover"
+                >
+                  <I size={14} className={`mt-0.5 shrink-0 ${pointer === id ? 'text-accent-text' : 'text-muted'}`} />
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center gap-2">
+                      <span className="font-medium">{label}</span>
+                      {key && <kbd className="ml-auto text-[11px] text-subtle">{key}</kbd>}
+                    </span>
+                    <span className="block text-[11px] leading-snug text-subtle">{hint}</span>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </>
+        )}
+      </div>
       {tools.map(({ id, icon: I }) => (
         <button
           key={id}
           onClick={() => {
             setTool(id)
-            if (state.mode !== 'select') dispatch({ type: 'mode', mode: 'select' })
+            if (pointer !== 'select') setPointer('select')
           }}
           className={`flex size-6 items-center justify-center rounded-md ${active === id ? 'bg-accent text-on-accent' : 'hover:bg-control-hover'}`}
         >
           <I size={14} />
         </button>
       ))}
-      <button className="flex h-6 w-4 items-center justify-center">
-        <Icon.ChevronDown size={12} />
-      </button>
     </div>
   )
 }

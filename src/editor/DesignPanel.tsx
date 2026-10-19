@@ -187,7 +187,7 @@ function Hint({ children }: { children: ReactNode }) {
 function Header({ title }: { title: string }) {
   return (
     <div className="flex h-11 items-center gap-3 border-b border-line px-3">
-      <span className="flex-1 text-[13px] font-semibold">{title}</span>
+      <span className="flex-1 font-display text-[13px] font-semibold">{title}</span>
       <Icon.Link size={13} />
       <Icon.Target size={13} />
       <Icon.Component size={13} />
@@ -200,7 +200,7 @@ function Section({ title, actions = [], muted = false, children }: { title: stri
   return (
     <div className="border-b border-line p-3">
       <div className="flex h-5 items-center">
-        <span className={`font-semibold ${muted ? 'text-muted' : ''}`}>{title}</span>
+        <span className={`font-display font-semibold ${muted ? 'text-muted' : ''}`}>{title}</span>
         <div className={`ml-auto flex items-center gap-3 ${muted ? 'text-muted' : ''}`}>{actions}</div>
       </div>
       {children && <div className="mt-2">{children}</div>}

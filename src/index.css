@@ -1,28 +1,35 @@
 @import "tailwindcss";
 
 /* Color roles. Every color is a role, not a hex value (Material 3 dark-mode
-   principles). The product is dark only: tinted near-black surfaces that get
-   lighter as they rise (never #000), off-white text (never #fff), and lime as
-   the one "on/active" signal, always paired with lime-ink text. */
+   principles). The product is dark only: rose-tinted near-black surfaces (M3
+   neutral tones at hue ~342, matching the secondary) that get lighter as they
+   rise (never #000), off-white text (never #fff), and lime as the one
+   "on/active" signal, always paired with lime-ink text. Secondary is the soft
+   pink #F3C9D5 (M3 secondary, tone 80) for supporting emphasis. */
 :root {
   color-scheme: dark;
-  --canvas: #121410; /* behind the storyboard */
-  --surface: #1a1c18; /* sidebars and timeline */
-  --raised: #23261f; /* popovers, cards, menus on a surface */
-  --control: #2a2d26; /* tonal fields and inactive controls */
-  --control-hover: #33372f;
-  --ink: #e4e6de; /* text */
-  --muted: #a4a79c; /* secondary text, icons */
-  --subtle: #92958a; /* placeholders, faint labels */
-  --line: #31342c; /* borders, dividers, tracks */
-  --line-strong: #43473d;
+  --canvas: #130F10; /* behind the storyboard */
+  --surface: #191214; /* sidebars and timeline */
+  --raised: #261E20; /* popovers, cards, menus on a surface */
+  --control: #31282A; /* tonal fields and inactive controls */
+  --control-hover: #3C3335;
+  --ink: #ECDFE1; /* text */
+  --muted: #D3C2C4; /* secondary text, icons */
+  --subtle: #9F8C8F; /* placeholders, faint labels */
+  --line: #3A2F31; /* borders, dividers, tracks */
+  --line-strong: #514345;
   --accent: #c9ea80; /* lime fill: the on/active signal */
   --on-accent: #1a2405; /* lime ink, on lime fills */
   --accent-soft: #2b3519; /* selected backgrounds */
   --accent-line: #c9ea80; /* lime strokes: outlines, playhead, selection */
   --accent-text: #c9ea80; /* lime-tinted text */
-  --inverse: #3a3e34; /* tooltips */
-  --on-inverse: #e4e6de;
+  --secondary: #F3C9D5; /* soft pink: supporting emphasis, tags, secondary actions */
+  --on-secondary: #3D2A31; /* pink ink, on secondary fills */
+  --secondary-container: #553F48; /* tonal pink backgrounds, chips */
+  --on-secondary-container: #FADCE5; /* text and icons on secondary-container */
+  --inverse: #4A3E40; /* tooltips */
+  --on-inverse: #ECDFE1;
+  --font-heading: 'Shippori Mincho', ui-serif, Georgia, serif; /* h1, h2 and anything heading-like (font-display) */
   --shadow: none; /* elevation comes from lighter surfaces */
 }
 
@@ -43,15 +50,25 @@
   --color-accent-soft: var(--accent-soft);
   --color-accent-line: var(--accent-line);
   --color-accent-text: var(--accent-text);
+  --color-secondary: var(--secondary);
+  --color-on-secondary: var(--on-secondary);
+  --color-secondary-container: var(--secondary-container);
+  --color-on-secondary-container: var(--on-secondary-container);
   --color-inverse: var(--inverse);
   --color-on-inverse: var(--on-inverse);
   --shadow-sm: var(--shadow);
+  --font-display: var(--font-heading);
 }
 
 body {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
   background: var(--surface);
   color: var(--ink);
+}
+
+h1,
+h2 {
+  font-family: var(--font-heading);
 }
 
 /* Easing preview in the motion panel: a square sliding back and forth. */

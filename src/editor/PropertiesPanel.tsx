@@ -1,6 +1,5 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { ANIMATIONS, DEFAULT_CAMERA, FEELS, cutEase, cutKey, cutMs, getCut, order, targetLabel } from '../board'
-import { Player } from '../components/Player'
 import { useApp } from '../context'
 import type { Cut, CutAnimation, Feel } from '../types'
 import { DesignPanel } from './DesignPanel'
@@ -13,9 +12,11 @@ export function PropertiesPanel({ width, onCollapse }: { width: number; onCollap
   const { state, dispatch } = useApp()
   const [tab, setTab] = useState<'design' | 'animate'>('design')
 
-  // A connector is pure motion: selecting one goes to Animate.
+  // A connector is pure motion, so selecting one goes to Animate; a frame or layer goes to Design.
   useEffect(() => {
-    if (state.selection?.kind === 'cut') setTab('animate')
+    const kind = state.selection?.kind
+    if (kind === 'cut') setTab('animate')
+    else if (kind === 'frame' || kind === 'layer') setTab('design')
   }, [state.selection])
 
   return (
@@ -24,10 +25,7 @@ export function PropertiesPanel({ width, onCollapse }: { width: number; onCollap
         <button onClick={onCollapse} title="Hide panel" className="-ml-1.5 flex size-7 items-center justify-center rounded-md text-muted hover:bg-control-hover">
           <Icon.PanelRight size={14} />
         </button>
-        <button onClick={() => dispatch({ type: 'preview', open: true })} className="ml-auto h-7 rounded-md border border-line px-2.5 font-medium hover:bg-control-hover">
-          Preview
-        </button>
-        <button className="h-7 rounded-md bg-accent px-2.5 font-medium text-on-accent hover:brightness-95" title="Coming soon">
+        <button className="ml-auto h-7 rounded-md bg-accent px-2.5 font-medium text-on-accent hover:brightness-95" title="Coming soon">
           Export
         </button>
       </div>
@@ -46,13 +44,7 @@ export function PropertiesPanel({ width, onCollapse }: { width: number; onCollap
         {tab === 'design' ? (
           <DesignPanel />
         ) : (
-          <>
-            <div className="border-b border-line p-3">
-              <p className="mb-2 text-[13px] font-semibold">Preview</p>
-              <Player board={state.board} compact />
-            </div>
-            <AnimateSelection />
-          </>
+          <AnimateSelection />
         )}
       </div>
     </aside>
@@ -66,7 +58,7 @@ function AnimateSelection() {
   const { board, selection: sel } = state
   if (!sel) return null
 
-  const title = <p className="px-3 pt-3 pb-1 text-[13px] font-semibold">{targetLabel(sel, board)}</p>
+  const title = <p className="px-3 pt-3 pb-1 font-display text-[13px] font-semibold">{targetLabel(sel, board)}</p>
 
   if (sel.kind === 'cut') {
     const [from, to] = sel.key.split('->')
@@ -200,7 +192,7 @@ function Section({ title, action, children }: { title: string; action?: ReactNod
   return (
     <div className="space-y-2 border-b border-line p-3">
       <div className="flex h-5 items-center">
-        <span className="font-semibold">{title}</span>
+        <span className="font-display font-semibold">{title}</span>
         <span className="ml-auto">{action}</span>
       </div>
       {children}
