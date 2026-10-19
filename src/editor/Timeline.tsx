@@ -7,7 +7,7 @@ import { Icon } from './icons'
 import { PinMarker } from './Pin'
 
 // Room either side of the reel so the playhead pill stays centred on its line at 0 and at the end.
-const EDGE = 24
+const EDGE = 28
 const ACCENT = 'var(--accent)' // lime: the act under the playhead
 const ACCENT_LINE = 'var(--accent-line)' // lime strokes: playhead, selected clip
 const THUMB_H = 28
