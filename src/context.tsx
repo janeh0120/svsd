@@ -60,7 +60,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   // Mocked: the draft is src/mock/draft.ts.
   const startProject = useCallback(
     async (prompt: string) => {
-      const url = prompt.match(/https?:\/\/[^\s,]+|\b[\w-]+\.(?:app|com|io|dev|co|ai|so|design)\b[^\s,]*/i)?.[0] ?? 'your site'
+      const url = prompt.match(/https?:\/\/[^\s,]+|\bwww\.[^\s,]+|\b[\w-]+\.(?:app|com|io|dev|co|ai|so|design)\b[^\s,]*/i)?.[0] ?? 'your site'
       const draft = mockDraft(prompt)
       say({ author: 'you', text: prompt })
       dispatch({ type: 'phase', phase: 'drafting' })

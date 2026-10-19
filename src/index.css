@@ -88,13 +88,13 @@ h2 {
   }
 }
 
-/* Mode cursors: crosshair while commenting with the agent, hand to pan the canvas. */
+/* Mode cursors use the system ones: crosshair while commenting with the agent, grab hand to pan. */
 @utility cursor-ai {
-  cursor: url('/cursors/ai.svg') 16 16, crosshair;
+  cursor: crosshair;
 }
 @utility cursor-hand {
-  cursor: url('/cursors/hand.svg') 16 16, grab;
+  cursor: grab;
 }
 @utility cursor-hand-grabbing {
-  cursor: url('/cursors/hand-grabbing.svg') 16 16, grabbing;
+  cursor: grabbing;
 }
