@@ -221,6 +221,121 @@ export const Icon = {
       <path d="M5 3l6.5 17 2.4-7.1L21 10.5z" />
     </Svg>
   ),
+  PanelRight: (p: P) => (
+    <Svg {...p}>
+      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <path d="M15 4v16" />
+    </Svg>
+  ),
+  Link: (p: P) => (
+    <Svg {...p}>
+      <path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" />
+      <path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1" />
+    </Svg>
+  ),
+  Component: (p: P) => (
+    <Svg {...p}>
+      <path d="M12 3l3 3-3 3-3-3zM12 15l3 3-3 3-3-3zM6 9l3 3-3 3-3-3zM18 9l3 3-3 3-3-3z" />
+    </Svg>
+  ),
+  More: (p: P) => (
+    <Svg {...p}>
+      <circle cx="5" cy="12" r="1.3" fill="currentColor" />
+      <circle cx="12" cy="12" r="1.3" fill="currentColor" />
+      <circle cx="19" cy="12" r="1.3" fill="currentColor" />
+    </Svg>
+  ),
+  Styles: (p: P) => (
+    <Svg {...p}>
+      <circle cx="8" cy="8" r="3" />
+      <circle cx="16" cy="8" r="3" />
+      <circle cx="8" cy="16" r="3" />
+      <circle cx="16" cy="16" r="3" />
+    </Svg>
+  ),
+  AlignLeft: (p: P) => (
+    <Svg {...p}>
+      <path d="M4 4v16M8 9h10M8 15h6" />
+    </Svg>
+  ),
+  AlignCenterH: (p: P) => (
+    <Svg {...p}>
+      <path d="M12 4v16M6 9h12M8 15h8" />
+    </Svg>
+  ),
+  AlignRight: (p: P) => (
+    <Svg {...p}>
+      <path d="M20 4v16M6 9h10M10 15h6" />
+    </Svg>
+  ),
+  AlignTop: (p: P) => (
+    <Svg {...p}>
+      <path d="M4 4h16M9 8v10M15 8v6" />
+    </Svg>
+  ),
+  AlignMiddleV: (p: P) => (
+    <Svg {...p}>
+      <path d="M4 12h16M9 6v12M15 8v8" />
+    </Svg>
+  ),
+  AlignBottom: (p: P) => (
+    <Svg {...p}>
+      <path d="M4 20h16M9 6v10M15 10v6" />
+    </Svg>
+  ),
+  Rotate: (p: P) => (
+    <Svg {...p}>
+      <path d="M4 12a8 8 0 1 0 2.3-5.6" />
+      <path d="M4 4v4h4" />
+    </Svg>
+  ),
+  FlipH: (p: P) => (
+    <Svg {...p}>
+      <path d="M12 3v18M8 7l-5 5 5 5zM16 7l5 5-5 5z" />
+    </Svg>
+  ),
+  FlipV: (p: P) => (
+    <Svg {...p}>
+      <path d="M3 12h18M7 8l5-5 5 5zM7 16l5 5 5-5z" />
+    </Svg>
+  ),
+  HugWidth: (p: P) => (
+    <Svg {...p}>
+      <path d="M4 6v12M8 12h11M15 8l4 4-4 4" />
+    </Svg>
+  ),
+  HugHeight: (p: P) => (
+    <Svg {...p}>
+      <path d="M6 5v14M18 5v14M10 9h4M10 15h4M12 9v6" />
+    </Svg>
+  ),
+  FixedSize: (p: P) => (
+    <Svg {...p}>
+      <rect x="4" y="5" width="16" height="14" rx="2" />
+      <path d="M8 10h8M8 14h5" />
+    </Svg>
+  ),
+  TextLeft: (p: P) => (
+    <Svg {...p}>
+      <path d="M4 6h16M4 12h10M4 18h14" />
+    </Svg>
+  ),
+  TextCenter: (p: P) => (
+    <Svg {...p}>
+      <path d="M4 6h16M7 12h10M5 18h14" />
+    </Svg>
+  ),
+  TextRight: (p: P) => (
+    <Svg {...p}>
+      <path d="M4 6h16M10 12h10M6 18h14" />
+    </Svg>
+  ),
+  Target: (p: P) => (
+    <Svg {...p}>
+      <circle cx="12" cy="12" r="8" />
+      <path d="M12 2v4M12 18v4M2 12h4M18 12h4" />
+    </Svg>
+  ),
   Send: (p: P) => (
     <Svg {...p} strokeWidth={2.2}>
       <path d="M12 19V5M6 11l6-6 6 6" />

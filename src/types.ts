@@ -18,7 +18,9 @@ export type Layer = {
   fontSize?: number
   fontWeight?: number
   color?: string
-  align?: 'left' | 'center'
+  align?: 'left' | 'center' | 'right'
+  fontFamily?: string
+  letterSpacing?: number // percent of the font size
   fill?: string
   stroke?: string // outline color, for rectangles
   radius?: number
@@ -31,7 +33,7 @@ export type Layer = {
 // the frame's aspect ratio, so its height equals its width in these units.
 export type Camera = { x: number; y: number; w: number }
 
-export type Frame = { id: string; hold: number; background: string; layers: Layer[]; camera?: Camera }
+export type Frame = { id: string; name?: string; hold: number; background: string; layers: Layer[]; camera?: Camera }
 
 export type CutAnimation = 'smart' | 'dissolve' | 'instant'
 

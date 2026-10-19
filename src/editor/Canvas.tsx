@@ -1,6 +1,6 @@
 import { motion } from 'motion/react'
-import { Fragment, useRef, useState } from 'react'
-import { FRAME_H, FRAME_W, cutKey, sameTarget, timing } from '../board'
+import { Fragment, useEffect, useRef, useState } from 'react'
+import { FRAME_H, FRAME_W, cutKey, cutMs, frameTitle, getCut, order, sameTarget, timing } from '../board'
 import { LayerBody, layerStyle } from '../components/Layer'
 import { useApp } from '../context'
 import { pinsFor } from '../store'
@@ -11,11 +11,22 @@ import { PinMarker } from './Pin'
 const CARD_W = 280
 const SCALE = CARD_W / FRAME_W
 const CARD_H = Math.round((CARD_W * FRAME_H) / FRAME_W)
+// Card chrome: 2px border + 6px padding + 28px header above the frame image.
+const CARD_TOP = 2 + 6 + 28
+const CARD_FULL_H = CARD_TOP + CARD_H + 6 + 2
+const LINK_W = 44 // space between cards, where the connector runs
 
 // The storyboard canvas: acts side by side, each a row of frames.
 export function Canvas() {
   const { state, dispatch } = useApp()
   const comment = state.mode === 'comment'
+  const current = currentFrameId(state)
+
+  // Keep the frame under the playhead centered while the timeline plays or is scrubbed.
+  useEffect(() => {
+    if (!current || (!state.playing && state.playhead === 0)) return
+    document.getElementById(`frame-${current}`)?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' })
+  }, [current]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <div className="relative min-w-0 flex-1 bg-[#F5F5F5]">
@@ -69,12 +80,12 @@ function ActGroup({ act, prevAct }: { act: Act; prevAct?: Act }) {
           <PinMarker key={p.id} pin={p} style={{ position: 'relative', marginLeft: i ? 4 : 8 }} />
         ))}
       </div>
-      {/* The cut from the previous act sits in the space between the two groups. */}
-      {prevLast && act.frameIds[0] && <Gap from={prevLast} to={act.frameIds[0]} className="absolute top-7 -left-10 w-8" />}
+      {/* The cut from the previous act runs across the space between the two groups. */}
+      {prevLast && act.frameIds[0] && <Connector from={prevLast} to={act.frameIds[0]} className="absolute top-7 -left-[50px]" width={58} />}
       <div className="flex">
         {act.frameIds.map((id, i) => (
           <Fragment key={id}>
-            {i > 0 && <Gap from={act.frameIds[i - 1]} to={id} />}
+            {i > 0 && <Connector from={act.frameIds[i - 1]} to={id} />}
             <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15 + i * 0.12, duration: 0.3 }}>
               <FrameCard frameId={id} />
             </motion.div>
@@ -85,33 +96,49 @@ function ActGroup({ act, prevAct }: { act: Act; prevAct?: Act }) {
   )
 }
 
-// The space between two frames is the cut: click it to select or comment on the motion.
-function Gap({ from, to, className = 'relative w-2 shrink-0' }: { from: string; to: string; className?: string }) {
+// The cut between two frames, drawn as a line with a node. Select the node to
+// edit the animation between the frames (or comment on it in annotate mode).
+function Connector({ from, to, className = 'relative shrink-0', width = LINK_W }: { from: string; to: string; className?: string; width?: number }) {
   const { state, dispatch, startComment } = useApp()
   const key = cutKey(from, to)
   const target = { kind: 'cut' as const, key }
   const selected = sameTarget(state.selection, target)
   const comment = state.mode === 'comment'
+  const y = CARD_TOP + CARD_H / 2
+  const mid = width / 2
 
   return (
-    <div
-      id={`cut-${key}`}
-      onClick={(e) => {
-        e.stopPropagation()
-        if (comment) startComment(target)
-        else dispatch({ type: 'select', target })
-      }}
-      style={{ height: CARD_H }}
-      className={`${className} group/gap`}
-    >
-      {/* Hit area is wider than the visible gap so the cut is easy to click. */}
-      <div
-        className={`absolute -inset-x-1 inset-y-0 z-10 rounded ${
-          comment ? 'group-hover/gap:bg-orange-300/50' : selected ? 'bg-[#0D99FF]/40' : 'group-hover/gap:bg-[#0D99FF]/20'
-        }`}
-      />
-      {pinsFor(state.pins, target).map((p, i) => (
-        <PinMarker key={p.id} pin={p} style={{ top: CARD_H / 2, left: 8 + i * 26, transform: 'translateY(-100%)' }} />
+    <div id={`cut-${key}`} className={`${className} group/link`} style={{ width, height: CARD_FULL_H }}>
+      <svg width={width} height={CARD_FULL_H} className="pointer-events-none absolute inset-0 overflow-visible">
+        <path
+          d={`M0 ${y - 6} C ${mid} ${y - 6}, ${mid} ${y + 6}, ${width} ${y + 6}`}
+          fill="none"
+          stroke={selected ? '#0D99FF' : '#A3A3A3'}
+          strokeWidth={selected ? 2 : 1.5}
+        />
+      </svg>
+      <button
+        onClick={(e) => {
+          e.stopPropagation()
+          if (comment) startComment(target)
+          else dispatch({ type: 'select', target })
+        }}
+        title="Edit the animation between these frames"
+        className="absolute z-10 flex size-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center"
+        style={{ left: mid, top: y }}
+      >
+        <span
+          className={`block rounded-full border-2 transition-all ${
+            selected
+              ? 'size-3.5 border-white bg-[#0D99FF] shadow-[0_0_0_2px_#0D99FF]'
+              : comment
+                ? 'size-3 border-white bg-[#A3A3A3] group-hover/link:bg-orange-500'
+                : 'size-3 border-white bg-[#A3A3A3] group-hover/link:size-3.5 group-hover/link:bg-[#6B6B6B]'
+          }`}
+        />
+      </button>
+      {pinsFor(state.pins, target).map((p) => (
+        <PinMarker key={p.id} pin={p} style={{ left: mid, top: y }} />
       ))}
     </div>
   )
@@ -127,7 +154,9 @@ function FrameCard({ frameId }: { frameId: string }) {
   const frameSelected = sel?.kind === 'frame' && sel.frameId === frameId
   const selectedLayer = sel?.kind === 'layer' && sel.frameId === frameId ? sel.layerId : null
   const t = timing(state.board).frames.find((f) => f.id === frameId)
-  const playing = !!t && state.playhead > 0 && state.playhead >= t.start && state.playhead < t.end
+  // The frame under the timeline's playhead: highlighted, with its progress, and playing.
+  const isCurrent = currentFrameId(state) === frameId && (state.playing || state.playhead > 0)
+  const playing = isCurrent && state.playing
 
   const toFrame = (e: React.MouseEvent) => {
     const r = inner.current!.getBoundingClientRect()
@@ -174,40 +203,87 @@ function FrameCard({ frameId }: { frameId: string }) {
     (p) => (p.target.kind === 'layer' || p.target.kind === 'frame') && p.target.frameId === frameId && p.x !== undefined,
   )
 
+  const n = order(state.board).indexOf(frameId) + 1
+  const span = t ? { from: (t.start - (n > 1 ? cutInMs(state, frameId) : 0)) / 1000, to: t.end / 1000 } : null
+
   return (
     <div
       id={`frame-${frameId}`}
-      className={`relative shrink-0 ${frameSelected || playing ? 'outline-2 outline-[#0D99FF]' : ''}`}
-      style={{ width: CARD_W, height: CARD_H }}
+      onClick={onFrameClick}
+      className={`shrink-0 rounded-xl border-2 p-1.5 pt-0 transition-colors ${
+        frameSelected ? 'border-[#A9D3F7] bg-[#CFE6FB]' : isCurrent ? 'border-[#0D99FF]' : 'border-transparent hover:border-[#E0E0E0]'
+      }`}
     >
-      <div className="absolute inset-0 overflow-hidden ring-1 ring-white" onClick={onFrameClick}>
-        <div
-          ref={inner}
-          className="absolute top-0 left-0 origin-top-left"
-          style={{ width: FRAME_W, height: FRAME_H, transform: `scale(${SCALE})`, background: frame.background }}
+      <div className="flex h-7 items-center gap-1.5 px-0.5 text-[12px]" style={{ width: CARD_W }}>
+        <span className={`font-medium ${frameSelected ? 'text-[#1A8CE0]' : 'text-[#6B6B6B]'}`}>{n}</span>
+        <span className={`min-w-0 flex-1 truncate ${frameSelected ? 'text-[#1A8CE0]' : 'text-[#1E1E1E]'}`}>{frameTitle(frame)}</span>
+        {span && (
+          <span className={`shrink-0 text-[11px] tabular-nums ${frameSelected ? 'text-[#1A8CE0]' : 'text-[#6B6B6B]'}`}>
+            {span.from.toFixed(1)}–{span.to.toFixed(1)}s · {(span.to - span.from).toFixed(1)}s
+          </span>
+        )}
+        <button
+          onClick={(e) => {
+            e.stopPropagation()
+            dispatch({ type: 'preview', open: true, from: frameId })
+          }}
+          title="Preview from this frame"
+          className={`flex size-4 shrink-0 items-center justify-center rounded-full text-white ${frameSelected ? 'bg-[#1A8CE0]' : 'bg-[#1E1E1E]'}`}
         >
-          {frame.layers.map((l) => (
-            <div
-              key={l.id}
-              style={layerStyle(l)}
-              onPointerDown={onLayerDown(l)}
-              onClick={onLayerClick(l)}
-              onPointerEnter={() => setHover(l.id)}
-              onPointerLeave={() => setHover((h) => (h === l.id ? null : h))}
-            >
-              <LayerBody layer={l} />
-            </div>
-          ))}
-        </div>
+          <Icon.Play size={7} fill="currentColor" className="ml-px" />
+        </button>
       </div>
+      <div className="relative" style={{ width: CARD_W, height: CARD_H }}>
+        <div className="absolute inset-0 overflow-hidden rounded-md ring-1 ring-black/5">
+          <div
+            ref={inner}
+            className="absolute top-0 left-0 origin-top-left"
+            style={{ width: FRAME_W, height: FRAME_H, transform: `scale(${SCALE})`, background: frame.background }}
+          >
+            {frame.layers.map((l) => (
+              <div
+                key={l.id}
+                style={layerStyle(l)}
+                onPointerDown={onLayerDown(l)}
+                onClick={onLayerClick(l)}
+                onPointerEnter={() => setHover(l.id)}
+                onPointerLeave={() => setHover((h) => (h === l.id ? null : h))}
+              >
+                <LayerBody layer={l} playing={playing} />
+              </div>
+            ))}
+          </div>
+          {isCurrent && span && (
+            <div className="absolute inset-x-0 bottom-0 h-[3px] bg-black/20">
+              <div
+                className="h-full bg-[#0D99FF]"
+                style={{ width: `${Math.min(100, Math.max(0, ((state.playhead / 1000 - span.from) / (span.to - span.from)) * 100))}%` }}
+              />
+            </div>
+          )}
+        </div>
 
-      {hovered && hovered.id !== selected?.id && <Outline layer={hovered} tone={comment ? 'comment' : 'hover'} label={comment ? hovered.name : undefined} />}
-      {selected && <Outline layer={selected} tone="selected" />}
-      {framePins.map((p) => (
-        <PinMarker key={p.id} pin={p} style={{ left: p.x! * SCALE, top: p.y! * SCALE, transform: 'translateY(-100%)' }} />
-      ))}
+        {hovered && hovered.id !== selected?.id && <Outline layer={hovered} tone={comment ? 'comment' : 'hover'} label={comment ? hovered.name : undefined} />}
+        {selected && <Outline layer={selected} tone="selected" />}
+        {framePins.map((p) => (
+          <PinMarker key={p.id} pin={p} style={{ left: p.x! * SCALE, top: p.y! * SCALE, transform: 'translateY(-100%)' }} />
+        ))}
+      </div>
     </div>
   )
+}
+
+// The frame whose span (its cut in plus its hold) contains the playhead.
+function currentFrameId(state: ReturnType<typeof useApp>['state']) {
+  const frames = timing(state.board).frames
+  return (frames.find((f) => state.playhead < f.end) ?? frames[frames.length - 1])?.id
+}
+
+// How long the cut into a frame takes, so its span starts where the previous frame ends.
+function cutInMs(state: ReturnType<typeof useApp>['state'], frameId: string) {
+  const ids = order(state.board)
+  const prev = ids[ids.indexOf(frameId) - 1]
+  return prev ? cutMs(getCut(state.board, prev, frameId)) : 0
 }
 
 // Outline drawn in card space (clipped to the frame) so it stays crisp at any zoom.

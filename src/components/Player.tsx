@@ -23,12 +23,12 @@ function useWidth<T extends HTMLElement>() {
 // one frame to the next; Dissolve cross-fades whole frames; Instant cuts. The
 // camera pans and zooms to each frame's camera box using the cut's easing.
 // `compact` is the small preview in the sidebar; otherwise it's the full-screen player.
-export function Player({ board, autoPlay = false, compact = false }: { board: Storyboard; autoPlay?: boolean; compact?: boolean }) {
+export function Player({ board, autoPlay = false, compact = false, startId }: { board: Storyboard; autoPlay?: boolean; compact?: boolean; startId?: string | null }) {
   const [ref, width] = useWidth<HTMLDivElement>()
   const { state, startComment } = useApp()
   const comment = state.mode === 'comment'
   const ids = order(board)
-  const [i, setI] = useState(0)
+  const [i, setI] = useState(() => Math.max(0, startId ? ids.indexOf(startId) : 0))
   const [playing, setPlaying] = useState(autoPlay)
   const [progress, setProgress] = useState(0)
   const idx = Math.min(i, ids.length - 1)

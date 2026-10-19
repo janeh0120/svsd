@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" font-family="Inter, -apple-system, Helvetica, Arial, sans-serif">
+<rect width="1440" height="900" fill="#FAFAF8"/>
+<circle cx="60" cy="50" r="14" fill="#222"/><g font-size="15" fill="#777"><text x="100" y="56">Explore</text><text x="190" y="56">Saved</text></g><circle cx="1380" cy="50" r="16" fill="#D8D3CC"/>
+<g font-size="16"><rect x="40" y="100" width="70" height="40" rx="20" fill="#222"/><text x="62" y="126" fill="#fff">All</text>
+<rect x="125" y="100" width="100" height="40" rx="20" fill="#EEE"/><text x="145" y="126" fill="#333">Animals</text>
+<rect x="240" y="100" width="100" height="40" rx="20" fill="#EEE"/><text x="262" y="126" fill="#333">Habitats</text>
+<rect x="355" y="100" width="120" height="40" rx="20" fill="#EEE"/><text x="372" y="126" fill="#333">Water</text></g>
+<g>
+<rect x="40" y="170" width="320" height="300" rx="14" fill="#C9D3D8"/><rect x="40" y="380" width="320" height="90" fill="#fff"/><text x="60" y="420" font-size="18" fill="#222">Landslide reporter</text><rect x="60" y="440" width="50" height="18" rx="9" fill="#F2D06B"/>
+<rect x="380" y="170" width="320" height="420" rx="14" fill="#8FA3A0"/><rect x="380" y="500" width="320" height="90" fill="#fff"/><text x="400" y="540" font-size="18" fill="#222">Aquatic insect monitoring</text>
+<rect x="720" y="170" width="320" height="260" rx="14" fill="#B8C6CE"/><path d="M780 260 l20 -10 l20 10 M860 240 l15 -8 l15 8 M820 300 l18 -9 18 9" stroke="#3A4A55" stroke-width="5" fill="none"/><rect x="720" y="340" width="320" height="90" fill="#fff"/><text x="740" y="380" font-size="18" fill="#222">Bird the coast</text>
+<rect x="1060" y="170" width="340" height="300" rx="14" fill="#D9A77C"/><rect x="1060" y="380" width="340" height="90" fill="#fff"/><text x="1080" y="420" font-size="18" fill="#222">Bacterial water quality</text>
+<rect x="40" y="490" width="320" height="380" rx="14" fill="#5E6E78"/><rect x="720" y="450" width="320" height="420" rx="14" fill="#A9B5A0"/><rect x="1060" y="490" width="340" height="380" rx="14" fill="#C4CBD0"/><rect x="380" y="610" width="320" height="260" rx="14" fill="#DCCFB7"/>
+</g>
+</svg>

@@ -1,5 +1,5 @@
 import type { Transition } from 'motion/react'
-import type { Camera, Cut, CutAnimation, Feel, Layer, Storyboard, Target } from './types'
+import type { Camera, Cut, CutAnimation, Feel, Frame, Layer, Storyboard, Target } from './types'
 
 export const FRAME_W = 1440
 export const FRAME_H = 900
@@ -134,4 +134,11 @@ export function targetFrame(t: Target, b: Storyboard): string | undefined {
       return at.kind === 'time' ? undefined : targetFrame(at, b)
     }
   }
+}
+
+// A frame's title for its card: its name, else its caption or title text.
+export function frameTitle(f: Frame): string {
+  if (f.name) return f.name
+  const text = (id: string) => f.layers.find((l) => l.id === id && l.kind === 'text')?.text
+  return text('caption') ?? text('title') ?? f.layers.find((l) => l.kind === 'text')?.text ?? f.layers[0]?.name ?? 'Frame'
 }

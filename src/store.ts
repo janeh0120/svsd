@@ -12,7 +12,9 @@ export type State = {
   messages: Message[]
   working: boolean
   preview: boolean
+  previewFrom: string | null // frame to start the preview at
   playhead: number // ms
+  playing: boolean // the timeline is playing
 }
 
 export type Action =
@@ -21,7 +23,7 @@ export type Action =
   | { type: 'messageUpdate'; id: string; patch: Partial<Message> }
   | { type: 'select'; target: Target | null }
   | { type: 'mode'; mode: Mode }
-  | { type: 'preview'; open: boolean }
+  | { type: 'preview'; open: boolean; from?: string }
   | { type: 'layer'; frameId: string; layerId: string; patch: Partial<Layer> }
   | { type: 'frame'; frameId: string; patch: Partial<Frame> }
   | { type: 'cut'; key: string; patch: Partial<Cut> }
@@ -35,6 +37,7 @@ export type Action =
   | { type: 'message'; message: Message }
   | { type: 'working'; on: boolean }
   | { type: 'playhead'; ms: number }
+  | { type: 'playing'; on: boolean }
 
 export const initialState: State = {
   phase: 'empty',
@@ -46,7 +49,9 @@ export const initialState: State = {
   messages: [],
   working: false,
   preview: false,
+  previewFrom: null,
   playhead: 0,
+  playing: false,
 }
 
 const dropDrafts = (pins: Pin[]) => pins.filter((p) => p.status !== 'draft')
@@ -66,7 +71,7 @@ export function reducer(state: State, action: Action): State {
       // Leaving comment mode throws away a half-typed comment.
       return { ...state, mode: action.mode, pins: dropDrafts(state.pins), composing: null }
     case 'preview':
-      return { ...state, preview: action.open }
+      return { ...state, preview: action.open, previewFrom: action.open ? (action.from ?? null) : null }
     case 'layer': {
       const fr = board.frames[action.frameId]
       if (!fr) return state
@@ -139,6 +144,8 @@ export function reducer(state: State, action: Action): State {
       return { ...state, working: action.on }
     case 'playhead':
       return { ...state, playhead: action.ms }
+    case 'playing':
+      return { ...state, playing: action.on }
   }
 }
 

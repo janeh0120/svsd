@@ -23,15 +23,16 @@ export function LayerBody({ layer, playing = false }: { layer: Layer; playing?: 
       />
     )
   }
-  const left = layer.align === 'left'
+  const justify = layer.align === 'left' ? 'flex-start' : layer.align === 'right' ? 'flex-end' : 'center'
   return (
     <div
       className="flex h-full w-full items-center whitespace-nowrap select-none"
       style={{
-        justifyContent: left ? 'flex-start' : 'center',
+        justifyContent: justify,
+        fontFamily: layer.fontFamily,
         fontWeight: layer.fontWeight ?? 700,
         lineHeight: 1.05,
-        letterSpacing: '-0.02em',
+        letterSpacing: `${(layer.letterSpacing ?? -2) / 100}em`,
         background: layer.fill,
         borderRadius: layer.fill ? 999 : undefined,
         padding: layer.fill ? '0 0.7em' : undefined,
@@ -86,8 +87,12 @@ function VideoBody({ layer, playing }: { layer: Layer; playing: boolean }) {
     const v = ref.current
     if (!v) return
     if (playing) v.play().catch(() => {})
-    else v.pause()
-  }, [playing])
+    else {
+      // Stopped: back to this frame's first moment, ready to play again.
+      v.pause()
+      if (v.readyState >= 1) v.currentTime = start
+    }
+  }, [playing]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <video

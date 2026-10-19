@@ -3,7 +3,7 @@ import { Player } from '../components/Player'
 import { useApp } from '../context'
 import { Canvas } from './Canvas'
 import { LeftPanel } from './LeftPanel'
-import { PropertiesPanel } from './PropertiesPanel'
+import { CollapsedAnimatePanel, PropertiesPanel } from './PropertiesPanel'
 import { Timeline } from './Timeline'
 
 // Both sidebars start at the same width; each can be resized on its own.
@@ -31,9 +31,29 @@ function usePanelSizes() {
   return [sizes, set] as const
 }
 
+// The Animate panel starts closed; whether it's open is remembered per viewer.
+function useAnimateOpen() {
+  const [open, setOpen] = useState(() => {
+    try {
+      return localStorage.getItem('svsd.animate-open') === '1'
+    } catch {
+      return false
+    }
+  })
+  useEffect(() => {
+    try {
+      localStorage.setItem('svsd.animate-open', open ? '1' : '0')
+    } catch {
+      /* storage unavailable: it just won't be remembered */
+    }
+  }, [open])
+  return [open, setOpen] as const
+}
+
 export function Editor() {
   const { state, dispatch } = useApp()
   const [sizes, set] = usePanelSizes()
+  const [animateOpen, setAnimateOpen] = useAnimateOpen()
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -64,15 +84,21 @@ export function Editor() {
         <LeftPanel width={sizes.left} />
         <Resizer axis="x" value={sizes.left} min={200} max={420} sign={1} onChange={set('left')} onReset={() => set('left')(DEFAULTS.left)} />
         <Canvas />
-        <Resizer axis="x" value={sizes.right} min={200} max={420} sign={-1} onChange={set('right')} onReset={() => set('right')(DEFAULTS.right)} />
-        <PropertiesPanel width={sizes.right} />
+        {animateOpen ? (
+          <>
+            <Resizer axis="x" value={sizes.right} min={200} max={420} sign={-1} onChange={set('right')} onReset={() => set('right')(DEFAULTS.right)} />
+            <PropertiesPanel width={sizes.right} onCollapse={() => setAnimateOpen(false)} />
+          </>
+        ) : (
+          <CollapsedAnimatePanel onExpand={() => setAnimateOpen(true)} />
+        )}
       </div>
       <Resizer axis="y" value={sizes.bottom} min={150} max={400} sign={-1} onChange={set('bottom')} onReset={() => set('bottom')(DEFAULTS.bottom)} />
       <Timeline height={sizes.bottom} />
       {state.preview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-10" onClick={() => dispatch({ type: 'preview', open: false })}>
           <div className="w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
-            <Player board={state.board} autoPlay />
+            <Player board={state.board} autoPlay startId={state.previewFrom} />
           </div>
         </div>
       )}

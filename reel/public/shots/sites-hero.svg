@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" font-family="Inter, -apple-system, Helvetica, Arial, sans-serif">
+<rect width="1440" height="900" fill="#4A2D48"/>
+<rect x="160" y="90" width="1120" height="640" fill="#B9B0D4"/>
+<text x="720" y="210" font-size="40" fill="#fff" text-anchor="middle">July 10, 2025</text>
+<text x="720" y="330" font-size="96" fill="#fff" text-anchor="middle" font-weight="300">Absence, Presence</text>
+<ellipse cx="660" cy="590" rx="90" ry="120" fill="#C9B18A"/><ellipse cx="660" cy="470" rx="45" ry="70" fill="#C9B18A"/><circle cx="860" cy="680" r="24" fill="#B4553A"/>
+<text x="720" y="430" font-size="34" fill="#fff" text-anchor="middle" text-decoration="underline">Learn More</text>
+<rect x="160" y="90" width="1120" height="640" fill="none" stroke="#0D99FF" stroke-width="4"/>
+<g fill="#fff" stroke="#0D99FF" stroke-width="3"><rect x="150" y="80" width="20" height="20"/><rect x="1270" y="80" width="20" height="20"/><rect x="150" y="720" width="20" height="20"/><rect x="1270" y="720" width="20" height="20"/></g>
+<path d="M1300 380 h70 M1300 380 l18 -16 M1300 380 l18 16 M1370 380 l-18 -16 M1370 380 l-18 16" stroke="#fff" stroke-width="6" fill="none"/>
+</svg>

@@ -19,7 +19,8 @@ export function Timeline({ height }: { height: number }) {
   const { board, playhead } = state
   const t = timing(board)
   const total = t.total
-  const [playing, setPlaying] = useState(false)
+  const playing = state.playing
+  const setPlaying = (on: boolean) => dispatch({ type: 'playing', on })
   const [zoom, setZoom] = useState(1)
   const [width, setWidth] = useState(800)
   const area = useRef<HTMLDivElement>(null)

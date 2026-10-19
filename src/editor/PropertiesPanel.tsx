@@ -1,49 +1,74 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { ANIMATIONS, DEFAULT_CAMERA, FEELS, cutEase, cutKey, cutMs, getCut, order, targetLabel } from '../board'
 import { Player } from '../components/Player'
 import { useApp } from '../context'
-import type { Cut, CutAnimation, Feel, Layer } from '../types'
+import type { Cut, CutAnimation, Feel } from '../types'
+import { DesignPanel } from './DesignPanel'
 import { Icon } from './icons'
 import { BezierEditor, CameraEditor, EasePreview } from './MotionControls'
 
-// Right sidebar: the Animate panel, a live preview plus the selection's properties.
-export function PropertiesPanel({ width }: { width: number }) {
-  const { state } = useApp()
+// Right sidebar: Design (properties of the selected frame or layer) and
+// Animate (live preview plus motion: cuts, timing, camera).
+export function PropertiesPanel({ width, onCollapse }: { width: number; onCollapse: () => void }) {
+  const { state, dispatch } = useApp()
+  const [tab, setTab] = useState<'design' | 'animate'>('design')
+
+  // A connector is pure motion: selecting one goes to Animate.
+  useEffect(() => {
+    if (state.selection?.kind === 'cut') setTab('animate')
+  }, [state.selection])
 
   return (
     <aside className="flex shrink-0 flex-col bg-white" style={{ width }}>
       <div className="flex h-10 shrink-0 items-center gap-1 px-3">
         <span className="flex size-6 items-center justify-center rounded-full bg-[#F24822] text-[11px] font-semibold text-white">J</span>
         <Icon.ChevronDown size={12} className="text-[#8C8C8C]" />
-        <button className="ml-auto h-7 rounded-md border border-[#E6E6E6] px-2.5 font-medium">Share</button>
-        <button className="h-7 rounded-md bg-[#1E1E1E] px-2.5 font-medium text-white" title="Coming soon">
+        <button onClick={() => dispatch({ type: 'preview', open: true })} className="ml-auto h-7 rounded-md border border-[#E6E6E6] px-2.5 font-medium hover:bg-[#F5F5F5]">
+          Preview
+        </button>
+        <button className="h-7 rounded-md border border-[#E6E6E6] px-2.5 font-medium hover:bg-[#F5F5F5]" title="Coming soon">
           Export
         </button>
       </div>
       <div className="flex h-10 shrink-0 items-center gap-1 border-b border-[#E6E6E6] px-2">
-        <span className="flex h-7 items-center rounded-md bg-[#F0F0F0] px-2 font-medium">Animate</span>
-        <span className="ml-auto flex items-center gap-1 pr-1 font-medium">
-          39% <Icon.ChevronDown size={12} />
-        </span>
+        {(['design', 'animate'] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={`h-7 rounded-md px-2 capitalize ${tab === t ? 'bg-[#F0F0F0] font-medium' : 'text-[#8C8C8C] hover:text-[#1E1E1E]'}`}
+          >
+            {t}
+          </button>
+        ))}
+        <button onClick={onCollapse} title="Hide panel" className="ml-auto flex size-7 items-center justify-center rounded-md text-[#6B6B6B] hover:bg-[#F0F0F0]">
+          <Icon.PanelRight size={14} />
+        </button>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="border-b border-[#E6E6E6] p-3">
-          <p className="mb-2 text-[13px] font-semibold">Preview</p>
-          <Player board={state.board} compact />
-        </div>
-        <Selection />
+        {tab === 'design' ? (
+          <DesignPanel />
+        ) : (
+          <>
+            <div className="border-b border-[#E6E6E6] p-3">
+              <p className="mb-2 text-[13px] font-semibold">Preview</p>
+              <Player board={state.board} compact />
+            </div>
+            <AnimateSelection />
+          </>
+        )}
       </div>
     </aside>
   )
 }
 
-function Selection() {
+// Animate tab, for the selection: a connector's motion, or a frame's (or its
+// layer's frame's) cut in, hold time and camera.
+function AnimateSelection() {
   const { state, dispatch } = useApp()
   const { board, selection: sel } = state
   if (!sel) return null
 
   const title = <p className="px-3 pt-3 pb-1 text-[13px] font-semibold">{targetLabel(sel, board)}</p>
-  const ids = order(board)
 
   if (sel.kind === 'cut') {
     const [from, to] = sel.key.split('->')
@@ -51,75 +76,33 @@ function Selection() {
       <>
         {title}
         <MotionSection cutId={sel.key} cut={getCut(board, from, to)} />
-        <CameraSection frameId={to} />
       </>
     )
   }
+  if (sel.kind !== 'frame' && sel.kind !== 'layer') return title
 
-  if (sel.kind === 'frame' && board.frames[sel.frameId]) {
-    const prev = ids[ids.indexOf(sel.frameId) - 1]
-    return (
-      <>
-        {title}
-        {prev && <MotionSection cutId={cutKey(prev, sel.frameId)} cut={getCut(board, prev, sel.frameId)} label="Cut in" />}
-        <Section title="Timing">
-          <Labeled label="Hold">
-            <Field
-              prefix={<Icon.Diamond size={10} />}
-              value={board.frames[sel.frameId].hold * 1000}
-              suffix="ms"
-              step={100}
-              onChange={(v) => dispatch({ type: 'frame', frameId: sel.frameId, patch: { hold: Math.max(0.2, v / 1000) } })}
-            />
-          </Labeled>
-        </Section>
-        <CameraSection frameId={sel.frameId} />
-      </>
-    )
-  }
-
-  if (sel.kind === 'layer') {
-    const l = board.frames[sel.frameId]?.layers.find((x) => x.id === sel.layerId)
-    if (!l) return null
-    const set = (patch: Partial<Layer>) => dispatch({ type: 'layer', frameId: sel.frameId, layerId: l.id, patch })
-    return (
-      <>
-        {title}
-        <Section title="Transform" action={<Icon.Crosshair size={14} />}>
-          <Group label="Position">
-            <Row>
-              <Field prefix="X" value={l.x} onChange={(x) => set({ x })} />
-              <Field prefix="Y" value={l.y} onChange={(y) => set({ y })} />
-            </Row>
-          </Group>
-          <Group label="Scale">
-            <Row link>
-              <Field prefix={<Icon.ArrowsH size={12} />} value={Math.round((l.scaleX ?? 1) * 100)} suffix="%" onChange={(v) => set({ scaleX: v / 100 })} />
-              <Field prefix={<Icon.ArrowsV size={12} />} value={Math.round((l.scaleY ?? 1) * 100)} suffix="%" onChange={(v) => set({ scaleY: v / 100 })} />
-            </Row>
-          </Group>
-          <Group label="Rotation">
-            <Row>
-              <Field prefix={<Icon.Angle size={12} />} value={l.rotation} suffix="°" onChange={(rotation) => set({ rotation })} />
-            </Row>
-          </Group>
-        </Section>
-        <Section title="Appearance" action={<Icon.Eye size={14} />}>
-          <Row trailing={<Icon.Expand size={12} />} labels={['Opacity', 'Corner radius']}>
-            <Field prefix={<Icon.Square size={12} />} value={Math.round(l.opacity * 100)} suffix="%" onChange={(v) => set({ opacity: Math.min(1, Math.max(0, v / 100)) })} />
-            <Field prefix={<Icon.Expand size={12} />} value={l.radius ?? 0} onChange={(radius) => set({ radius })} />
-          </Row>
-          {l.kind === 'text' && (
-            <Group label="Text">
-              <input value={l.text ?? ''} onChange={(e) => set({ text: e.target.value })} className="h-7 w-full rounded-md bg-[#F5F5F5] px-2 outline-none" />
-            </Group>
-          )}
-        </Section>
-      </>
-    )
-  }
-
-  return title
+  const frame = board.frames[sel.frameId]
+  if (!frame) return null
+  const ids = order(board)
+  const prev = ids[ids.indexOf(frame.id) - 1]
+  return (
+    <>
+      {title}
+      {prev && <MotionSection cutId={cutKey(prev, frame.id)} cut={getCut(board, prev, frame.id)} label="Cut in" />}
+      <Section title="Timing">
+        <Labeled label="Hold">
+          <Field
+            prefix={<Icon.Diamond size={10} />}
+            value={frame.hold * 1000}
+            suffix="ms"
+            step={100}
+            onChange={(v) => dispatch({ type: 'frame', frameId: frame.id, patch: { hold: Math.max(0.2, v / 1000) } })}
+          />
+        </Labeled>
+      </Section>
+      <CameraSection frameId={frame.id} />
+    </>
+  )
 }
 
 // Animation type, easing (preset or custom bezier), duration, curve and preview.
@@ -227,46 +210,12 @@ function Section({ title, action, children }: { title: string; action?: ReactNod
   )
 }
 
-// A small grey label above its controls.
-function Group({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div>
-      <p className="mb-1 text-[11px] text-[#8C8C8C]">{label}</p>
-      {children}
-    </div>
-  )
-}
-
 // Label on the left, control on the right.
 function Labeled({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex items-center gap-2">
       <span className="w-16 shrink-0 text-[#8C8C8C]">{label}</span>
       <div className="min-w-0 flex-1">{children}</div>
-    </div>
-  )
-}
-
-// Two fields side by side; `link` adds the blue lock-ratio button, `trailing` any icon.
-function Row({ children, link, trailing, labels }: { children: ReactNode; link?: boolean; trailing?: ReactNode; labels?: [string, string] }) {
-  return (
-    <div>
-      {labels && (
-        <div className="mb-1 grid grid-cols-2 gap-1 pr-8 text-[11px] text-[#8C8C8C]">
-          <span>{labels[0]}</span>
-          <span>{labels[1]}</span>
-        </div>
-      )}
-      <div className="flex items-center gap-1">
-        <div className="grid min-w-0 flex-1 grid-cols-2 gap-1">{children}</div>
-        {link ? (
-          <span className="flex size-7 shrink-0 items-center justify-center rounded-md bg-[#E5F4FF] text-[#0D99FF]">
-            <Icon.LinkOut size={12} />
-          </span>
-        ) : (
-          <span className="flex size-7 shrink-0 items-center justify-center">{trailing}</span>
-        )}
-      </div>
     </div>
   )
 }
@@ -300,5 +249,19 @@ function Select({ value, onChange, options, icon }: { value: string; onChange: (
       </select>
       <Icon.ChevronDown size={12} className="pointer-events-none shrink-0 text-[#8C8C8C]" />
     </label>
+  )
+}
+
+// The panel folded away: a thin strip with a button to open it.
+export function CollapsedAnimatePanel({ onExpand }: { onExpand: () => void }) {
+  return (
+    <aside className="flex w-11 shrink-0 flex-col items-center gap-2 border-l border-[#E6E6E6] bg-white pt-2">
+      <button onClick={onExpand} title="Show panel" className="flex size-7 items-center justify-center rounded-md text-[#6B6B6B] hover:bg-[#F0F0F0]">
+        <Icon.PanelRight size={14} />
+      </button>
+      <button onClick={onExpand} className="text-[11px] font-medium text-[#6B6B6B] [writing-mode:vertical-rl] hover:text-[#1E1E1E]">
+        Design · Animate
+      </button>
+    </aside>
   )
 }
