@@ -29,10 +29,10 @@ export function Canvas() {
   }, [current]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <div className="relative min-w-0 flex-1 bg-[#F5F5F5]">
+    <div className="relative min-w-0 flex-1 bg-canvas">
       <div
         id="canvas"
-        className={`h-full overflow-auto ${comment ? 'cursor-crosshair shadow-[inset_0_0_0_2px_#fb923c]' : ''}`}
+        className={`h-full overflow-auto ${comment ? 'cursor-crosshair shadow-[inset_0_0_0_2px_var(--accent-line)]' : ''}`}
         onClick={() => {
           if (!comment) dispatch({ type: 'select', target: null })
           else if (state.composing) dispatch({ type: 'compose', id: null })
@@ -68,14 +68,14 @@ function ActGroup({ act, prevAct }: { act: Act; prevAct?: Act }) {
       id={`act-${act.id}`}
       onClick={pick}
       className={`relative shrink-0 scroll-m-6 rounded-xl border p-2 pt-0 ${
-        selected ? 'border-[#A6D5F3] bg-[#BEE3F8]' : 'border-[#D9D9D9]'
-      } ${state.mode === 'comment' ? 'hover:border-orange-400' : ''}`}
+        selected ? 'border-accent-line bg-accent-soft' : 'border-line'
+      } ${state.mode === 'comment' ? 'hover:border-accent-line' : ''}`}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
     >
       <div className="flex h-7 items-center px-0.5">
-        <h2 className={`text-[12px] leading-none font-normal ${selected ? 'text-[#1A8CE0]' : 'text-[#5C5C5C]'}`}>{act.name}</h2>
+        <h2 className={`text-[12px] leading-none font-normal ${selected ? 'text-accent-text' : 'text-muted'}`}>{act.name}</h2>
         {pinsFor(state.pins, target).map((p, i) => (
           <PinMarker key={p.id} pin={p} style={{ position: 'relative', marginLeft: i ? 4 : 8 }} />
         ))}
@@ -113,7 +113,7 @@ function Connector({ from, to, className = 'relative shrink-0', width = LINK_W }
         <path
           d={`M0 ${y - 6} C ${mid} ${y - 6}, ${mid} ${y + 6}, ${width} ${y + 6}`}
           fill="none"
-          stroke={selected ? '#0D99FF' : '#A3A3A3'}
+          style={{ stroke: selected ? 'var(--accent-line)' : 'var(--line-strong)' }}
           strokeWidth={selected ? 2 : 1.5}
         />
       </svg>
@@ -130,10 +130,10 @@ function Connector({ from, to, className = 'relative shrink-0', width = LINK_W }
         <span
           className={`block rounded-full border-2 transition-all ${
             selected
-              ? 'size-3.5 border-white bg-[#0D99FF] shadow-[0_0_0_2px_#0D99FF]'
+              ? 'size-3.5 border-canvas bg-accent shadow-[0_0_0_2px_var(--accent-line)]'
               : comment
-                ? 'size-3 border-white bg-[#A3A3A3] group-hover/link:bg-orange-500'
-                : 'size-3 border-white bg-[#A3A3A3] group-hover/link:size-3.5 group-hover/link:bg-[#6B6B6B]'
+                ? 'size-3 border-canvas bg-line-strong group-hover/link:bg-accent'
+                : 'size-3 border-canvas bg-line-strong group-hover/link:size-3.5 group-hover/link:bg-muted'
           }`}
         />
       </button>
@@ -211,14 +211,14 @@ function FrameCard({ frameId }: { frameId: string }) {
       id={`frame-${frameId}`}
       onClick={onFrameClick}
       className={`shrink-0 rounded-xl border-2 p-1.5 pt-0 transition-colors ${
-        frameSelected ? 'border-[#A9D3F7] bg-[#CFE6FB]' : isCurrent ? 'border-[#0D99FF]' : 'border-transparent hover:border-[#E0E0E0]'
+        frameSelected ? 'border-accent-line bg-accent-soft' : isCurrent ? 'border-accent-line' : 'border-transparent hover:border-line'
       }`}
     >
       <div className="flex h-7 items-center gap-1.5 px-0.5 text-[12px]" style={{ width: CARD_W }}>
-        <span className={`font-medium ${frameSelected ? 'text-[#1A8CE0]' : 'text-[#6B6B6B]'}`}>{n}</span>
-        <span className={`min-w-0 flex-1 truncate ${frameSelected ? 'text-[#1A8CE0]' : 'text-[#1E1E1E]'}`}>{frameTitle(frame)}</span>
+        <span className={`font-medium ${frameSelected ? 'text-accent-text' : 'text-muted'}`}>{n}</span>
+        <span className={`min-w-0 flex-1 truncate ${frameSelected ? 'text-accent-text' : 'text-ink'}`}>{frameTitle(frame)}</span>
         {span && (
-          <span className={`shrink-0 text-[11px] tabular-nums ${frameSelected ? 'text-[#1A8CE0]' : 'text-[#6B6B6B]'}`}>
+          <span className={`shrink-0 text-[11px] tabular-nums ${frameSelected ? 'text-accent-text' : 'text-muted'}`}>
             {span.from.toFixed(1)}–{span.to.toFixed(1)}s · {(span.to - span.from).toFixed(1)}s
           </span>
         )}
@@ -228,13 +228,13 @@ function FrameCard({ frameId }: { frameId: string }) {
             dispatch({ type: 'preview', open: true, from: frameId })
           }}
           title="Preview from this frame"
-          className={`flex size-4 shrink-0 items-center justify-center rounded-full text-white ${frameSelected ? 'bg-[#1A8CE0]' : 'bg-[#1E1E1E]'}`}
+          className={`flex size-4 shrink-0 items-center justify-center rounded-full ${frameSelected ? 'bg-accent text-on-accent' : 'bg-ink text-surface'}`}
         >
           <Icon.Play size={7} fill="currentColor" className="ml-px" />
         </button>
       </div>
       <div className="relative" style={{ width: CARD_W, height: CARD_H }}>
-        <div className="absolute inset-0 overflow-hidden rounded-md ring-1 ring-black/5">
+        <div className="absolute inset-0 overflow-hidden rounded-md ring-1 ring-line">
           <div
             ref={inner}
             className="absolute top-0 left-0 origin-top-left"
@@ -256,7 +256,7 @@ function FrameCard({ frameId }: { frameId: string }) {
           {isCurrent && span && (
             <div className="absolute inset-x-0 bottom-0 h-[3px] bg-black/20">
               <div
-                className="h-full bg-[#0D99FF]"
+                className="h-full bg-accent"
                 style={{ width: `${Math.min(100, Math.max(0, ((state.playhead / 1000 - span.from) / (span.to - span.from)) * 100))}%` }}
               />
             </div>
@@ -294,9 +294,9 @@ function Outline({ layer, tone, label }: { layer: Layer; tone: 'hover' | 'select
   const y1 = Math.min(FRAME_H, layer.y + layer.h)
   if (x1 <= x0 || y1 <= y0) return null
   const styles = {
-    hover: 'border border-[#0D99FF]',
-    selected: 'border border-[#0D99FF]',
-    comment: 'border-2 border-dashed border-orange-500 bg-orange-500/10',
+    hover: 'border border-accent-line',
+    selected: 'border border-accent-line',
+    comment: 'border-2 border-dashed border-accent-line bg-accent/15',
   }
   return (
     <div
@@ -304,7 +304,7 @@ function Outline({ layer, tone, label }: { layer: Layer; tone: 'hover' | 'select
       style={{ left: x0 * SCALE, top: y0 * SCALE, width: (x1 - x0) * SCALE, height: (y1 - y0) * SCALE }}
     >
       {label && (
-        <span className="absolute -top-5 left-[-2px] rounded bg-orange-500 px-1.5 py-0.5 text-[11px] font-medium whitespace-nowrap text-white">{label}</span>
+        <span className="absolute -top-5 left-[-2px] rounded bg-accent px-1.5 py-0.5 text-[11px] font-medium whitespace-nowrap text-on-accent">{label}</span>
       )}
     </div>
   )
@@ -323,7 +323,7 @@ function Toolbar() {
   ]
   const active = state.mode === 'comment' ? null : tool
   return (
-    <div className="absolute bottom-3 left-1/2 z-30 flex h-8 -translate-x-1/2 items-center gap-0.5 rounded-lg bg-white px-1 shadow-[0_1px_4px_rgba(0,0,0,0.12)]">
+    <div className="absolute bottom-3 left-1/2 z-30 flex h-8 -translate-x-1/2 items-center gap-0.5 rounded-lg bg-raised px-1 shadow-[0_1px_4px_rgba(0,0,0,0.12)]">
       {tools.map(({ id, icon: I }) => (
         <button
           key={id}
@@ -331,7 +331,7 @@ function Toolbar() {
             setTool(id)
             if (state.mode !== 'select') dispatch({ type: 'mode', mode: 'select' })
           }}
-          className={`flex size-6 items-center justify-center rounded-md ${active === id ? 'bg-[#0D99FF] text-white' : 'hover:bg-[#F5F5F5]'}`}
+          className={`flex size-6 items-center justify-center rounded-md ${active === id ? 'bg-accent text-on-accent' : 'hover:bg-control-hover'}`}
         >
           <I size={14} />
         </button>

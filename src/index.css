@@ -1,7 +1,57 @@
 @import "tailwindcss";
 
+/* Color roles. Every color is a role, not a hex value (Material 3 dark-mode
+   principles). The product is dark only: tinted near-black surfaces that get
+   lighter as they rise (never #000), off-white text (never #fff), and lime as
+   the one "on/active" signal, always paired with lime-ink text. */
+:root {
+  color-scheme: dark;
+  --canvas: #121410; /* behind the storyboard */
+  --surface: #1a1c18; /* sidebars and timeline */
+  --raised: #23261f; /* popovers, cards, menus on a surface */
+  --control: #2a2d26; /* tonal fields and inactive controls */
+  --control-hover: #33372f;
+  --ink: #e4e6de; /* text */
+  --muted: #a4a79c; /* secondary text, icons */
+  --subtle: #92958a; /* placeholders, faint labels */
+  --line: #31342c; /* borders, dividers, tracks */
+  --line-strong: #43473d;
+  --accent: #c9ea80; /* lime fill: the on/active signal */
+  --on-accent: #1a2405; /* lime ink, on lime fills */
+  --accent-soft: #2b3519; /* selected backgrounds */
+  --accent-line: #c9ea80; /* lime strokes: outlines, playhead, selection */
+  --accent-text: #c9ea80; /* lime-tinted text */
+  --inverse: #3a3e34; /* tooltips */
+  --on-inverse: #e4e6de;
+  --shadow: none; /* elevation comes from lighter surfaces */
+}
+
+/* Roles as Tailwind colors: bg-surface, text-muted, border-line, bg-accent… */
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-raised: var(--raised);
+  --color-control: var(--control);
+  --color-control-hover: var(--control-hover);
+  --color-ink: var(--ink);
+  --color-muted: var(--muted);
+  --color-subtle: var(--subtle);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-accent-line: var(--accent-line);
+  --color-accent-text: var(--accent-text);
+  --color-inverse: var(--inverse);
+  --color-on-inverse: var(--on-inverse);
+  --shadow-sm: var(--shadow);
+}
+
 body {
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  background: var(--surface);
+  color: var(--ink);
 }
 
 /* Easing preview in the motion panel: a square sliding back and forth. */
@@ -11,5 +61,12 @@ body {
   }
   to {
     transform: translateX(56px);
+  }
+}
+
+/* Blinking caret for text that types itself out. */
+@keyframes caret {
+  50% {
+    opacity: 0;
   }
 }

@@ -8,8 +8,18 @@ import { QuestionCard } from './QuestionCard'
 
 export function LeftPanel({ width }: { width: number }) {
   return (
-    <aside className="flex shrink-0 flex-col bg-white" style={{ width }}>
-      <div className="flex h-10 shrink-0 items-center border-b border-[#E6E6E6] px-3">
+    <aside className="flex shrink-0 flex-col bg-surface" style={{ width }}>
+      {/* App bar: logo (placeholder) and the file name */}
+      <div className="flex h-10 shrink-0 items-center">
+        <div className="flex h-full w-10 shrink-0 items-center justify-center">
+          <span className="size-5 rounded-md border border-dashed border-line-strong bg-control" title="Logo" />
+        </div>
+        <button className="flex min-w-0 items-center gap-1.5 px-3 text-[13px] font-semibold">
+          <span className="truncate">Design File</span>
+          <Icon.ChevronDown size={12} className="shrink-0 text-muted" />
+        </button>
+      </div>
+      <div className="flex h-10 shrink-0 items-center border-t border-line px-3">
         <span className="text-[13px] font-semibold">Agent</span>
       </div>
       <AgentPanel />
@@ -41,12 +51,12 @@ function AgentPanel() {
         {state.messages.map((m) => (
           <ChatItem key={m.id} m={m} />
         ))}
-        {state.working && <p className="animate-pulse text-[11px] text-[#8C8C8C]">Working…</p>}
+        {state.working && <p className="animate-pulse text-[11px] text-muted">Working…</p>}
         <div ref={end} />
       </div>
 
       <div className="px-2 pb-2">
-        <div className="flex min-h-20 flex-col rounded-lg border border-[#E6E6E6] p-2 focus-within:border-[#B3B3B3]">
+        <div className="flex min-h-20 flex-col rounded-lg border border-line p-2 focus-within:border-line-strong">
           {pending.length > 0 && (
             <div className="mb-1.5 flex flex-wrap gap-1">
               {pending.map((p) => (
@@ -77,17 +87,17 @@ function AgentPanel() {
                   ? 'Add a note, or send the annotations as they are'
                   : 'Plan, Build, / for skills, @ for context'
             }
-            className="min-h-0 w-full flex-1 resize-none outline-none placeholder:text-[#B3B3B3]"
+            className="min-h-0 w-full flex-1 resize-none outline-none placeholder:text-subtle"
           />
           <div className="flex items-center gap-1.5">
-            <button className="flex size-5 items-center justify-center rounded-full border border-[#D9D9D9] text-[#8C8C8C]">
+            <button className="flex size-5 items-center justify-center rounded-full border border-line text-muted">
               <Icon.Plus size={12} />
             </button>
             <AnnotateButton />
             <button
               onClick={submit}
               disabled={busy || state.working}
-              className="ml-auto flex size-5 items-center justify-center rounded-full bg-[#1E1E1E] text-white disabled:opacity-40"
+              className="ml-auto flex size-5 items-center justify-center rounded-full bg-accent text-on-accent disabled:opacity-40"
               title="Send"
             >
               <Icon.Send size={12} />
@@ -112,18 +122,18 @@ function AnnotateButton() {
         aria-label="Select an element or annotate"
         aria-pressed={on}
         className={`flex size-5 items-center justify-center rounded-md ${
-          on ? 'bg-orange-500 text-white' : disabled ? 'text-[#D9D9D9]' : 'text-[#6B6B6B] hover:bg-[#F0F0F0]'
+          on ? 'bg-accent-soft text-accent-text' : disabled ? 'text-subtle' : 'text-muted hover:bg-control-hover'
         }`}
       >
         <Icon.Pointer size={13} />
       </button>
       {hover && (
-        <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-60 rounded-lg bg-[#1E1E1E] p-2.5 text-white shadow-xl">
+        <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-60 rounded-lg bg-inverse p-2.5 text-on-inverse shadow-xl">
           <div className="flex items-center gap-2">
             <span className="font-medium">{on ? 'Stop annotating' : 'Select an element or annotate'}</span>
-            <kbd className="ml-auto shrink-0 text-[11px] text-white/60">⇧⌘S</kbd>
+            <kbd className="ml-auto shrink-0 text-[11px] text-on-inverse/60">⇧⌘S</kbd>
           </div>
-          <p className="mt-1 text-[11px] leading-snug text-white/60">
+          <p className="mt-1 text-[11px] leading-snug text-on-inverse/60">
             Point at a layer, frame, cut or act, or at a moment in the preview or timeline. The agent gets a snapshot of it, its properties and where it sits in
             the reel.
           </p>
@@ -141,7 +151,7 @@ function AttachmentChip({ pinId }: { pinId: string }) {
   const frameId = targetFrame(pin.target, state.board)
   const frame = frameId ? state.board.frames[frameId] : undefined
   return (
-    <span className="flex h-6 max-w-full items-center gap-1.5 rounded-md border border-[#E6E6E6] bg-[#F5F5F5] pr-1 pl-0.5" title={pin.text}>
+    <span className="flex h-6 max-w-full items-center gap-1.5 rounded-md border border-line bg-control pr-1 pl-0.5" title={pin.text}>
       <button
         className="flex min-w-0 items-center gap-1.5"
         onClick={() => {
@@ -149,12 +159,12 @@ function AttachmentChip({ pinId }: { pinId: string }) {
           document.getElementById(domId(pin.target))?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' })
         }}
       >
-        <span className="relative h-[18px] w-7 shrink-0 overflow-hidden rounded-[3px] bg-[#E6E6E6]">
+        <span className="relative h-[18px] w-7 shrink-0 overflow-hidden rounded-[3px] bg-line">
           {frame && <FrameThumb frame={frame} width={28} height={18} />}
         </span>
         <span className="truncate text-[11px]">{targetLabel(pin.target, state.board)}</span>
       </button>
-      <button onClick={() => dispatch({ type: 'pinRemove', id: pin.id })} className="shrink-0 text-[11px] text-[#B3B3B3] hover:text-[#1E1E1E]" title="Remove">
+      <button onClick={() => dispatch({ type: 'pinRemove', id: pin.id })} className="shrink-0 text-[11px] text-subtle hover:text-ink" title="Remove">
         ✕
       </button>
     </span>
@@ -166,13 +176,13 @@ function ChatItem({ m }: { m: Message }) {
     return (
       <div className="flex items-start gap-2 px-2">
         {m.status === 'running' ? (
-          <span className="mt-0.5 size-3 shrink-0 animate-spin rounded-full border-[1.5px] border-[#D9D9D9] border-t-[#1E1E1E]" />
+          <span className="mt-0.5 size-3 shrink-0 animate-spin rounded-full border-[1.5px] border-line border-t-ink" />
         ) : (
-          <span className="mt-0.5 flex size-3 shrink-0 items-center justify-center rounded-full bg-[#1E1E1E] text-[8px] text-white">✓</span>
+          <span className="mt-0.5 flex size-3 shrink-0 items-center justify-center rounded-full bg-ink text-[8px] text-surface">✓</span>
         )}
         <div className="min-w-0">
-          <p className={m.status === 'running' ? '' : 'text-[#8C8C8C]'}>{m.text}</p>
-          {m.detail && <p className="text-[11px] text-[#8C8C8C]">{m.detail}</p>}
+          <p className={m.status === 'running' ? '' : 'text-muted'}>{m.text}</p>
+          {m.detail && <p className="text-[11px] text-muted">{m.detail}</p>}
         </div>
       </div>
     )
@@ -182,7 +192,7 @@ function ChatItem({ m }: { m: Message }) {
     return (
       <div className="grid grid-cols-3 gap-1 px-2">
         {m.shots?.map((src) => (
-          <img key={src} src={src} className="aspect-[1.6] w-full rounded border border-[#E6E6E6] bg-[#F5F5F5] object-contain" />
+          <img key={src} src={src} className="aspect-[1.6] w-full rounded border border-line bg-control object-contain" />
         ))}
       </div>
     )
@@ -192,7 +202,7 @@ function ChatItem({ m }: { m: Message }) {
 
   return (
     <div className={`flex ${m.author === 'you' ? 'justify-end' : ''}`}>
-      <p className={`max-w-[90%] rounded-lg px-2 py-1.5 whitespace-pre-line ${m.author === 'you' ? 'bg-[#F0F0F0]' : ''}`}>{m.text}</p>
+      <p className={`max-w-[90%] rounded-lg px-2 py-1.5 whitespace-pre-line ${m.author === 'you' ? 'bg-control' : ''}`}>{m.text}</p>
     </div>
   )
 }

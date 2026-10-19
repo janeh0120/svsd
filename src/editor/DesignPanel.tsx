@@ -90,7 +90,7 @@ function LayerDesign({ frame, layer: l }: { frame: Frame; layer: Layer }) {
 
       {l.kind === 'text' && (
         <Section title="Typography" actions={[<Icon.Styles key="s" size={13} />]}>
-          <input value={l.text ?? ''} onChange={(e) => set({ text: e.target.value })} className="mb-1 h-7 w-full rounded-md bg-[#F5F5F5] px-2 outline-none" />
+          <input value={l.text ?? ''} onChange={(e) => set({ text: e.target.value })} className="mb-1 h-7 w-full rounded-md bg-control px-2 outline-none" />
           <Dropdown value={l.fontFamily ?? 'Inter'} options={['Inter', 'Helvetica', 'Georgia', 'Menlo']} onChange={(fontFamily) => set({ fontFamily })} full />
           <div className="mt-1 grid grid-cols-2 gap-1">
             <Dropdown
@@ -121,7 +121,7 @@ function LayerDesign({ frame, layer: l }: { frame: Frame; layer: Layer }) {
         {l.kind === 'text' ? (
           <ColorRow value={l.color ?? '#000000'} onChange={(color) => set({ color })} />
         ) : l.kind === 'rect' ? (
-          l.fill ? <ColorRow value={l.fill} onChange={(fill) => set({ fill })} /> : <p className="text-[11px] text-[#8C8C8C]">No fill</p>
+          l.fill ? <ColorRow value={l.fill} onChange={(fill) => set({ fill })} /> : <p className="text-[11px] text-muted">No fill</p>
         ) : (
           <MediaRow label={l.kind === 'video' ? 'Video' : 'Image'} src={l.src} />
         )}
@@ -166,8 +166,8 @@ function FrameDesign({ frame, onPick }: { frame: Frame; onPick: (layerId: string
       <Section title="Layers">
         <div className="-mx-1">
           {[...frame.layers].reverse().map((l) => (
-            <button key={l.id} onClick={() => onPick(l.id)} className="flex h-7 w-full items-center gap-2 rounded-md px-1 text-left hover:bg-[#F5F5F5]">
-              <span className="w-3 text-center text-[11px] text-[#8C8C8C]">{KIND_GLYPH[l.kind]}</span>
+            <button key={l.id} onClick={() => onPick(l.id)} className="flex h-7 w-full items-center gap-2 rounded-md px-1 text-left hover:bg-control-hover">
+              <span className="w-3 text-center text-[11px] text-muted">{KIND_GLYPH[l.kind]}</span>
               <span className="truncate">{l.name}</span>
             </button>
           ))}
@@ -181,12 +181,12 @@ function FrameDesign({ frame, onPick }: { frame: Frame; onPick: (layerId: string
 // ---------- building blocks ----------
 
 function Hint({ children }: { children: ReactNode }) {
-  return <p className="p-3 text-[11px] leading-relaxed text-[#8C8C8C]">{children}</p>
+  return <p className="p-3 text-[11px] leading-relaxed text-muted">{children}</p>
 }
 
 function Header({ title }: { title: string }) {
   return (
-    <div className="flex h-11 items-center gap-3 border-b border-[#E6E6E6] px-3">
+    <div className="flex h-11 items-center gap-3 border-b border-line px-3">
       <span className="flex-1 text-[13px] font-semibold">{title}</span>
       <Icon.Link size={13} />
       <Icon.Target size={13} />
@@ -198,10 +198,10 @@ function Header({ title }: { title: string }) {
 
 function Section({ title, actions = [], muted = false, children }: { title: string; actions?: ReactNode[]; muted?: boolean; children?: ReactNode }) {
   return (
-    <div className="border-b border-[#E6E6E6] p-3">
+    <div className="border-b border-line p-3">
       <div className="flex h-5 items-center">
-        <span className={`font-semibold ${muted ? 'text-[#8C8C8C]' : ''}`}>{title}</span>
-        <div className={`ml-auto flex items-center gap-3 ${muted ? 'text-[#8C8C8C]' : ''}`}>{actions}</div>
+        <span className={`font-semibold ${muted ? 'text-muted' : ''}`}>{title}</span>
+        <div className={`ml-auto flex items-center gap-3 ${muted ? 'text-muted' : ''}`}>{actions}</div>
       </div>
       {children && <div className="mt-2">{children}</div>}
     </div>
@@ -209,7 +209,7 @@ function Section({ title, actions = [], muted = false, children }: { title: stri
 }
 
 function Seg({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`flex h-7 rounded-md bg-[#F5F5F5] p-0.5 ${className}`}>{children}</div>
+  return <div className={`flex h-7 rounded-md bg-control p-0.5 ${className}`}>{children}</div>
 }
 
 function SegBtn({ icon, title, active = false, onClick }: { icon: ReactNode; title: string; active?: boolean; onClick?: () => void }) {
@@ -217,7 +217,7 @@ function SegBtn({ icon, title, active = false, onClick }: { icon: ReactNode; tit
     <button
       title={title}
       onClick={onClick}
-      className={`flex flex-1 items-center justify-center rounded-[5px] ${active ? 'bg-white text-[#1E1E1E] shadow-[0_0_0_1px_#E6E6E6]' : 'text-[#6B6B6B] hover:text-[#1E1E1E]'}`}
+      className={`flex flex-1 items-center justify-center rounded-[5px] ${active ? 'bg-raised text-ink shadow-[0_0_0_1px_var(--line)]' : 'text-muted hover:text-ink'}`}
     >
       {icon}
     </button>
@@ -226,7 +226,7 @@ function SegBtn({ icon, title, active = false, onClick }: { icon: ReactNode; tit
 
 function IconBtn({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <span title={title} className="flex size-7 shrink-0 items-center justify-center text-[#6B6B6B]">
+    <span title={title} className="flex size-7 shrink-0 items-center justify-center text-muted">
       {children}
     </span>
   )
@@ -246,8 +246,8 @@ function Num({
   muted?: boolean
 }) {
   return (
-    <label className={`flex h-7 min-w-0 items-center gap-1.5 rounded-md bg-[#F5F5F5] px-2 ${muted ? 'text-[#B3B3B3]' : ''}`}>
-      {prefix !== undefined && <span className="flex w-3 shrink-0 justify-center text-[11px] text-[#8C8C8C]">{prefix}</span>}
+    <label className={`flex h-7 min-w-0 items-center gap-1.5 rounded-md bg-control px-2 ${muted ? 'text-subtle' : ''}`}>
+      {prefix !== undefined && <span className="flex w-3 shrink-0 justify-center text-[11px] text-muted">{prefix}</span>}
       <input
         type={typeof value === 'number' ? 'number' : 'text'}
         value={typeof value === 'number' ? (Number.isInteger(value) ? value : +value.toFixed(1)) : value}
@@ -255,14 +255,14 @@ function Num({
         onChange={(e) => onChange && e.target.value !== '' && onChange(+e.target.value)}
         className="w-full min-w-0 bg-transparent outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none"
       />
-      {suffix && <span className="text-[#8C8C8C]">{suffix}</span>}
+      {suffix && <span className="text-muted">{suffix}</span>}
     </label>
   )
 }
 
 function Dropdown({ value, options, onChange, full = false }: { value: string; options: (string | [string, string])[]; onChange: (v: string) => void; full?: boolean }) {
   return (
-    <label className={`relative flex h-7 items-center rounded-md border border-[#E6E6E6] px-2 focus-within:border-[#0D99FF] ${full ? 'w-full' : ''}`}>
+    <label className={`relative flex h-7 items-center rounded-md border border-line px-2 focus-within:border-accent-line ${full ? 'w-full' : ''}`}>
       <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full min-w-0 appearance-none bg-transparent outline-none">
         {options.map((o) => {
           const [k, label] = typeof o === 'string' ? [o, o] : o
@@ -273,7 +273,7 @@ function Dropdown({ value, options, onChange, full = false }: { value: string; o
           )
         })}
       </select>
-      <Icon.ChevronDown size={12} className="pointer-events-none shrink-0 text-[#8C8C8C]" />
+      <Icon.ChevronDown size={12} className="pointer-events-none shrink-0 text-muted" />
     </label>
   )
 }
@@ -281,17 +281,17 @@ function Dropdown({ value, options, onChange, full = false }: { value: string; o
 function ColorRow({ value, onChange, onRemove }: { value: string; onChange: (c: string) => void; onRemove?: () => void }) {
   return (
     <div className="flex items-center gap-1">
-      <label className="flex h-7 flex-1 items-center gap-2 rounded-md bg-[#F5F5F5] px-2">
+      <label className="flex h-7 flex-1 items-center gap-2 rounded-md bg-control px-2">
         <input type="color" value={value} onChange={(e) => onChange(e.target.value)} className="size-4 cursor-pointer rounded border-0 bg-transparent p-0" />
         <span className="flex-1">{value.replace('#', '').toUpperCase()}</span>
-        <span className="border-l border-white pl-2 text-[#1E1E1E]">
-          100 <span className="text-[#8C8C8C]">%</span>
+        <span className="border-l border-line pl-2 text-ink">
+          100 <span className="text-muted">%</span>
         </span>
       </label>
       <IconBtn title="Visible">
         <Icon.Eye size={13} />
       </IconBtn>
-      <button title="Remove" onClick={onRemove} className="flex size-7 shrink-0 items-center justify-center text-[#6B6B6B]">
+      <button title="Remove" onClick={onRemove} className="flex size-7 shrink-0 items-center justify-center text-muted">
         <Icon.Minus size={13} />
       </button>
     </div>
@@ -300,10 +300,10 @@ function ColorRow({ value, onChange, onRemove }: { value: string; onChange: (c: 
 
 function MediaRow({ label, src }: { label: string; src?: string }) {
   return (
-    <div className="flex h-7 items-center gap-2 rounded-md bg-[#F5F5F5] px-2">
-      <span className="size-4 shrink-0 rounded-sm bg-[#D9D9D9]" />
+    <div className="flex h-7 items-center gap-2 rounded-md bg-control px-2">
+      <span className="size-4 shrink-0 rounded-sm bg-line-strong" />
       <span className="flex-1 truncate">{label}</span>
-      <span className="truncate text-[11px] text-[#8C8C8C]">{src?.split('/').pop()}</span>
+      <span className="truncate text-[11px] text-muted">{src?.split('/').pop()}</span>
     </div>
   )
 }

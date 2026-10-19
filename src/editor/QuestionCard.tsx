@@ -47,19 +47,19 @@ export function QuestionCard({ m }: { m: Message }) {
 
   if (done && questions.length === 1) {
     return (
-      <div className="rounded-xl border border-[#E6E6E6] px-3 py-2">
+      <div className="rounded-xl border border-line px-3 py-2">
         <p className="font-medium">{q.text}</p>
-        <p className="mt-0.5 text-[#8C8C8C]">{answerLabel(answers[0], q.options)}</p>
+        <p className="mt-0.5 text-muted">{answerLabel(answers[0], q.options)}</p>
       </div>
     )
   }
 
   return (
-    <div className="rounded-xl border border-[#E6E6E6] bg-white p-1 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+    <div className="rounded-xl border border-line bg-raised p-1 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
       <div className="flex h-9 items-center gap-2 px-2">
         <p className="min-w-0 flex-1 font-medium">{q.text}</p>
         {questions.length > 1 && (
-          <div className="flex shrink-0 items-center gap-1 text-[#8C8C8C]">
+          <div className="flex shrink-0 items-center gap-1 text-muted">
             <button onClick={() => setView(Math.max(0, view - 1))} disabled={view === 0} className="disabled:opacity-30">
               <Icon.ChevronLeft size={12} />
             </button>
@@ -74,26 +74,26 @@ export function QuestionCard({ m }: { m: Message }) {
       </div>
 
       {answered !== undefined ? (
-        <p className="px-2 pb-2 text-[#8C8C8C]">{answerLabel(answered, q.options)}</p>
+        <p className="px-2 pb-2 text-muted">{answerLabel(answered, q.options)}</p>
       ) : (
         <>
-          <div className="divide-y divide-[#F0F0F0]">
+          <div className="divide-y divide-line">
             {q.options.map((opt, i) => (
               <button
                 key={opt}
                 onMouseEnter={() => setActive(i)}
                 onClick={() => answer(m.id, view, { option: i })}
-                className={`flex h-9 w-full items-center gap-2 rounded-lg px-1.5 text-left ${active === i ? 'border-transparent bg-[#F3F4F6] text-[#1E1E1E]' : 'text-[#6B6B6B]'}`}
+                className={`flex h-9 w-full items-center gap-2 rounded-lg px-1.5 text-left ${active === i ? 'border-transparent bg-control text-ink' : 'text-muted'}`}
               >
-                <span className={`flex size-6 shrink-0 items-center justify-center rounded-md text-[11px] ${active === i ? 'bg-[#E5E7EB] text-[#1E1E1E]' : 'bg-[#F5F5F5]'}`}>
+                <span className={`flex size-6 shrink-0 items-center justify-center rounded-md text-[11px] ${active === i ? 'bg-control-hover text-ink' : 'bg-control'}`}>
                   {i + 1}
                 </span>
                 <span className="min-w-0 flex-1 truncate">{opt}</span>
-                {active === i && <Icon.ArrowRight size={12} className="shrink-0 text-[#8C8C8C]" />}
+                {active === i && <Icon.ArrowRight size={12} className="shrink-0 text-muted" />}
               </button>
             ))}
             <div className="flex h-9 items-center gap-2 px-1.5">
-              <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-[#F5F5F5] text-[#6B6B6B]">
+              <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-control text-muted">
                 <Icon.Pencil size={12} />
               </span>
               <input
@@ -104,9 +104,9 @@ export function QuestionCard({ m }: { m: Message }) {
                   if (e.key === 'Enter' && text.trim()) answer(m.id, view, { text: text.trim() })
                 }}
                 placeholder="Something else"
-                className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-[#8C8C8C]"
+                className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-subtle"
               />
-              <button onClick={() => answer(m.id, view, 'skip')} className="h-6 shrink-0 rounded-md bg-[#F5F5F5] px-2 text-[11px] text-[#6B6B6B] hover:bg-[#EBEBEB]">
+              <button onClick={() => answer(m.id, view, 'skip')} className="h-6 shrink-0 rounded-md bg-control px-2 text-[11px] text-muted hover:bg-control-hover">
                 Skip
               </button>
             </div>

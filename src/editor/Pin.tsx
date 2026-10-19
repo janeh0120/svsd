@@ -45,7 +45,7 @@ export function PinMarker({ pin, style, className = '' }: { pin: Pin; style?: CS
         pos &&
         createPortal(
           <div
-            className="fixed z-50 cursor-auto rounded-lg border border-[#E6E6E6] bg-white p-2 text-left text-[12px] text-[#1E1E1E] shadow-xl focus-within:border-[#B3B3B3]"
+            className="fixed z-50 cursor-auto rounded-lg border border-line bg-raised p-2 text-left text-[12px] text-ink shadow-xl focus-within:border-line-strong"
             style={{ ...pos, width: POPOVER_W }}
             onClick={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}
@@ -69,17 +69,17 @@ export function PinMarker({ pin, style, className = '' }: { pin: Pin; style?: CS
                     if (e.key === 'Escape') dispatch({ type: 'pinRemove', id: pin.id })
                   }}
                   placeholder={placeholderFor(pin)}
-                  className="min-h-0 w-full flex-1 resize-none outline-none placeholder:text-[#B3B3B3]"
+                  className="min-h-0 w-full flex-1 resize-none outline-none placeholder:text-subtle"
                 />
                 <div className="flex items-center gap-1.5">
-                  <button className="flex size-5 items-center justify-center rounded-full border border-[#D9D9D9] text-[#8C8C8C]">
+                  <button className="flex size-5 items-center justify-center rounded-full border border-line text-muted">
                     <Icon.Plus size={12} />
                   </button>
                   <button
                     onClick={save}
                     disabled={!text.trim() || state.working}
                     title="Send to the agent"
-                    className="ml-auto flex size-5 items-center justify-center rounded-full bg-[#1E1E1E] text-white disabled:opacity-40"
+                    className="ml-auto flex size-5 items-center justify-center rounded-full bg-accent text-on-accent disabled:opacity-40"
                   >
                     <Icon.Send size={12} />
                   </button>
@@ -98,8 +98,8 @@ function TargetChip({ pin }: { pin: Pin }) {
   const frameId = targetFrame(pin.target, state.board)
   const frame = frameId ? state.board.frames[frameId] : undefined
   return (
-    <span className="inline-flex h-6 max-w-full items-center gap-1.5 rounded-md border border-[#E6E6E6] bg-[#F5F5F5] pr-1.5 pl-0.5">
-      <span className="relative h-[18px] w-7 shrink-0 overflow-hidden rounded-[3px] bg-[#E6E6E6]">
+    <span className="inline-flex h-6 max-w-full items-center gap-1.5 rounded-md border border-line bg-control pr-1.5 pl-0.5">
+      <span className="relative h-[18px] w-7 shrink-0 overflow-hidden rounded-[3px] bg-line">
         {frame && <FrameThumb frame={frame} width={28} height={18} />}
       </span>
       <span className="truncate text-[11px]">{targetLabel(pin.target, state.board)}</span>

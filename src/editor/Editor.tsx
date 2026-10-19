@@ -79,7 +79,7 @@ export function Editor() {
   }, [state.preview, state.composing, state.mode, state.board.acts.length, dispatch])
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-white text-[12px] text-[#1E1E1E]">
+    <div className="flex h-screen flex-col overflow-hidden bg-surface text-[12px] text-ink">
       <div className="flex min-h-0 flex-1">
         <LeftPanel width={sizes.left} />
         <Resizer axis="x" value={sizes.left} min={200} max={420} sign={1} onChange={set('left')} onReset={() => set('left')(DEFAULTS.left)} />
@@ -149,10 +149,10 @@ function Resizer({
     <div
       onPointerDown={down}
       onDoubleClick={onReset}
-      className={`group relative z-30 shrink-0 ${axis === 'x' ? 'w-px cursor-col-resize bg-[#E6E6E6]' : 'h-px cursor-row-resize bg-[#E6E6E6]'}`}
+      className={`group relative z-30 shrink-0 ${axis === 'x' ? 'w-px cursor-col-resize bg-line' : 'h-px cursor-row-resize bg-line'}`}
     >
       <div
-        className={`absolute transition-colors group-hover:bg-[#0D99FF]/50 group-active:bg-[#0D99FF] ${
+        className={`absolute transition-colors group-hover:bg-accent-line/50 group-active:bg-accent ${
           axis === 'x' ? 'inset-y-0 -left-[2px] w-[5px]' : 'inset-x-0 -top-[2px] h-[5px]'
         }`}
       />

@@ -26,6 +26,7 @@ export type Layer = {
   radius?: number
   src?: string
   start?: number // video: seconds into the clip where this frame begins
+  typing?: boolean // text: types itself out in the preview, continuing from the previous frame's text
   shadow?: boolean
 }
 

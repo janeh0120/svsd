@@ -34,18 +34,18 @@ export function BezierEditor({ value, onChange }: { value: Bezier; onChange: (b:
   }
 
   return (
-    <div className="rounded-lg bg-[#F5F5F5]">
+    <div className="rounded-lg bg-control">
       <svg ref={svg} viewBox="0 0 100 100" className="block aspect-square w-full touch-none select-none">
         {/* Guide lines at start and end values */}
-        <line x1={px(0)} y1={py(1)} x2={px(1)} y2={py(1)} stroke="#B3B3B3" strokeWidth={0.6} />
-        <line x1={px(0)} y1={py(0)} x2={px(1)} y2={py(0)} stroke="#B3B3B3" strokeWidth={0.6} />
+        <line x1={px(0)} y1={py(1)} x2={px(1)} y2={py(1)} style={{ stroke: 'var(--line-strong)' }} strokeWidth={0.6} />
+        <line x1={px(0)} y1={py(0)} x2={px(1)} y2={py(0)} style={{ stroke: 'var(--line-strong)' }} strokeWidth={0.6} />
         {/* Handle arms */}
-        <line x1={px(0)} y1={py(0)} x2={px(x1)} y2={py(y1)} stroke="#0D99FF" strokeWidth={0.8} />
-        <line x1={px(1)} y1={py(1)} x2={px(x2)} y2={py(y2)} stroke="#0D99FF" strokeWidth={0.8} />
+        <line x1={px(0)} y1={py(0)} x2={px(x1)} y2={py(y1)} style={{ stroke: 'var(--accent-line)' }} strokeWidth={0.8} />
+        <line x1={px(1)} y1={py(1)} x2={px(x2)} y2={py(y2)} style={{ stroke: 'var(--accent-line)' }} strokeWidth={0.8} />
         <path
           d={`M ${px(0)} ${py(0)} C ${px(x1)} ${py(y1)}, ${px(x2)} ${py(y2)}, ${px(1)} ${py(1)}`}
           fill="none"
-          stroke="#1E1E1E"
+          style={{ stroke: 'var(--ink)' }}
           strokeWidth={1.4}
         />
         {[
@@ -57,8 +57,7 @@ export function BezierEditor({ value, onChange }: { value: Bezier; onChange: (b:
             cx={px(x)}
             cy={py(y)}
             r={2.6}
-            fill="#fff"
-            stroke="#0D99FF"
+            style={{ fill: 'var(--raised)', stroke: 'var(--accent-line)' }}
             strokeWidth={1}
             className="cursor-grab active:cursor-grabbing"
             onPointerDown={drag(h as 1 | 2)}
@@ -73,10 +72,10 @@ export function BezierEditor({ value, onChange }: { value: Bezier; onChange: (b:
 export function EasePreview({ bezier, ms }: { bezier: Bezier; ms: number }) {
   const curve = `cubic-bezier(${bezier.join(',')})`
   return (
-    <div className="flex h-24 items-center justify-center overflow-hidden rounded-lg bg-[#F5F5F5]">
+    <div className="flex h-24 items-center justify-center overflow-hidden rounded-lg bg-control">
       <div
         key={`${curve}-${ms}`}
-        className="size-12 border border-[#1E1E1E] bg-white"
+        className="size-12 border border-ink bg-raised"
         style={{ animation: `ease-preview ${Math.max(150, ms)}ms ${curve} infinite alternate` }}
       />
     </div>
@@ -114,14 +113,14 @@ export function CameraEditor({ frame, camera, onChange }: { frame: Frame; camera
     window.addEventListener('pointerup', up)
   }
 
-  const corner = 'absolute size-2.5 rounded-full border border-white bg-[#8C8C8C] shadow'
+  const corner = 'absolute size-2.5 rounded-full border border-raised bg-muted shadow'
   return (
     <div ref={box} className="relative w-full overflow-hidden rounded-lg select-none" style={{ aspectRatio: `${FRAME_W} / ${FRAME_H}` }}>
       <FrameView frame={frame} />
       <div className="absolute inset-0 bg-black/30" style={{ clipPath: holePath(camera) }} />
       <div
         onPointerDown={start('move')}
-        className="absolute cursor-move border-2 border-[#0D99FF]"
+        className="absolute cursor-move border-2 border-accent-line"
         style={{ left: `${camera.x * 100}%`, top: `${camera.y * 100}%`, width: `${camera.w * 100}%`, height: `${camera.w * 100}%` }}
       >
         <span onPointerDown={start('tl')} className={`${corner} -top-1.5 -left-1.5 cursor-nwse-resize`} />

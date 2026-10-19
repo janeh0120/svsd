@@ -6,7 +6,8 @@ import type { Target } from '../types'
 import { Icon } from './icons'
 import { PinMarker } from './Pin'
 
-const ACCENT = '#0D99FF' // the Share button blue, standing in for the final orange-red
+const ACCENT = 'var(--accent)' // lime: the act under the playhead
+const ACCENT_LINE = 'var(--accent-line)' // lime strokes: playhead, selected clip
 const THUMB_H = 28
 
 // Transport, ruler, act blocks and frame thumbnails. Every width is time:
@@ -163,14 +164,14 @@ export function Timeline({ height }: { height: number }) {
             onPointerDown={trim(kind, id, 'start')}
             onClick={(e) => e.stopPropagation()}
             title={kind === 'act' ? 'Drag to change the cut into this act' : 'Drag to change the cut into this frame'}
-            className={`absolute inset-y-0 left-0 z-10 w-2 cursor-ew-resize rounded-l-[3px] bg-[#1E1E1E]/70 after:absolute after:inset-y-[30%] after:left-[3px] after:w-px after:bg-white ${show ? 'opacity-100' : 'opacity-0 group-hover/clip:opacity-100'}`}
+            className={`absolute inset-y-0 left-0 z-10 w-2 cursor-ew-resize rounded-l-[3px] bg-inverse/70 after:absolute after:inset-y-[30%] after:left-[3px] after:w-px after:bg-raised ${show ? 'opacity-100' : 'opacity-0 group-hover/clip:opacity-100'}`}
           />
         )}
         <span
           onPointerDown={trim(kind, id, 'end')}
           onClick={(e) => e.stopPropagation()}
           title={kind === 'act' ? 'Drag to stretch the whole act' : 'Drag to change how long this frame holds'}
-          className={`absolute inset-y-0 right-0 z-10 w-2 cursor-ew-resize rounded-r-[3px] bg-[#1E1E1E]/70 after:absolute after:inset-y-[30%] after:right-[3px] after:w-px after:bg-white ${show ? 'opacity-100' : 'opacity-0 group-hover/clip:opacity-100'}`}
+          className={`absolute inset-y-0 right-0 z-10 w-2 cursor-ew-resize rounded-r-[3px] bg-inverse/70 after:absolute after:inset-y-[30%] after:right-[3px] after:w-px after:bg-raised ${show ? 'opacity-100' : 'opacity-0 group-hover/clip:opacity-100'}`}
         />
       </>
     )
@@ -183,30 +184,30 @@ export function Timeline({ height }: { height: number }) {
   const ticks = Array.from({ length: Math.floor(contentW / (minor * pxPerSec)) + 1 }, (_, i) => +(i * minor).toFixed(2))
 
   return (
-    <div id="timeline" className="flex shrink-0 flex-col bg-white px-4" style={{ height }}>
+    <div id="timeline" className="flex shrink-0 flex-col bg-surface px-4" style={{ height }}>
       {/* Transport */}
       <div className="relative flex h-10 shrink-0 items-center">
         <span className="text-[11px] tabular-nums">
           {clock(playhead)} / {clock(total)}
         </span>
-        <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-3 text-[#8C8C8C]">
-          <button onClick={() => seekTo(0)} title="Go to start" className="hover:text-[#1E1E1E]">
+        <div className="absolute left-1/2 flex -translate-x-1/2 items-center gap-3 text-muted">
+          <button onClick={() => seekTo(0)} title="Go to start" className="hover:text-ink">
             <Icon.SkipBack size={12} />
           </button>
-          <button onClick={prevFrame} title="Previous frame" className="hover:text-[#1E1E1E]">
+          <button onClick={prevFrame} title="Previous frame" className="hover:text-ink">
             <Icon.Rewind size={12} />
           </button>
           <button
             onClick={() => total > 0 && setPlaying(!playing)}
             title={playing ? 'Pause' : 'Play'}
-            className="flex size-7 items-center justify-center rounded-full bg-[#1E1E1E] text-white"
+            className="flex size-7 items-center justify-center rounded-full bg-ink text-surface"
           >
             {playing ? <Icon.Pause size={12} /> : <Icon.Play size={11} className="ml-0.5" fill="currentColor" />}
           </button>
-          <button onClick={nextFrame} title="Next frame" className="hover:text-[#1E1E1E]">
+          <button onClick={nextFrame} title="Next frame" className="hover:text-ink">
             <Icon.FastForward size={12} />
           </button>
-          <button onClick={() => seekTo(total)} title="Go to end" className="hover:text-[#1E1E1E]">
+          <button onClick={() => seekTo(total)} title="Go to end" className="hover:text-ink">
             <Icon.SkipForward size={12} />
           </button>
         </div>
@@ -221,7 +222,7 @@ export function Timeline({ height }: { height: number }) {
             step={0.1}
             value={zoom}
             onChange={(e) => setZoom(+e.target.value)}
-            className="h-1 w-14 cursor-pointer accent-[#1E1E1E]"
+            className="h-1 w-14 cursor-pointer accent-[var(--accent-line)]"
             title="Zoom"
           />
           <button onClick={() => setZoom((z) => Math.min(4, +(z + 0.5).toFixed(1)))} title="Zoom in">
@@ -236,13 +237,13 @@ export function Timeline({ height }: { height: number }) {
       {/* Ruler, acts and thumbnails share one horizontal scroll */}
       <div ref={area} className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden">
         <div ref={content} className="relative" style={{ width: contentW }}>
-          <div className={`relative h-8 ${comment ? 'cursor-crosshair hover:bg-orange-50' : 'cursor-pointer'}`} onPointerDown={scrub}>
+          <div className={`relative h-8 ${comment ? 'cursor-crosshair hover:bg-accent-soft' : 'cursor-pointer'}`} onPointerDown={scrub}>
             {ticks.map((s) => {
               const major = Math.abs(s / step - Math.round(s / step)) < 1e-6
               return (
                 <div key={s} className="absolute bottom-1" style={{ left: s * pxPerSec }}>
-                  {major && <span className="absolute bottom-2 left-0 text-[11px] text-[#B3B3B3] tabular-nums">{clock(s * 1000, true)}</span>}
-                  <div className={`w-px ${major ? 'h-2.5 bg-[#D9D9D9]' : 'h-1.5 bg-[#E6E6E6]'}`} />
+                  {major && <span className="absolute bottom-2 left-0 text-[11px] text-subtle tabular-nums">{clock(s * 1000, true)}</span>}
+                  <div className={`w-px ${major ? 'h-2.5 bg-line-strong' : 'h-1.5 bg-line'}`} />
                 </div>
               )
             })}
@@ -259,9 +260,9 @@ export function Timeline({ height }: { height: number }) {
                   style={{
                     left: x(from),
                     width: Math.max(8, x(to) - x(from) - 2),
-                    background: active ? ACCENT : '#fff',
-                    borderColor: active ? ACCENT : '#D9D9D9',
-                    color: active ? '#fff' : '#1E1E1E',
+                    background: active ? ACCENT : 'var(--raised)',
+                    borderColor: active ? ACCENT : 'var(--line)',
+                    color: active ? 'var(--on-accent)' : 'var(--ink)',
                   }}
                 >
                   {act.label}
@@ -278,11 +279,11 @@ export function Timeline({ height }: { height: number }) {
                 <button
                   key={s.id}
                   onClick={(e) => (comment ? annotateAt(e) : go({ kind: 'frame', frameId: s.id }, s.from))}
-                  className="group/clip absolute top-0 h-full overflow-hidden rounded-[3px] bg-[#E5E5E5]"
+                  className="group/clip absolute top-0 h-full overflow-hidden rounded-[3px] bg-line"
                   style={{
                     left: x(s.from),
                     width: Math.max(2, x(s.end) - x(s.from) - 2),
-                    boxShadow: selected ? `inset 0 0 0 2px ${ACCENT}` : undefined,
+                    boxShadow: selected ? `inset 0 0 0 2px ${ACCENT_LINE}` : undefined,
                   }}
                   title={`Frame ${i + 1} · ${((s.end - s.from) / 1000).toFixed(1)}s`}
                 >
@@ -296,7 +297,7 @@ export function Timeline({ height }: { height: number }) {
           {/* Duration readout while trimming */}
           {readout && content.current && (
             <span
-              className="pointer-events-none absolute z-30 -translate-x-1/2 rounded bg-[#1E1E1E] px-1.5 py-0.5 text-[11px] whitespace-nowrap text-white tabular-nums"
+              className="pointer-events-none absolute z-30 -translate-x-1/2 rounded bg-inverse px-1.5 py-0.5 text-[11px] whitespace-nowrap text-on-inverse tabular-nums"
               style={{ left: readout.x - content.current.getBoundingClientRect().left, top: readout.row === 'act' ? 22 : 66 }}
             >
               {readout.text}
@@ -311,8 +312,8 @@ export function Timeline({ height }: { height: number }) {
           {/* Playhead */}
           {total > 0 && (
             <div className="pointer-events-none absolute top-0 bottom-0" style={{ left: x(playhead) }}>
-              <div className="absolute top-8 -left-[4px] size-0 border-x-[4px] border-t-[5px] border-x-transparent border-t-[#8C8C8C]" />
-              <div className="absolute top-[38px] bottom-0 left-0 w-px" style={{ background: ACCENT }} />
+              <div className="absolute top-8 -left-[4px] size-0 border-x-[4px] border-t-[5px] border-x-transparent border-t-muted" />
+              <div className="absolute top-[38px] bottom-0 left-0 w-px" style={{ background: ACCENT_LINE }} />
             </div>
           )}
         </div>

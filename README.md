@@ -14,7 +14,8 @@ npm run dev
 4. **The agent animates.** Once you approve, it records the screen flows and animates the frames together. Then ▷ previews the reel.
 
 Everything the agent does is **mocked** (`src/context.tsx`, `src/mock/`). Reload to start over. The draft depends on the prompt:
-- **Default**: this product's own 60-second demo reel (`src/mock/productDemoDraft.ts`): Hook, Intro, Prompt the agent, Point and tweak, Fine-tune by hand, Outro. Its editor screens are drawn by `python3 scripts/make-demo-screens.py`. The product name is a placeholder (`PRODUCT`). When you approve the storyboard, its editor frames switch from those drawn screens to the real screen recordings in `public/recordings/` (`withRecordings`), and the preview plays them.
+- **Default**: a launch reel for a fictional product, **Relay Playbooks** (`src/mock/agentChatDraft.ts`), 7 frames: "Introducing Relay Playbooks" → "Why are customers asking for a person?" types into Relay's chat → it analyzes 1,284 handoffs → finds 48% are customers locked out of their email → drafts a Login recovery playbook → Approve. Screens are drawn by `python3 scripts/make-agentchat-screens.py`; the prompt box and cursor are layers, so they move between frames.
+- **Prompts mentioning "storyboard" or "motion editor"**: this product's own 60-second demo reel (`src/mock/productDemoDraft.ts`): Hook, Intro, Prompt the agent, Point and tweak, Fine-tune by hand, Outro. Its editor screens are drawn by `python3 scripts/make-demo-screens.py`. The product name is a placeholder (`PRODUCT`). When you approve the storyboard, its editor frames switch from those drawn screens to the real screen recordings in `public/recordings/` (`withRecordings`), and the preview plays them.
 - **Prompts mentioning "figma"**: a reel modeled on Figma's [All the launches at Config 2025](https://www.youtube.com/watch?v=NHodnYFUT_I) (`src/mock/figmaConfigDraft.ts`), with recreated screens.
 
 ## The editor
@@ -25,6 +26,12 @@ Everything the agent does is **mocked** (`src/context.tsx`, `src/mock/`). Reload
   - A **frame**: hold time, plus **Camera** pan & zoom: drag the blue box to choose what the preview shows.
   - A **layer**: Transform (position, scale, rotation) and Appearance (opacity, corner radius).
 - **Bottom**: the timeline: transport controls, a ruler, act blocks and frame thumbnails, all sized by duration, across the full width. Click an act or thumbnail to jump there; zoom with the slider. **Trim** like a video editor: drag a thumbnail's right edge to change how long the frame holds, its left edge to change the cut into it, or an act's right edge to stretch the whole act. Later clips ripple along.
+
+## Brand and color
+Colors are **roles**, not hex values: `canvas`, `surface`, `raised`, `control`, `ink`, `muted`, `subtle`, `line`, `accent` (lime), `on-accent` (lime ink), `accent-soft`, `accent-line`, `accent-text`, `inverse`. The product is **dark only**. They're defined once in `src/index.css` and used as Tailwind classes (`bg-surface`, `text-muted`, `bg-accent text-on-accent`…).
+- **Dark is not inverted light**: tinted near-black surfaces (never #000) that get lighter as they rise, off-white text (never #fff), a softer lime, almost no shadows.
+- **Lime is the one on/active signal**: at most one lime fill per region (the primary action, the act under the playhead, the active tool, the selected frame). Inactive controls are tonal grey.
+- Every text-on-fill pair is at least 4.5:1, and lime ink on lime is 10:1 or better.
 
 ## Commenting (inline prompting)
 Turn on annotate mode with the **pointer button** next to the agent input (**⇧⌘S**), **C**, or by typing **@** in the agent input ("@ for context").

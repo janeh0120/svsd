@@ -1,9 +1,13 @@
-import { useEffect, useRef, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import type { Layer } from '../types'
 
 // What a layer draws, independent of where it sits. `playing` lets a video
 // layer play (in the preview); elsewhere it shows the still at its start time.
-export function LayerBody({ layer, playing = false }: { layer: Layer; playing?: boolean }) {
+// How a text layer types itself in: starting from `from`, after `delay` ms,
+// one character at a time over `duration` ms.
+export type Typing = { from: string; delay: number; duration: number }
+
+export function LayerBody({ layer, playing = false, typing }: { layer: Layer; playing?: boolean; typing?: Typing }) {
   if (layer.kind === 'video') return <VideoBody layer={layer} playing={playing} />
   if (layer.kind === 'image') {
     return (
@@ -38,8 +42,34 @@ export function LayerBody({ layer, playing = false }: { layer: Layer; playing?: 
         padding: layer.fill ? '0 0.7em' : undefined,
       }}
     >
-      {layer.text}
+      {typing ? <TypedText text={layer.text ?? ''} typing={typing} /> : layer.text}
     </div>
+  )
+}
+
+// Text that types itself out, with a blinking caret while it's being typed.
+function TypedText({ text, typing }: { text: string; typing: Typing }) {
+  const [shown, setShown] = useState(typing.from.length)
+  useEffect(() => {
+    setShown(typing.from.length)
+    const remaining = text.length - typing.from.length
+    if (remaining <= 0) return
+    const step = typing.duration / remaining
+    let n = typing.from.length
+    let timer = 0
+    const tick = () => {
+      n += 1
+      setShown(n)
+      if (n < text.length) timer = window.setTimeout(tick, step * (0.6 + Math.random() * 0.8))
+    }
+    timer = window.setTimeout(tick, typing.delay)
+    return () => clearTimeout(timer)
+  }, [text, typing.from, typing.delay, typing.duration])
+  return (
+    <>
+      {text.slice(0, shown)}
+      <span className="ml-[0.04em] inline-block h-[1.05em] w-[0.06em] animate-[caret_1s_steps(1)_infinite] bg-current align-[-0.12em]" />
+    </>
   )
 }
 

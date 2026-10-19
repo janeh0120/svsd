@@ -87,7 +87,7 @@ export function Player({ board, autoPlay = false, compact = false, startId }: { 
       style={{ height: (width * FRAME_H) / FRAME_W }}
     >
       {comment && (
-        <span className="pointer-events-none absolute top-1.5 left-1.5 z-10 rounded bg-orange-500 px-1.5 py-0.5 text-[10px] font-medium text-white opacity-0 group-hover/stage:opacity-100">
+        <span className="pointer-events-none absolute top-1.5 left-1.5 z-10 rounded bg-accent px-1.5 py-0.5 text-[10px] font-medium text-on-accent opacity-0 group-hover/stage:opacity-100">
           Click to annotate this moment
         </span>
       )}
@@ -112,14 +112,14 @@ export function Player({ board, autoPlay = false, compact = false, startId }: { 
                 // Same key across frames = the layer moves (Smart animate). Dissolve keys
                 // layers per frame so the old frame fades out as the new one fades in.
                 key={dissolve ? `${frame.id}:${l.id}` : l.kind === 'image' ? `${l.id}:${l.src}` : l.kind === 'video' ? `${frame.id}:${l.id}` : l.id}
-                className={`absolute ${comment ? 'hover:outline-2 hover:outline-dashed hover:outline-orange-500' : ''}`}
+                className={`absolute ${comment ? 'hover:outline-2 hover:outline-dashed hover:outline-accent-line' : ''}`}
                 data-layer={l.id}
                 initial={{ ...layerBox(l), opacity: 0, y: dissolve ? 0 : 24 }}
                 animate={{ ...layerBox(l), y: 0 }}
                 exit={{ opacity: 0, transition: { duration: dissolve ? cutMs(cut) / 1000 : 0.35 } }}
                 transition={transition}
               >
-                <LayerBody layer={l} playing={playing} />
+                <LayerBody layer={l} playing={playing} typing={l.typing ? typingFor(l) : undefined} />
               </motion.div>
             ))}
           </AnimatePresence>
@@ -127,6 +127,17 @@ export function Player({ board, autoPlay = false, compact = false, startId }: { 
       </motion.div>
     </div>
   )
+
+  // Text marked `typing` types itself in during the cut into this frame, so it's
+  // complete when the frame lands (frame 2's empty box → frame 3's full question).
+  // It picks up from the previous frame's text when this text continues it.
+  function typingFor(l: (typeof frame.layers)[number]) {
+    const before = idx > 0 ? (board.frames[ids[idx - 1]].layers.find((p) => p.id === l.id)?.text ?? '') : ''
+    const from = l.text?.startsWith(before) ? before : ''
+    const chars = (l.text?.length ?? 0) - from.length
+    const window = idx > 0 ? cutMs(cut) : frame.hold * 1000 * 0.75
+    return { from, delay: 100, duration: Math.min(Math.max(300, window - 200), chars * 70) }
+  }
 
   if (compact) {
     return (
@@ -138,10 +149,10 @@ export function Player({ board, autoPlay = false, compact = false, startId }: { 
           <button onClick={play} title={playing ? 'Pause' : 'Play'}>
             {playing ? <Icon.Pause size={10} /> : <Icon.Play size={10} fill="currentColor" />}
           </button>
-          <div className="h-[3px] flex-1 rounded-full bg-[#E6E6E6]">
-            <div className="h-full rounded-full bg-[#1E1E1E]" style={{ width: `${total ? (progress / total) * 100 : 0}%` }} />
+          <div className="h-[3px] flex-1 rounded-full bg-line">
+            <div className="h-full rounded-full bg-accent" style={{ width: `${total ? (progress / total) * 100 : 0}%` }} />
           </div>
-          <span className="text-[11px] text-[#8C8C8C] tabular-nums">{(total / 1000).toFixed(1)}s</span>
+          <span className="text-[11px] text-muted tabular-nums">{(total / 1000).toFixed(1)}s</span>
         </div>
       </div>
     )
@@ -151,7 +162,7 @@ export function Player({ board, autoPlay = false, compact = false, startId }: { 
     <div className="w-full">
       <div className="overflow-hidden rounded-xl">{stage}</div>
       <div className="mt-3 flex items-center gap-3">
-        <button onClick={play} className="flex size-8 shrink-0 items-center justify-center rounded-full bg-white text-[12px] text-[#1E1E1E]">
+        <button onClick={play} className="flex size-8 shrink-0 items-center justify-center rounded-full bg-raised text-[12px] text-ink">
           {playing ? '❚❚' : '▶'}
         </button>
         <div className="flex h-1.5 flex-1 gap-1">
@@ -160,7 +171,7 @@ export function Player({ board, autoPlay = false, compact = false, startId }: { 
               key={id}
               onClick={() => setI(n)}
               style={{ flexGrow: board.frames[id].hold }}
-              className={`h-full rounded-full ${n < idx ? 'bg-white/70' : n === idx ? 'bg-sky-400' : 'bg-white/20'}`}
+              className={`h-full rounded-full ${n < idx ? 'bg-raised/70' : n === idx ? 'bg-accent' : 'bg-raised/20'}`}
             />
           ))}
         </div>
