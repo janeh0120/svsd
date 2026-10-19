@@ -27,7 +27,8 @@ The sample board is no longer Relay Playbooks. `mock/agentChatDraft.ts` now buil
 - **Entrance** section (bottom, only for a selected layer): empty by default, "+" adds a preset, "−" clears it. The cut owns timing and easing; the preset only overrides this layer's arrival style.
 - `DesignPanel.tsx`: gradient fills show a swatch and "Gradient" instead of raw CSS.
 - `Pin.tsx`: the comment box's `+` is now "+ Reference" (image/video picker; names only, nothing is sent).
-- Canvas: more space under act headers; frame titles truncate before the time text; connector arrow tips stop at the shot edge.
+- Canvas: more space under act headers; frame titles truncate before the time text; connector arrow tips stop at the shot edge. A selected connector keeps its 1px stroke and only changes colour: white → pink → lime → white, with a white arrowhead (unselected stays grey).
+- Chat composer placeholder: "Describe what you want to change..." (shown when no annotations are pending).
 
 ### Brand colors
 Text stays the M3 off-white (`--ink: #ECDFE1`). Pink `#F3C9D5` (`--secondary`) is a supporting accent only (play button, frame-number badge, checklist ticks, one stop in the gradients); lime is the main accent.

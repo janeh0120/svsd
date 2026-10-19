@@ -319,7 +319,7 @@ function Connector({
   const x1 = width + inset
   // Starts at the middle of the nub, so the wire never pokes out past it.
   // The tip stops short of the box edge by the card's 1px ring plus half the stroke (round join), so its outer edge just touches.
-  const sw = selected ? 3 : 1
+  const sw = 1
   const tip = x1 - 1 - sw / 2
   const wire = `M${x0 + 2} ${y0} C ${mid} ${y0}, ${mid} ${y1}, ${tip} ${y1}`
 
@@ -354,7 +354,7 @@ function Connector({
         <path
           d={`M${tip - 6} ${y1 - 5} L${tip} ${y1} L${tip - 6} ${y1 + 5}`}
           fill="none"
-          stroke={selected ? 'var(--accent)' : 'var(--line)'}
+          stroke={selected ? 'var(--ink)' : 'var(--line)'}
           strokeWidth={sw}
           strokeLinecap="round"
           strokeLinejoin="round"

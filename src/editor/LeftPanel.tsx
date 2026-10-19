@@ -84,7 +84,7 @@ function AgentPanel() {
               }
             }}
             disabled={busy}
-            placeholder={pending.length ? 'Add a note, or send the annotations as they are' : 'Plan, Build, / for skills, @ for context'}
+            placeholder={pending.length ? 'Add a note, or send the annotations as they are' : 'Describe what you want to change...'}
             className="min-h-0 w-full flex-1 resize-none outline-none placeholder:text-subtle"
           />
           <div className="flex items-center gap-1.5">
