@@ -1,4 +1,4 @@
-import { cutKey, getCut, scaleLayer, zoomLayer } from '../board'
+import { cutKey, getCut, resolveTime, scaleLayer, zoomLayer } from '../board'
 import type { Action } from '../store'
 import type { Feel, Layer, Pin, Storyboard } from '../types'
 
@@ -14,6 +14,12 @@ const FEEL_WORDS: [RegExp, Feel][] = [
 // Stand-in for the agent: reads one pinned comment and edits only its target.
 // Swap for a Claude call that returns the same actions.
 export function agentRespond(pin: Pin, board: Storyboard): AgentResult {
+  // A moment in time edits whatever was playing then: a cut, a frame or a layer.
+  if (pin.target.kind === 'time') {
+    const at = resolveTime(board, pin.target.ms, pin.target.layerId)
+    if (at.kind === 'time') return { reply: 'There is nothing in the reel at that moment yet.', actions: [] }
+    return agentRespond({ ...pin, target: at }, board)
+  }
   const t = pin.text.toLowerCase()
   const feel = FEEL_WORDS.find(([re]) => re.test(t))?.[1]
   const actions: Action[] = []
@@ -34,7 +40,7 @@ export function agentRespond(pin: Pin, board: Storyboard): AgentResult {
   }
 
   if (target.kind === 'cut') {
-    actions.push({ type: 'cut', key: target.key, patch: { note: pin.text, ...(feel ? { feel } : {}) } })
+    actions.push({ type: 'cut', key: target.key, patch: { note: pin.text, ...(feel ? { feel, bezier: undefined, duration: undefined } : {}) } })
     return { reply: feel ? `Switched to a ${feel} cut and saved your note.` : "Saved as this cut's note. I'll follow it when animating.", actions }
   }
 
@@ -47,7 +53,7 @@ export function agentRespond(pin: Pin, board: Storyboard): AgentResult {
       done.push(factor < 1 ? 'tightened every frame in this act' : 'gave every frame in this act more time')
     }
     if (feel) {
-      act.frameIds.slice(1).forEach((id, i) => actions.push({ type: 'cut', key: cutKey(act.frameIds[i], id), patch: { feel } }))
+      act.frameIds.slice(1).forEach((id, i) => actions.push({ type: 'cut', key: cutKey(act.frameIds[i], id), patch: { feel, bezier: undefined, duration: undefined } }))
       done.push(`made the cuts ${feel}`)
     }
   }
@@ -61,6 +67,13 @@ export function agentRespond(pin: Pin, board: Storyboard): AgentResult {
       done.push(f > 1 ? 'pushed the camera in' : 'pulled the camera out')
     }
     holdChange(fr.id)
+    // "make it snappy" on a frame (or a moment in it) → the cut into this frame.
+    const ids = board.acts.flatMap((a) => a.frameIds)
+    const prev = ids[ids.indexOf(fr.id) - 1]
+    if (feel && prev && getCut(board, prev, fr.id).feel !== feel) {
+      actions.push({ type: 'cut', key: cutKey(prev, fr.id), patch: { feel, bezier: undefined, duration: undefined } })
+      done.push(`made the cut into this frame ${feel}`)
+    }
   }
 
   if (target.kind === 'layer') {
@@ -105,7 +118,7 @@ export function agentRespond(pin: Pin, board: Storyboard): AgentResult {
     const ids = board.acts.flatMap((a) => a.frameIds)
     const prev = ids[ids.indexOf(fr.id) - 1]
     if (feel && prev && getCut(board, prev, fr.id).feel !== feel) {
-      actions.push({ type: 'cut', key: cutKey(prev, fr.id), patch: { feel } })
+      actions.push({ type: 'cut', key: cutKey(prev, fr.id), patch: { feel, bezier: undefined, duration: undefined } })
       done.push(`made the cut into this frame ${feel}`)
     }
   }

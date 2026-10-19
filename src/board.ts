@@ -1,17 +1,32 @@
 import type { Transition } from 'motion/react'
-import type { Cut, Feel, Layer, Storyboard, Target } from './types'
+import type { Camera, Cut, CutAnimation, Feel, Layer, Storyboard, Target } from './types'
 
 export const FRAME_W = 1440
 export const FRAME_H = 900
 
-export const FEELS: Record<Feel, { label: string; transition: Transition; ms: number }> = {
-  snappy: { label: 'Snappy', transition: { type: 'spring', stiffness: 420, damping: 34 }, ms: 450 },
-  smooth: { label: 'Smooth', transition: { duration: 0.9, ease: [0.65, 0, 0.35, 1] }, ms: 900 },
-  bouncy: { label: 'Bouncy', transition: { type: 'spring', stiffness: 180, damping: 11 }, ms: 1100 },
-  cinematic: { label: 'Cinematic', transition: { duration: 1.8, ease: [0.45, 0, 0.15, 1] }, ms: 1800 },
+type Bezier = [number, number, number, number]
+
+// Easing presets, all cubic beziers so the curve editor can show any of them.
+export const FEELS: Record<Feel, { label: string; bezier: Bezier; ms: number }> = {
+  snappy: { label: 'Snappy', bezier: [0.2, 0.9, 0.3, 1], ms: 450 },
+  smooth: { label: 'Smooth', bezier: [0.65, 0, 0.35, 1], ms: 900 },
+  bouncy: { label: 'Bouncy', bezier: [0.34, 1.56, 0.64, 1], ms: 1100 },
+  cinematic: { label: 'Cinematic', bezier: [0.45, 0, 0.15, 1], ms: 1800 },
 }
 
+export const ANIMATIONS: Record<CutAnimation, string> = { smart: 'Smart animate', dissolve: 'Dissolve', instant: 'Instant' }
+
 export const DEFAULT_CUT: Cut = { feel: 'smooth', note: '' }
+export const DEFAULT_CAMERA: Camera = { x: 0, y: 0, w: 1 }
+
+export const cutEase = (c: Cut): Bezier => c.bezier ?? FEELS[c.feel].bezier
+export const cutMs = (c: Cut) => (c.animation === 'instant' ? 0 : (c.duration ?? FEELS[c.feel].ms))
+export const cutTransition = (c: Cut): Transition => ({ duration: cutMs(c) / 1000, ease: cutEase(c) })
+
+export function clampCamera(c: Camera): Camera {
+  const w = Math.min(1, Math.max(0.2, c.w))
+  return { w, x: Math.min(Math.max(0, c.x), 1 - w), y: Math.min(Math.max(0, c.y), 1 - w) }
+}
 
 export const order = (b: Storyboard) => b.acts.flatMap((a) => a.frameIds)
 export const cutKey = (from: string, to: string) => `${from}->${to}`
@@ -41,7 +56,31 @@ export function targetLabel(t: Target, b: Storyboard): string {
     }
     case 'act':
       return b.acts.find((a) => a.id === t.actId)?.name ?? 'Act'
+    case 'time': {
+      const at = resolveTime(b, t.ms, t.layerId)
+      return `${clock(t.ms)} · ${at.kind === 'time' ? 'Reel' : targetLabel(at, b)}`
+    }
   }
+}
+
+// What a moment in the reel points at: the cut playing at that time, or the
+// frame on screen (or a layer in it, when one was clicked in the preview).
+export function resolveTime(b: Storyboard, ms: number, layerId?: string): Target {
+  const t = timing(b)
+  if (!t.frames.length) return { kind: 'time', ms }
+  let idx = t.frames.findIndex((f) => ms < f.end)
+  if (idx === -1) idx = t.frames.length - 1
+  const f = t.frames[idx]
+  if (idx > 0 && ms < f.start) return { kind: 'cut', key: cutKey(t.frames[idx - 1].id, f.id) }
+  if (layerId && b.frames[f.id].layers.some((l) => l.id === layerId)) return { kind: 'layer', frameId: f.id, layerId }
+  return { kind: 'frame', frameId: f.id }
+}
+
+// 0:07 style clock; `padMinutes` gives 00:07 for ruler labels.
+export function clock(ms: number, padMinutes = false) {
+  const s = Math.floor(ms / 1000)
+  const m = Math.floor(s / 60)
+  return `${padMinutes ? String(m).padStart(2, '0') : m}:${String(s % 60).padStart(2, '0')}`
 }
 
 // Scale a layer around its own center.
@@ -72,10 +111,27 @@ export function timing(b: Storyboard) {
   const ids = order(b)
   let t = 0
   const frames = ids.map((id, i) => {
-    if (i > 0) t += FEELS[getCut(b, ids[i - 1], id).feel].ms
+    if (i > 0) t += cutMs(getCut(b, ids[i - 1], id))
     const start = t
     t += b.frames[id].hold * 1000
     return { id, start, end: t }
   })
   return { frames, total: t }
+}
+
+// The frame a target is about, for its snapshot thumbnail.
+export function targetFrame(t: Target, b: Storyboard): string | undefined {
+  switch (t.kind) {
+    case 'layer':
+    case 'frame':
+      return t.frameId
+    case 'cut':
+      return t.key.split('->')[1]
+    case 'act':
+      return b.acts.find((a) => a.id === t.actId)?.frameIds[0]
+    case 'time': {
+      const at = resolveTime(b, t.ms, t.layerId)
+      return at.kind === 'time' ? undefined : targetFrame(at, b)
+    }
+  }
 }

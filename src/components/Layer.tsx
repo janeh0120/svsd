@@ -1,8 +1,10 @@
-import type { CSSProperties } from 'react'
+import { useEffect, useRef, type CSSProperties } from 'react'
 import type { Layer } from '../types'
 
-// What a layer draws, independent of where it sits.
-export function LayerBody({ layer }: { layer: Layer }) {
+// What a layer draws, independent of where it sits. `playing` lets a video
+// layer play (in the preview); elsewhere it shows the still at its start time.
+export function LayerBody({ layer, playing = false }: { layer: Layer; playing?: boolean }) {
+  if (layer.kind === 'video') return <VideoBody layer={layer} playing={playing} />
   if (layer.kind === 'image') {
     return (
       <img
@@ -14,7 +16,12 @@ export function LayerBody({ layer }: { layer: Layer }) {
     )
   }
   if (layer.kind === 'rect') {
-    return <div className="h-full w-full" style={{ background: layer.fill, borderRadius: layer.radius }} />
+    return (
+      <div
+        className="h-full w-full"
+        style={{ background: layer.fill, borderRadius: layer.radius, border: layer.stroke ? `4px solid ${layer.stroke}` : undefined }}
+      />
+    )
   }
   const left = layer.align === 'left'
   return (
@@ -59,3 +66,38 @@ export const layerStyle = (l: Layer): CSSProperties => ({
   transform: `rotate(${l.rotation}deg) scale(${l.scaleX ?? 1}, ${l.scaleY ?? 1})`,
   ...(l.kind === 'text' ? { fontSize: l.fontSize, color: l.color } : {}),
 })
+
+// A screen recording: cued to the layer's start time, playing only when asked.
+function VideoBody({ layer, playing }: { layer: Layer; playing: boolean }) {
+  const ref = useRef<HTMLVideoElement>(null)
+  const start = layer.start ?? 0
+
+  useEffect(() => {
+    const v = ref.current
+    if (!v) return
+    const cue = () => {
+      v.currentTime = start
+    }
+    if (v.readyState >= 1) cue()
+    else v.addEventListener('loadedmetadata', cue, { once: true })
+  }, [start, layer.src])
+
+  useEffect(() => {
+    const v = ref.current
+    if (!v) return
+    if (playing) v.play().catch(() => {})
+    else v.pause()
+  }, [playing])
+
+  return (
+    <video
+      ref={ref}
+      src={layer.src}
+      muted
+      playsInline
+      preload="auto"
+      className="block h-full w-full object-cover select-none"
+      style={{ borderRadius: layer.radius }}
+    />
+  )
+}

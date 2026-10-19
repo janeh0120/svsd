@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" font-family="Inter, -apple-system, Helvetica, Arial, sans-serif">
+<rect width="1440" height="900" fill="#C988D9"/>
+<rect x="560" y="0" width="560" height="900" fill="#F4DAB4"/>
+<rect x="590" y="40" width="500" height="250" fill="none" stroke="#E040FB" stroke-width="5"/>
+<text x="840" y="150" font-size="76" fill="#2D3A2A" text-anchor="middle" font-family="Georgia, Times New Roman, serif">Yosemite</text>
+<text x="840" y="250" font-size="76" fill="#2D3A2A" text-anchor="middle" font-family="Georgia, Times New Roman, serif">National Park</text>
+<text x="840" y="400" font-size="70" fill="#2D3A2A" text-anchor="middle" font-family="Georgia, Times New Roman, serif">Event</text>
+<text x="840" y="480" font-size="70" fill="#2D3A2A" text-anchor="middle" font-family="Georgia, Times New Roman, serif">Title</text>
+<g fill="#C9B080" opacity=".7"><circle cx="680" cy="700" r="40"/><circle cx="1000" cy="720" r="50"/><circle cx="840" cy="790" r="34"/></g>
+<rect x="60" y="400" width="440" height="150" rx="16" fill="#fff"/>
+<text x="90" y="445" font-size="20" fill="#8C8C8C">Park Location</text>
+<rect x="90" y="465" width="380" height="56" rx="8" fill="#fff" stroke="#E040FB" stroke-width="3"/><text x="108" y="502" font-size="24" fill="#1E1E1E">Yosemite National Park</text>
+</svg>

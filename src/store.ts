@@ -11,7 +11,6 @@ export type State = {
   composing: string | null // pin whose popover is open
   messages: Message[]
   working: boolean
-  tab: 'agent' | 'layers'
   preview: boolean
   playhead: number // ms
 }
@@ -22,7 +21,6 @@ export type Action =
   | { type: 'messageUpdate'; id: string; patch: Partial<Message> }
   | { type: 'select'; target: Target | null }
   | { type: 'mode'; mode: Mode }
-  | { type: 'tab'; tab: State['tab'] }
   | { type: 'preview'; open: boolean }
   | { type: 'layer'; frameId: string; layerId: string; patch: Partial<Layer> }
   | { type: 'frame'; frameId: string; patch: Partial<Frame> }
@@ -47,7 +45,6 @@ export const initialState: State = {
   composing: null,
   messages: [],
   working: false,
-  tab: 'agent',
   preview: false,
   playhead: 0,
 }
@@ -68,8 +65,6 @@ export function reducer(state: State, action: Action): State {
     case 'mode':
       // Leaving comment mode throws away a half-typed comment.
       return { ...state, mode: action.mode, pins: dropDrafts(state.pins), composing: null }
-    case 'tab':
-      return { ...state, tab: action.tab }
     case 'preview':
       return { ...state, preview: action.open }
     case 'layer': {

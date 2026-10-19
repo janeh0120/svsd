@@ -183,6 +183,44 @@ export const Icon = {
       <path d="M9 6l6 6-6 6" />
     </Svg>
   ),
+  SkipBack: (p: P) => (
+    <Svg {...p}>
+      <path d="M6 5v14" />
+      <path d="M19 6l-9 6 9 6z" />
+    </Svg>
+  ),
+  SkipForward: (p: P) => (
+    <Svg {...p}>
+      <path d="M18 5v14" />
+      <path d="M5 6l9 6-9 6z" />
+    </Svg>
+  ),
+  Rewind: (p: P) => (
+    <Svg {...p}>
+      <path d="M11 6l-8 6 8 6zM21 6l-8 6 8 6z" fill="currentColor" />
+    </Svg>
+  ),
+  FastForward: (p: P) => (
+    <Svg {...p}>
+      <path d="M13 6l8 6-8 6zM3 6l8 6-8 6z" fill="currentColor" />
+    </Svg>
+  ),
+  Minus: (p: P) => (
+    <Svg {...p}>
+      <path d="M5 12h14" />
+    </Svg>
+  ),
+  Monitor: (p: P) => (
+    <Svg {...p}>
+      <rect x="3" y="4" width="18" height="12" rx="2" />
+      <path d="M8 20h8M12 16v4" />
+    </Svg>
+  ),
+  Pointer: (p: P) => (
+    <Svg {...p}>
+      <path d="M5 3l6.5 17 2.4-7.1L21 10.5z" />
+    </Svg>
+  ),
   Send: (p: P) => (
     <Svg {...p} strokeWidth={2.2}>
       <path d="M12 19V5M6 11l6-6 6 6" />

@@ -11,34 +11,52 @@ npm run dev
 1. **Blank project.** Type a prompt in the Agent panel: your product URL and an outline of the reel.
 2. **The agent drafts.** It reads the site, captures screens (shown in the chat), outlines the narrative arc, and fills in the storyboard on the canvas act by act, with copy and screenshots.
 3. **Approve or request changes.** The agent asks "Does this storyboard look right?" Request changes, or comment on frames, cuts or acts, and it asks again.
-4. **The agent animates.** Once you approve, it records the screen flows and animates the frames together. The timeline tracks fill in and ▷ previews the reel.
+4. **The agent animates.** Once you approve, it records the screen flows and animates the frames together. Then ▷ previews the reel.
 
-Everything the agent does is **mocked** (`src/context.tsx`, `src/mock/`). Reload to start over.
+Everything the agent does is **mocked** (`src/context.tsx`, `src/mock/`). Reload to start over. The draft depends on the prompt:
+- **Default**: this product's own 60-second demo reel (`src/mock/productDemoDraft.ts`): Hook, Intro, Prompt the agent, Point and tweak, Fine-tune by hand, Outro. Its editor screens are drawn by `python3 scripts/make-demo-screens.py`. The product name is a placeholder (`PRODUCT`). When you approve the storyboard, its editor frames switch from those drawn screens to the real screen recordings in `public/recordings/` (`withRecordings`), and the preview plays them.
+- **Prompts mentioning "figma"**: a reel modeled on Figma's [All the launches at Config 2025](https://www.youtube.com/watch?v=NHodnYFUT_I) (`src/mock/figmaConfigDraft.ts`), with recreated screens.
 
 ## The editor
-- **Canvas**: acts side by side in one horizontal row (Introduction, Demo, Features, Build, Outro), each a group of frames. The gap between two frames is the cut.
-- **Left**: **Agent** chat (queued comments and replies) or **Layers** (acts › frames › layers).
-- **Right**: properties for the selection (Animations, Transform, Layout, Appearance, Fill). ▷ at the top opens a preview.
-- **Bottom**: timeline with act tabs (click to jump the canvas), a ruler, a playhead, and a track per layer with keyframes.
+- **Canvas**: acts side by side in one horizontal row (Intro, Figma Sites, Make, Draw, Buzz, Outro), each a group of frames. The gap between two frames is the cut.
+- **Left**: the **Agent** chat: prompts, working steps, question cards, queued comments and replies.
+- **Right**: the **Animate** panel: a live preview of the reel and the selection's properties.
+  - A **cut** (or a frame's cut in): animation type (Smart animate, Dissolve, Instant), easing preset or a custom bezier you drag on the curve, duration, and a sliding-square preview of the easing.
+  - A **frame**: hold time, plus **Camera** pan & zoom: drag the blue box to choose what the preview shows.
+  - A **layer**: Transform (position, scale, rotation) and Appearance (opacity, corner radius).
+- **Bottom**: the timeline: transport controls, a ruler, act blocks and frame thumbnails, all sized by duration, across the full width. Click an act or thumbnail to jump there; zoom with the slider. **Trim** like a video editor: drag a thumbnail's right edge to change how long the frame holds, its left edge to change the cut into it, or an act's right edge to stretch the whole act. Later clips ripple along.
 
 ## Commenting (inline prompting)
-Enter comment mode with **C**, or by typing **@** in the agent input ("@ for context").
+Turn on annotate mode with the **pointer button** next to the agent input (**⇧⌘S**), **C**, or by typing **@** in the agent input ("@ for context").
 
 In comment mode, click:
 - **an element in a frame** → layer comment (`bigger`, `move left`, `fade`, `"new text"`)
 - **empty space in a frame** → frame comment (`push in closer`, `hold longer`)
 - **the gap between frames** → cut comment (`make it bouncy`, `cinematic`)
+- **the preview** → pauses and pins a comment to that moment, and to the layer you clicked
+- **the timeline ruler or a thumbnail** → pins a comment to that moment (it applies to the cut or frame playing then)
 - **an act title** → act comment (`this section feels slow`)
-- **a row in the Layers panel** → same as clicking that layer
 
-Comments queue in the Agent panel. **Send to agent** applies them all at once, and each one edits only its target (`src/mock/agent.ts`). Esc exits comment mode.
+Each annotation attaches to the agent input as a chip with a snapshot. Type a note (optional) and send: the agent applies them all at once, and each one edits only its target (`src/mock/agent.ts`). Esc exits annotate mode.
 
 ## How it works
-- A **frame** is 1440×900 with layers. Layers keep their id across frames, so playback moves each layer from its position in one frame to the next using the cut's feel (`src/components/Player.tsx`).- One storyboard object (`src/types.ts`) drives the canvas, layers, properties, timeline and player.
+- A **frame** is 1440×900 with layers. Layers keep their id across frames, so playback moves each layer from its position in one frame to the next using the cut's feel (`src/components/Player.tsx`).
+- One storyboard object (`src/types.ts`) drives the canvas, layers, properties, timeline and player.
 - Comment targets are typed (`layer | frame | cut | act`), so the agent gets an exact reference instead of a timestamp.
 
+## Screen recordings of the editor
+Real recordings of the running app for the demo video, driven by Playwright with a visible cursor:
+
+```bash
+npx playwright install chromium   # once
+npm run dev                       # in another terminal (port 5174)
+npm run record                    # or: npm run record -- 03
+```
+
+Writes `public/recordings/01-prompt-and-draft.mp4`, `02-approve-and-animate.mp4`, `03-point-and-tweak.mp4` and `04-fine-tune.mp4` (1440×900, 30fps). The flows are in `scripts/record-demo.mjs`.
+
 ## Real screenshots
-`public/shots/*.svg` are placeholder screens for a fake product ("Lumen"). To capture a real site:
+`public/shots/*.svg` are recreated screens for the demo reel. To capture a real site:
 
 ```bash
 npx playwright install chromium

@@ -1,91 +1,109 @@
-import { useState, type CSSProperties } from 'react'
-import { targetLabel } from '../board'
+import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
+import { createPortal } from 'react-dom'
+import { targetFrame, targetLabel } from '../board'
+import { FrameThumb } from '../components/FrameThumb'
 import { useApp } from '../context'
 import type { Pin } from '../types'
+import { Icon } from './icons'
 
-// A comment pin with its popover: a composer while drafting, the thread after.
+const POPOVER_W = 256
+const POPOVER_H = 150
+
+// Where a comment is being written: an invisible anchor plus the comment box,
+// portaled to the page so scrolling panels can't clip it.
 export function PinMarker({ pin, style, className = '' }: { pin: Pin; style?: CSSProperties; className?: string }) {
-  const { state, dispatch } = useApp()
+  const { state, dispatch, sendPin } = useApp()
   const open = state.composing === pin.id
-  const n = state.pins.filter((p) => p.status !== 'draft').indexOf(pin) + 1
   const [text, setText] = useState(pin.text)
+  const dot = useRef<HTMLSpanElement>(null)
+  const [pos, setPos] = useState<{ left: number; top: number } | null>(null)
 
+  // Place the popover beside the pin, flipping left or up when it would run off-screen.
+  useLayoutEffect(() => {
+    if (!open || !dot.current) return setPos(null)
+    const r = dot.current.getBoundingClientRect()
+    const left = r.right + 8 + POPOVER_W > innerWidth ? r.left - 8 - POPOVER_W : r.right + 8
+    const top = Math.min(r.top, innerHeight - POPOVER_H - 8)
+    setPos({ left: Math.max(8, left), top: Math.max(8, top) })
+  }, [open])
+
+  // Sending from the pin goes straight to the agent, which applies the change.
   const save = () => {
     if (!text.trim()) return dispatch({ type: 'pinRemove', id: pin.id })
-    dispatch({ type: 'pinUpdate', id: pin.id, patch: { text: text.trim(), status: 'pending' } })
-    dispatch({ type: 'compose', id: null })
+    sendPin(pin.id, text)
   }
 
-  const color = pin.status === 'sent' ? 'bg-emerald-500' : 'bg-orange-500'
+  // Only the comment being written is shown; once sent, the change itself is the record.
+  if (pin.status !== 'draft') return null
 
   return (
-    <div
-      className={`absolute ${open ? 'z-50' : 'z-20'} ${className}`}
-      style={style}
-      onClick={(e) => e.stopPropagation()}
-      onPointerDown={(e) => e.stopPropagation()}
-    >
-      <button
-        onClick={() => dispatch({ type: 'compose', id: open ? null : pin.id })}
-        className={`flex size-5 items-center justify-center rounded-full rounded-bl-none text-[11px] font-semibold text-white shadow-md ring-2 ring-white ${color} ${
-          pin.status === 'draft' ? 'animate-pulse' : ''
-        }`}
-      >
-        {pin.status === 'sent' ? '✓' : pin.status === 'draft' ? '+' : n}
-      </button>
+    <div className={`absolute z-20 ${className}`} style={style} onClick={(e) => e.stopPropagation()} onPointerDown={(e) => e.stopPropagation()}>
+      {/* No visible marker: just an anchor where the comment box opens. */}
+      <span ref={dot} className="block size-0" />
 
-      {open && (
-        <div className="absolute top-0 left-7 w-64 cursor-auto rounded-lg border border-[#E6E6E6] bg-white p-2 text-left text-[12px] shadow-xl">
-          <p className="mb-2 text-[11px] font-medium text-orange-600">{targetLabel(pin.target, state.board)}</p>
-
-          {pin.status === 'draft' ? (
-            <>
-              <textarea
-                autoFocus
-                rows={3}
-                value={text}
-                onChange={(e) => setText(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault()
-                    save()
-                  }
-                  if (e.key === 'Escape') dispatch({ type: 'pinRemove', id: pin.id })
-                }}
-                placeholder={placeholderFor(pin)}
-                className="w-full resize-none rounded-md border border-[#E6E6E6] p-2 outline-none focus:border-orange-400"
-              />
-              <div className="mt-2 flex justify-end gap-2">
-                <button onClick={() => dispatch({ type: 'pinRemove', id: pin.id })} className="h-7 rounded-md px-2 text-[#8C8C8C] hover:bg-[#F5F5F5]">
-                  Cancel
-                </button>
-                <button onClick={save} className="h-7 rounded-md bg-[#1E1E1E] px-2 font-medium text-white">
-                  Add comment
-                </button>
-              </div>
-            </>
-          ) : (
-            <>
-              <p className="rounded-md bg-[#F5F5F5] px-2 py-1.5">{pin.text}</p>
-              {pin.status === 'pending' && (
-                <div className="mt-2 flex items-center justify-between text-[11px] text-[#8C8C8C]">
-                  Queued. Send it from the Agent panel.
-                  <button onClick={() => dispatch({ type: 'pinRemove', id: pin.id })} className="text-red-500 hover:underline">
-                    Remove
+      {open &&
+        pos &&
+        createPortal(
+          <div
+            className="fixed z-50 cursor-auto rounded-lg border border-[#E6E6E6] bg-white p-2 text-left text-[12px] text-[#1E1E1E] shadow-xl focus-within:border-[#B3B3B3]"
+            style={{ ...pos, width: POPOVER_W }}
+            onClick={(e) => e.stopPropagation()}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            {/* Same shape as the agent input: what it's about as a chip, the
+                text, + on the left and send on the right. Esc cancels. */}
+              <div className="flex min-h-20 flex-col">
+                <div className="mb-1.5">
+                  <TargetChip pin={pin} />
+                </div>
+                <textarea
+                  autoFocus
+                  rows={2}
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                      e.preventDefault()
+                      save()
+                    }
+                    if (e.key === 'Escape') dispatch({ type: 'pinRemove', id: pin.id })
+                  }}
+                  placeholder={placeholderFor(pin)}
+                  className="min-h-0 w-full flex-1 resize-none outline-none placeholder:text-[#B3B3B3]"
+                />
+                <div className="flex items-center gap-1.5">
+                  <button className="flex size-5 items-center justify-center rounded-full border border-[#D9D9D9] text-[#8C8C8C]">
+                    <Icon.Plus size={12} />
+                  </button>
+                  <button
+                    onClick={save}
+                    disabled={!text.trim() || state.working}
+                    title="Send to the agent"
+                    className="ml-auto flex size-5 items-center justify-center rounded-full bg-[#1E1E1E] text-white disabled:opacity-40"
+                  >
+                    <Icon.Send size={12} />
                   </button>
                 </div>
-              )}
-              {pin.reply && (
-                <p className="mt-2 rounded-md bg-[#E5F4FF] px-2 py-1.5">
-                  <span className="mr-1 text-[11px] font-medium text-[#0D99FF]">Agent</span>
-                  {pin.reply}
-                </p>
-              )}
-            </>
-          )}
-        </div>
-      )}
+              </div>
+          </div>,
+          document.body,
+        )}
     </div>
+  )
+}
+
+// What the comment is about, styled like an attachment chip in the agent input.
+function TargetChip({ pin }: { pin: Pin }) {
+  const { state } = useApp()
+  const frameId = targetFrame(pin.target, state.board)
+  const frame = frameId ? state.board.frames[frameId] : undefined
+  return (
+    <span className="inline-flex h-6 max-w-full items-center gap-1.5 rounded-md border border-[#E6E6E6] bg-[#F5F5F5] pr-1.5 pl-0.5">
+      <span className="relative h-[18px] w-7 shrink-0 overflow-hidden rounded-[3px] bg-[#E6E6E6]">
+        {frame && <FrameThumb frame={frame} width={28} height={18} />}
+      </span>
+      <span className="truncate text-[11px]">{targetLabel(pin.target, state.board)}</span>
+    </span>
   )
 }
 
@@ -99,5 +117,7 @@ function placeholderFor(pin: Pin) {
       return 'e.g. card slides up, make it bouncy'
     case 'act':
       return 'e.g. this section feels slow, make it snappy'
+    case 'time':
+      return 'e.g. this moment drags, make it snappy'
   }
 }

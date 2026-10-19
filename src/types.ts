@@ -5,7 +5,7 @@ export type Feel = 'snappy' | 'smooth' | 'bouncy' | 'cinematic'
 export type Layer = {
   id: string
   name: string
-  kind: 'text' | 'image' | 'rect'
+  kind: 'text' | 'image' | 'rect' | 'video'
   x: number
   y: number
   w: number
@@ -20,15 +20,30 @@ export type Layer = {
   color?: string
   align?: 'left' | 'center'
   fill?: string
+  stroke?: string // outline color, for rectangles
   radius?: number
   src?: string
+  start?: number // video: seconds into the clip where this frame begins
   shadow?: boolean
 }
 
-export type Frame = { id: string; hold: number; background: string; layers: Layer[] }
+// Where the camera looks in a frame, in 0–1 units of the frame. The box keeps
+// the frame's aspect ratio, so its height equals its width in these units.
+export type Camera = { x: number; y: number; w: number }
 
-// A cut is the motion between two frames.
-export type Cut = { feel: Feel; note: string }
+export type Frame = { id: string; hold: number; background: string; layers: Layer[]; camera?: Camera }
+
+export type CutAnimation = 'smart' | 'dissolve' | 'instant'
+
+// A cut is the motion between two frames. `feel` is an easing preset;
+// `bezier` and `duration` override it when set.
+export type Cut = {
+  feel: Feel
+  note: string
+  animation?: CutAnimation
+  bezier?: [number, number, number, number]
+  duration?: number // ms
+}
 
 // `name` shows on the canvas, `label` on the timeline tabs.
 export type Act = { id: string; name: string; label: string; frameIds: string[] }
@@ -45,6 +60,9 @@ export type Target =
   | { kind: 'frame'; frameId: string }
   | { kind: 'cut'; key: string }
   | { kind: 'act'; actId: string }
+  // A moment in the reel, from the preview or the timeline ruler. `layerId` is
+  // set when the click landed on a layer in the preview.
+  | { kind: 'time'; ms: number; layerId?: string }
 
 // A comment pinned to a target. Drafts are being typed, pending ones wait to
 // be sent to the agent as a batch.
@@ -56,6 +74,7 @@ export type Pin = {
   text: string
   status: 'draft' | 'pending' | 'sent'
   reply?: string
+  inFlight?: boolean // sent straight from its pin; the agent is working on it
 }
 
 export type Question = { text: string; options: string[] }

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" font-family="Inter, -apple-system, Helvetica, Arial, sans-serif">
+<rect width="1440" height="900" fill="#ECF7B5"/>
+<path d="M720 250 C 640 120, 380 60, 330 220 C 290 350, 470 430, 640 420 C 450 470, 360 650, 470 730 C 580 810, 690 640, 720 520 C 750 640, 860 810, 970 730 C 1080 650, 990 470, 800 420 C 970 430, 1150 350, 1110 220 C 1060 60, 800 120, 720 250 Z" fill="#111"/>
+<path d="M705 250 C 680 170, 640 120, 590 90 M735 250 C 760 170, 800 120, 850 90" stroke="#111" stroke-width="24" fill="none" stroke-linecap="round"/>
+<path d="M720 250 V 720" stroke="#5B8DEF" stroke-width="3"/>
+<g fill="#fff" stroke="#5B8DEF" stroke-width="4"><circle cx="720" cy="250" r="10"/><circle cx="330" cy="220" r="10"/><circle cx="640" cy="420" r="10"/><circle cx="470" cy="730" r="10"/><circle cx="720" cy="520" r="10"/><circle cx="970" cy="730" r="10"/><circle cx="800" cy="420" r="10"/><circle cx="1110" cy="220" r="10"/></g>
+<path d="M850 90 C 900 60, 950 70, 960 110" stroke="#5B8DEF" stroke-width="3" fill="none"/><circle cx="960" cy="110" r="9" fill="#5B8DEF"/>
+</svg>

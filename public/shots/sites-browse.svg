@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" font-family="Inter, -apple-system, Helvetica, Arial, sans-serif">
+<rect width="1440" height="900" fill="#111"/>
+<rect x="250" y="40" width="940" height="820" fill="#F6F3EE"/>
+<text x="290" y="100" font-size="20" fill="#222" font-family="Georgia, Times New Roman, serif">Area</text>
+<g font-size="15" fill="#555"><text x="520" y="98">Studio</text><text x="610" y="98">Objects</text><text x="705" y="98">Journal</text><text x="800" y="98">Visit</text></g>
+<rect x="1040" y="78" width="110" height="34" rx="17" fill="#8A9A5B"/><text x="1062" y="101" font-size="14" fill="#fff">Shop now</text>
+<text x="720" y="330" font-size="130" fill="#1B1B1B" text-anchor="middle" font-family="Georgia, Times New Roman, serif">Browse</text>
+<text x="720" y="470" font-size="130" fill="#1B1B1B" text-anchor="middle" font-family="Georgia, Times New Roman, serif">everything.</text>
+<rect x="420" y="560" width="600" height="300" rx="18" fill="#2B2B2B"/><rect x="440" y="580" width="560" height="280" rx="8" fill="#9FB3A8"/>
+<rect x="470" y="610" width="180" height="16" rx="8" fill="#E8EFEA"/><rect x="470" y="640" width="120" height="12" rx="6" fill="#E8EFEA" opacity=".7"/>
+<path d="M150 150 l40 100 14 -42 42 -14 z" fill="#fff"/>
+</svg>

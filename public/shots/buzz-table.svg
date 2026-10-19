@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" font-family="Menlo, Courier New, monospace">
+<rect width="1440" height="900" fill="#fff"/>
+<rect width="1440" height="90" fill="#F5F5F5"/>
+<g font-family="Inter, Helvetica, Arial, sans-serif" font-size="30" font-weight="600" fill="#1E1E1E"><text x="200" y="58">Common Name</text><text x="640" y="58">Scientific Name</text><text x="1080" y="58">Description</text></g>
+<g font-size="22" fill="#333">
+<text x="60" y="160" font-size="30">1</text><text x="200" y="160">EASTERN GREY WOLF</text><text x="640" y="160">CANIS LUPUS LYCAON</text><text x="1080" y="160">TO HUNT AND PROTECT</text>
+<text x="60" y="280" font-size="30">2</text><text x="200" y="280">BLUEBONNET</text><text x="640" y="280">LUPINUS TEXENSIS</text><text x="1080" y="280">A VIBRANT BLUE FLOWER</text>
+<text x="60" y="400" font-size="30">3</text><text x="200" y="400">WHITE-TAILED DEER</text><text x="640" y="400">ODOCOILEUS VIRGINIANUS</text><text x="1080" y="400">COMMON IN FORESTS</text>
+<text x="60" y="520" font-size="30">4</text><text x="200" y="520">PRONGHORN ANTELOPE</text><text x="640" y="520">ANTILOCAPRA AMERICANA</text><text x="1080" y="520">FASTEST ON THE PLAINS</text>
+<text x="60" y="640" font-size="30">5</text><text x="200" y="640">COUGAR</text><text x="640" y="640">PUMA CONCOLOR</text><text x="1080" y="640">SOLITARY AND SILENT</text>
+<text x="60" y="760" font-size="30">6</text><text x="200" y="760">GREAT HORNED OWL</text><text x="640" y="760">BUBO VIRGINIANUS</text><text x="1080" y="760">TUFTED NIGHT HUNTER</text>
+</g>
+<g stroke="#E6E6E6" stroke-width="2"><path d="M0 210 H1440 M0 330 H1440 M0 450 H1440 M0 570 H1440 M0 690 H1440 M0 810 H1440 M160 90 V900 M600 90 V900 M1040 90 V900"/></g>
+</svg>

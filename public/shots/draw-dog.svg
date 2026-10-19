@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" font-family="Inter, -apple-system, Helvetica, Arial, sans-serif">
+<rect width="1440" height="900" fill="#F1E3C6"/>
+<path d="M120 120 C 200 60, 320 80, 380 160" stroke="#1E1E1E" stroke-width="40" fill="none" stroke-linecap="round"/>
+<path d="M1050 90 C 1150 60, 1260 120, 1300 200" stroke="#1E1E1E" stroke-width="40" fill="none" stroke-linecap="round"/>
+<path d="M300 380 C 300 250, 420 200, 520 230 C 600 180, 700 200, 720 280 C 760 300, 780 360, 740 400 L 760 820 L 330 820 Z" fill="#F7F0E2" stroke="#1E1E1E" stroke-width="10"/>
+<path d="M520 230 C 470 300, 470 380, 520 420" stroke="#1E1E1E" stroke-width="10" fill="none"/>
+<circle cx="640" cy="300" r="12" fill="#1E1E1E"/><ellipse cx="745" cy="330" rx="20" ry="14" fill="#1E1E1E"/>
+<path d="M380 520 C 420 480, 640 480, 680 540 L 690 820 L 370 820 Z" fill="#C9B79A" opacity=".8"/>
+<g fill="#1E1E1E"><circle cx="530" cy="620" r="40"/><circle cx="480" cy="580" r="26"/><circle cx="580" cy="580" r="26"/><rect x="520" y="640" width="20" height="90"/></g>
+<rect x="950" y="200" width="300" height="520" rx="16" fill="#fff" stroke="#E3E3E3"/><text x="975" y="240" font-size="16" fill="#777">Brushes</text>
+<g stroke="#1E1E1E" fill="none" stroke-linecap="round"><path d="M990 300 c60 -30 120 20 200 -10" stroke-width="16"/><path d="M990 370 c60 -20 120 15 200 -5" stroke-width="9"/><path d="M990 440 c60 -20 120 15 200 -5" stroke-width="5"/><path d="M990 510 c60 -20 120 15 200 -5" stroke-width="12" stroke-dasharray="2 10"/><path d="M990 580 c60 -20 120 15 200 -5" stroke-width="3"/><path d="M990 650 c60 -20 120 15 200 -5" stroke-width="7"/></g>
+</svg>

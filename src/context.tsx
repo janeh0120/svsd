@@ -2,14 +2,16 @@ import { createContext, useCallback, useContext, useReducer, useRef, type ReactN
 import { FRAME_H, FRAME_W, order, targetLabel, timing, uid } from './board'
 import { agentRespond } from './mock/agent'
 import { mockDraft } from './mock/draft'
+import { withRecordings } from './mock/productDemoDraft'
 import { initialState, reducer, type Action, type State } from './store'
-import type { Answer, Message, Target } from './types'
+import type { Answer, Message, Pin, Target } from './types'
 
 type Ctx = {
   state: State
   dispatch: React.Dispatch<Action>
   startComment: (target: Target, at?: { x: number; y: number }) => void
-  send: () => void
+  send: (note?: string) => void
+  sendPin: (pinId: string, text: string) => void
   chat: (text: string) => void
   answer: (messageId: string, question: number, answer: Answer) => void
 }
@@ -18,7 +20,7 @@ const AppContext = createContext<Ctx | null>(null)
 
 // DOM id of whatever a target lives in, so we can scroll the canvas to it.
 export const domId = (t: Target) =>
-  t.kind === 'act' ? `act-${t.actId}` : t.kind === 'cut' ? `cut-${t.key}` : `frame-${t.frameId}`
+  t.kind === 'act' ? `act-${t.actId}` : t.kind === 'cut' ? `cut-${t.key}` : t.kind === 'time' ? 'timeline' : `frame-${t.frameId}`
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
@@ -59,18 +61,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const startProject = useCallback(
     async (prompt: string) => {
       const url = prompt.match(/https?:\/\/[^\s,]+|\b[\w-]+\.(?:app|com|io|dev|co|ai|so|design)\b[^\s,]*/i)?.[0] ?? 'your site'
-      const draft = mockDraft()
+      const draft = mockDraft(prompt)
       say({ author: 'you', text: prompt })
       dispatch({ type: 'phase', phase: 'drafting' })
       await sleep(500)
       say({ author: 'agent', text: `On it. I'll read ${url}, pull screens of the product, and draft a storyboard from your outline.` })
       await step(`Reading ${url}`, 'Pages, product copy and features', 1300)
-      await step('Capturing screens', '5 screens at 1440 × 900', 1300)
+      const shots = [...new Set(Object.values(draft.frames).flatMap((f) => f.layers.filter((l) => l.kind === 'image').map((l) => l.src!)))]
+      await step('Capturing screens', `${shots.length} screens at 1440 × 900`, 1300)
       say({
         author: 'agent',
         kind: 'shots',
         text: 'Screens from your site',
-        shots: ['home', 'dashboard', 'review', 'pricing', 'phone'].map((s) => `/shots/${s}.svg`),
+        shots,
       })
       await sleep(500)
       await step('Outlining the narrative arc', draft.acts.map((a) => a.name).join(' → '), 1200)
@@ -99,7 +102,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const animate = useCallback(async () => {
     dispatch({ type: 'phase', phase: 'animating' })
     await sleep(400)
-    await step('Recording screen flows', 'Dashboard, weekly review and pricing', 1600)
+    const middle = latest.current.board.acts.slice(1, -1).map((a) => a.name)
+    await step('Recording screen flows', middle.join(', '), 1600)
+    // Swap the storyboard's still screens for the real recordings.
+    const recorded = withRecordings(latest.current.board)
+    const swapped = Object.keys(recorded.frames).filter((id) => recorded.frames[id] !== latest.current.board.frames[id]).length
+    if (swapped) {
+      dispatch({ type: 'load', board: recorded })
+      say({ author: 'agent', text: `Swapped ${swapped} frames from screenshots to screen recordings.` })
+    }
     await step('Matching layers between frames', undefined, 1100)
     await step('Timing cuts to your outline', undefined, 1100)
     const t = timing(latest.current.board)
@@ -156,29 +167,55 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [])
 
   // Send every queued comment in one pass; each one only edits its own target.
-  const send = useCallback(() => {
-    const pending = latest.current.pins.filter((p) => p.status === 'pending')
-    if (!pending.length) return
-    dispatch({ type: 'working', on: true })
-    say({ author: 'you', text: `Sent ${pending.length} comment${pending.length > 1 ? 's' : ''}` })
-    setTimeout(() => {
-      let s = latest.current
-      const lines: string[] = []
-      for (const pin of pending) {
-        const res = agentRespond(pin, s.board)
-        for (const a of res.actions) {
-          s = reducer(s, a)
-          dispatch(a)
+  // The agent works through a set of comments; each one edits only its own target.
+  const execute = useCallback(
+    (pins: Pin[], youSaid: string) => {
+      dispatch({ type: 'working', on: true })
+      say({ author: 'you', text: youSaid })
+      setTimeout(() => {
+        let s = latest.current
+        const lines: string[] = []
+        for (const pin of pins) {
+          const res = agentRespond(pin, s.board)
+          for (const a of res.actions) {
+            s = reducer(s, a)
+            dispatch(a)
+          }
+          dispatch({ type: 'pinUpdate', id: pin.id, patch: { status: 'sent', reply: res.reply, inFlight: false } })
+          lines.push(pins.length > 1 ? `${targetLabel(pin.target, s.board)}: ${res.reply}` : res.reply)
         }
-        dispatch({ type: 'pinUpdate', id: pin.id, patch: { status: 'sent', reply: res.reply } })
-        lines.push(`${targetLabel(pin.target, s.board)}: ${res.reply}`)
-      }
-      say({ author: 'agent', text: lines.join('\n') })
-      dispatch({ type: 'working', on: false })
-      // Still reviewing the storyboard: ask again before moving on.
-      if (latest.current.phase === 'review') askApproval()
-    }, 1100)
-  }, [say, askApproval])
+        say({ author: 'agent', text: lines.join('\n') })
+        dispatch({ type: 'working', on: false })
+        // Still reviewing the storyboard: ask again before moving on.
+        if (latest.current.phase === 'review') askApproval()
+      }, 1100)
+    },
+    [say, askApproval],
+  )
+
+  // Send the comments attached to the agent input. `note` is anything typed alongside them.
+  const send = useCallback(
+    (note?: string) => {
+      const pending = latest.current.pins.filter((p) => p.status === 'pending' && !p.inFlight)
+      if (!pending.length) return
+      const count = `${pending.length} annotation${pending.length > 1 ? 's' : ''}`
+      execute(pending, note ? `${note}\n(${count} attached)` : `Sent ${count}`)
+    },
+    [execute],
+  )
+
+  // Send one comment straight from its pin: the agent applies it right away.
+  const sendPin = useCallback(
+    (pinId: string, text: string) => {
+      const pin = latest.current.pins.find((p) => p.id === pinId)
+      if (!pin || !text.trim()) return
+      const sent = { ...pin, text: text.trim(), status: 'pending' as const }
+      dispatch({ type: 'pinUpdate', id: pinId, patch: { text: sent.text, status: 'pending', inFlight: true } })
+      dispatch({ type: 'compose', id: null })
+      execute([sent], `${targetLabel(pin.target, latest.current.board)}: ${sent.text}`)
+    },
+    [execute],
+  )
 
   const chat = useCallback(
     (text: string) => {
@@ -201,7 +238,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [startProject, say, askApproval],
   )
 
-  return <AppContext.Provider value={{ state, dispatch, startComment, send, chat, answer }}>{children}</AppContext.Provider>
+  return <AppContext.Provider value={{ state, dispatch, startComment, send, sendPin, chat, answer }}>{children}</AppContext.Provider>
 }
 
 export function useApp() {

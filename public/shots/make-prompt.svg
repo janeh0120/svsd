@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" font-family="Inter, -apple-system, Helvetica, Arial, sans-serif">
+<rect width="1440" height="900" fill="#8E837B"/>
+<rect x="320" y="200" width="800" height="500" rx="36" fill="#fff"/>
+<rect x="370" y="250" width="180" height="140" rx="12" fill="#EFEDEA"/>
+<g fill="#D6D2CC"><rect x="385" y="265" width="70" height="50" rx="4"/><rect x="465" y="265" width="70" height="50" rx="4" fill="#BFC9C2"/><rect x="385" y="325" width="70" height="50" rx="4" fill="#C7CFD6"/><rect x="465" y="325" width="70" height="50" rx="4"/></g>
+<text x="370" y="480" font-size="44" fill="#1E1E1E">Bring this exploration to life</text><rect x="1000" y="446" width="4" height="46" fill="#1E1E1E"/>
+<g stroke="#555" stroke-width="4" fill="none"><rect x="372" y="608" width="34" height="38" rx="6"/><rect x="440" y="610" width="40" height="34" rx="6"/><circle cx="530" cy="627" r="14"/></g>
+<circle cx="1050" cy="628" r="34" fill="#6E56F8"/><path d="M1050 645 v-34 M1036 625 l14 -14 14 14" stroke="#fff" stroke-width="5" fill="none"/>
+</svg>

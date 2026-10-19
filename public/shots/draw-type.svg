@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" font-family="Inter, -apple-system, Helvetica, Arial, sans-serif">
+<rect width="1440" height="900" fill="#F8C9B8"/>
+<defs><path id="a1" d="M-100 260 C 400 120, 1000 120, 1600 300"/><path id="a2" d="M-100 560 C 400 420, 1000 420, 1600 600"/><path id="a3" d="M-100 860 C 400 720, 1000 720, 1600 900"/></defs>
+<g stroke="#5B8DEF" stroke-width="5" fill="none"><use href="#a1"/><use href="#a2"/><use href="#a3"/></g>
+<g font-size="130" font-weight="900" fill="#E8592B" letter-spacing="4">
+<text><textPath href="#a1">CHESAPEAKE CHESAPEAKE</textPath></text>
+<text><textPath href="#a2" startOffset="12%">CHESAPEAKE CHESAPEAKE</textPath></text>
+<text><textPath href="#a3" startOffset="4%">CHESAPEAKE CHESAPEAKE</textPath></text></g>
+<g fill="#fff" stroke="#5B8DEF" stroke-width="5"><circle cx="420" cy="183" r="14"/><circle cx="1010" cy="196" r="14"/><circle cx="700" cy="465" r="14"/></g>
+</svg>

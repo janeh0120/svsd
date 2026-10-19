@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="900" viewBox="0 0 1440 900" font-family="Inter, -apple-system, Helvetica, Arial, sans-serif">
+<rect width="1440" height="900" fill="#2E7D4F"/>
+<g>
+<rect x="60" y="70" width="760" height="780" rx="10" fill="#E9E4D8"/><text x="90" y="105" font-size="13" fill="#777">Desktop · 1440</text>
+<text x="90" y="300" font-size="210" font-weight="900" fill="#141414" letter-spacing="-8">Sabi</text>
+<rect x="90" y="360" width="700" height="260" fill="#3A3226"/><rect x="140" y="400" width="40" height="220" fill="#1E1A14"/><rect x="230" y="420" width="40" height="200" fill="#1E1A14"/><rect x="320" y="400" width="40" height="220" fill="#1E1A14"/>
+<text x="90" y="690" font-size="40" font-weight="700" fill="#141414">A bold headline that</text><text x="90" y="740" font-size="40" font-weight="700" fill="#141414">grabs attention.</text>
+</g>
+<g>
+<rect x="850" y="70" width="330" height="780" rx="10" fill="#E9E4D8"/><text x="875" y="105" font-size="13" fill="#777">Tablet · 768</text>
+<text x="875" y="220" font-size="96" font-weight="900" fill="#141414" letter-spacing="-4">Sabi</text>
+<rect x="875" y="250" width="280" height="200" fill="#3A3226"/>
+<text x="875" y="510" font-size="26" font-weight="700" fill="#141414">A bold headline that</text><text x="875" y="545" font-size="26" font-weight="700" fill="#141414">grabs attention.</text>
+<text x="875" y="640" font-size="30" font-weight="800" fill="#141414">Projects</text><rect x="875" y="660" width="130" height="150" fill="#CFC6B4"/><rect x="1020" y="660" width="135" height="150" fill="#3A3226"/>
+</g>
+<g>
+<rect x="1210" y="70" width="190" height="780" rx="10" fill="#E9E4D8"/><text x="1225" y="105" font-size="13" fill="#777">Mobile</text>
+<text x="1225" y="190" font-size="58" font-weight="900" fill="#141414" letter-spacing="-2">Sabi</text>
+<rect x="1225" y="215" width="160" height="150" fill="#3A3226"/>
+<text x="1225" y="410" font-size="17" font-weight="700" fill="#141414">A bold headline</text><text x="1225" y="432" font-size="17" font-weight="700" fill="#141414">that grabs attention.</text>
+<text x="1225" y="500" font-size="22" font-weight="800" fill="#141414">Projects</text><rect x="1225" y="520" width="160" height="120" fill="#CFC6B4"/>
+</g>
+<path d="M560 230 l30 76 11 -32 32 -11 z" fill="#141414"/>
+<path d="M980 470 l26 66 10 -28 28 -10 z" fill="#E040FB"/><rect x="1010" y="520" width="56" height="30" rx="6" fill="#E040FB"/><text x="1024" y="541" font-size="16" fill="#fff" font-weight="600">Aja</text>
+</svg>

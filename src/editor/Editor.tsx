@@ -7,9 +7,9 @@ import { PropertiesPanel } from './PropertiesPanel'
 import { Timeline } from './Timeline'
 
 // Both sidebars start at the same width; each can be resized on its own.
-const DEFAULTS = { left: 240, right: 240, bottom: 220 }
+const DEFAULTS = { left: 240, right: 240, bottom: 176 }
 type Sizes = typeof DEFAULTS
-const KEY = 'svsd.panel-sizes.v3'
+const KEY = 'svsd.panel-sizes.v4'
 
 // Panel sizes are a per-viewer convenience, so they live in localStorage.
 function usePanelSizes() {
@@ -37,6 +37,12 @@ export function Editor() {
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      // ⇧⌘S toggles annotate mode from anywhere, even while typing.
+      if (e.key.toLowerCase() === 's' && e.shiftKey && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        if (state.board.acts.length) dispatch({ type: 'mode', mode: state.mode === 'comment' ? 'select' : 'comment' })
+        return
+      }
       if (e.target instanceof Element && e.target.closest('input, textarea, select')) return
       if (e.metaKey || e.ctrlKey || e.altKey) return
       if (e.key === 'c') dispatch({ type: 'mode', mode: 'comment' })
@@ -50,7 +56,7 @@ export function Editor() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [state.preview, state.composing, state.mode, dispatch])
+  }, [state.preview, state.composing, state.mode, state.board.acts.length, dispatch])
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-white text-[12px] text-[#1E1E1E]">
@@ -61,8 +67,8 @@ export function Editor() {
         <Resizer axis="x" value={sizes.right} min={200} max={420} sign={-1} onChange={set('right')} onReset={() => set('right')(DEFAULTS.right)} />
         <PropertiesPanel width={sizes.right} />
       </div>
-      <Resizer axis="y" value={sizes.bottom} min={120} max={560} sign={-1} onChange={set('bottom')} onReset={() => set('bottom')(DEFAULTS.bottom)} />
-      <Timeline height={sizes.bottom} nameWidth={sizes.left} />
+      <Resizer axis="y" value={sizes.bottom} min={150} max={400} sign={-1} onChange={set('bottom')} onReset={() => set('bottom')(DEFAULTS.bottom)} />
+      <Timeline height={sizes.bottom} />
       {state.preview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-10" onClick={() => dispatch({ type: 'preview', open: false })}>
           <div className="w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
