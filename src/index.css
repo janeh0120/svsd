@@ -87,3 +87,14 @@ h2 {
     opacity: 0;
   }
 }
+
+/* Mode cursors: crosshair while commenting with the agent, hand to pan the canvas. */
+@utility cursor-ai {
+  cursor: url('/cursors/ai.svg') 16 16, crosshair;
+}
+@utility cursor-hand {
+  cursor: url('/cursors/hand.svg') 16 16, grab;
+}
+@utility cursor-hand-grabbing {
+  cursor: url('/cursors/hand-grabbing.svg') 16 16, grabbing;
+}
