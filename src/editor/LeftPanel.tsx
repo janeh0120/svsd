@@ -8,6 +8,7 @@ import { QuestionCard } from './QuestionCard'
 import { StartForm } from './StartForm'
 
 export function LeftPanel({ width }: { width: number }) {
+  const { state } = useApp()
   return (
     <aside className="flex shrink-0 flex-col bg-surface" style={{ width }}>
       {/* App bar: the Sequence logo and the file name */}
@@ -16,7 +17,9 @@ export function LeftPanel({ width }: { width: number }) {
           <img src="/sequence-logo.svg" alt="Sequence" title="Sequence" draggable={false} className="h-5 w-auto select-none" />
         </div>
         <button className="flex min-w-0 items-center gap-1.5 px-3 font-display text-[13px] font-semibold">
-          <span className="truncate">Design File</span>
+          <span className="truncate" title={state.name}>
+            {state.name}
+          </span>
           <Icon.ChevronDown size={12} className="shrink-0 text-muted" />
         </button>
       </div>
@@ -91,17 +94,7 @@ function AgentPanel() {
             <button className="flex size-5 items-center justify-center rounded-full border border-line text-muted">
               <Icon.Plus size={12} />
             </button>
-            <button
-              title="Aspect ratio"
-              className="flex h-5 items-center gap-1 rounded-md px-1 text-[11px] text-muted hover:bg-control-hover"
-            >
-              <span className="block h-[9px] w-4 rounded-[2px] border border-current" />
-              16:9
-            </button>
-            <button title="Video length" className="flex h-5 items-center gap-1 rounded-md px-1 text-[11px] text-muted hover:bg-control-hover">
-              <Icon.Clock size={12} />
-              1m
-            </button>
+            <AnnotateButton />
             <button
               onClick={submit}
               disabled={busy || state.working}
@@ -113,6 +106,40 @@ function AgentPanel() {
           </div>
         </div>
       </div>
+    </div>
+  )
+}
+
+// Toggles annotate mode, with a tooltip explaining what the agent receives.
+function AnnotateButton() {
+  const { state, dispatch } = useApp()
+  const [hover, setHover] = useState(false)
+  const on = state.mode === 'comment'
+  const disabled = !state.board.acts.length
+  return (
+    <div className="relative" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
+      <button
+        onClick={() => !disabled && dispatch({ type: 'mode', mode: on ? 'select' : 'comment' })}
+        aria-label="Select an element or annotate"
+        aria-pressed={on}
+        className={`flex size-5 items-center justify-center rounded-md ${
+          on ? 'bg-accent-soft text-accent-text' : disabled ? 'text-subtle' : 'text-muted hover:bg-control-hover'
+        }`}
+      >
+        <Icon.Pointer size={13} />
+      </button>
+      {hover && (
+        <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-60 rounded-lg bg-inverse p-2.5 text-on-inverse shadow-xl">
+          <div className="flex items-center gap-2">
+            <span className="font-medium">{on ? 'Stop annotating' : 'Select an element or annotate'}</span>
+            <kbd className="ml-auto shrink-0 text-[11px] text-on-inverse/60">⇧⌘S</kbd>
+          </div>
+          <p className="mt-1 text-[11px] leading-snug text-on-inverse/60">
+            Point at a layer, frame, cut or act, or at a moment in the preview or timeline. The agent gets a snapshot of it, its properties and where it sits in
+            the reel.
+          </p>
+        </div>
+      )}
     </div>
   )
 }

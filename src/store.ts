@@ -3,6 +3,7 @@ import { DEFAULT_CUT, sameTarget, timing, uid } from './board'
 import type { Cut, Frame, Layer, Message, Mode, Phase, Pin, Storyboard, Target } from './types'
 
 export type State = {
+  name: string // the file name in the app bar
   phase: Phase
   board: Storyboard
   selection: Target | null
@@ -19,6 +20,7 @@ export type State = {
 
 export type Action =
   | { type: 'phase'; phase: Phase }
+  | { type: 'rename'; name: string }
   | { type: 'load'; board: Storyboard }
   | { type: 'messageUpdate'; id: string; patch: Partial<Message> }
   | { type: 'select'; target: Target | null }
@@ -40,6 +42,7 @@ export type Action =
   | { type: 'playing'; on: boolean }
 
 export const initialState: State = {
+  name: 'Design File',
   phase: 'empty',
   board: { acts: [], frames: {}, cuts: {} },
   selection: null,
@@ -61,6 +64,8 @@ export function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'phase':
       return { ...state, phase: action.phase }
+    case 'rename':
+      return { ...state, name: action.name }
     case 'load':
       return { ...state, board: action.board }
     case 'messageUpdate':

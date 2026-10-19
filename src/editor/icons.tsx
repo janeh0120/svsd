@@ -248,6 +248,14 @@ export const Icon = {
       <path d="M3 12h18M12 3c2.5 2.7 3.8 5.7 3.8 9s-1.3 6.3-3.8 9c-2.5-2.7-3.8-5.7-3.8-9S9.5 5.7 12 3z" />
     </Svg>
   ),
+  Apps: (p: P) => (
+    <Svg {...p}>
+      <rect x="4" y="4" width="6.5" height="6.5" rx="1.5" />
+      <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5" />
+      <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5" />
+      <path d="M16.75 13.5v6.5M13.5 16.75H20" />
+    </Svg>
+  ),
   Image: (p: P) => (
     <Svg {...p}>
       <rect x="4" y="4" width="16" height="16" rx="2" />
