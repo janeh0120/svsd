@@ -15,6 +15,8 @@ export function PinMarker({ pin, style, className = '' }: { pin: Pin; style?: CS
   const { state, dispatch, sendPin } = useApp()
   const open = state.composing === pin.id
   const [text, setText] = useState(pin.text)
+  const [refs, setRefs] = useState<string[]>([]) // image or video references picked for this comment (names only, nothing is uploaded)
+  const picker = useRef<HTMLInputElement>(null)
   const dot = useRef<HTMLSpanElement>(null)
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null)
 
@@ -72,9 +74,30 @@ export function PinMarker({ pin, style, className = '' }: { pin: Pin; style?: CS
                   className="min-h-0 w-full flex-1 resize-none outline-none placeholder:text-subtle"
                 />
                 <div className="flex items-center gap-1.5">
-                  <button className="flex size-5 items-center justify-center rounded-full border border-line text-muted">
+                  <input
+                    ref={picker}
+                    type="file"
+                    accept="image/*,video/*"
+                    multiple
+                    hidden
+                    onChange={(e) => {
+                      setRefs((r) => [...r, ...Array.from(e.target.files ?? []).map((f) => f.name)])
+                      e.target.value = ''
+                    }}
+                  />
+                  <button
+                    onClick={() => picker.current?.click()}
+                    title="Add an image or video reference"
+                    className="flex h-5 items-center gap-1 rounded-full border border-line pr-2 pl-1.5 text-[11px] text-muted hover:text-ink"
+                  >
                     <Icon.Plus size={12} />
+                    Reference
                   </button>
+                  {refs.map((name, i) => (
+                    <span key={i} className="max-w-24 truncate rounded-md bg-control px-1.5 py-0.5 text-[11px]">
+                      {name}
+                    </span>
+                  ))}
                   <button
                     onClick={save}
                     disabled={!text.trim() || state.working}

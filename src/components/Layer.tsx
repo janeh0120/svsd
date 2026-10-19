@@ -73,6 +73,74 @@ function TypedText({ text, typing }: { text: string; typing: Typing }) {
   )
 }
 
+// Where a new layer starts for each entrance preset (the names follow Jitter's): it animates from
+// here to its own box over the cut. Rise, the default, is handled by the players.
+export const arrival = (l: Layer) => {
+  const box = layerBox(l)
+  const dist = Math.min(400, Math.max(80, l.w / 2))
+  const scaled = (f: number) => ({ scaleX: (l.scaleX ?? 1) * f, scaleY: (l.scaleY ?? 1) * f })
+  switch (l.enter) {
+    case 'fade':
+      return { ...box, opacity: 0 }
+    case 'slide-up':
+      return { ...box, opacity: 0, top: l.y + dist }
+    case 'slide-down':
+      return { ...box, opacity: 0, top: l.y - dist }
+    case 'slide-left':
+      return { ...box, opacity: 0, left: l.x - dist }
+    case 'slide-right':
+      return { ...box, opacity: 0, left: l.x + dist }
+    case 'grow':
+      return { ...box, opacity: 0, ...scaled(0.9) }
+    case 'shrink':
+      return { ...box, opacity: 0, ...scaled(1.15) }
+    case 'spin':
+      return { ...box, opacity: 0, rotate: l.rotation - 180 }
+    case 'twist':
+      return { ...box, opacity: 0, rotate: l.rotation - 20, ...scaled(0.9) }
+    case 'blur':
+      return { ...box, opacity: 0, filter: 'blur(16px)' }
+    case 'blur-scale':
+      return { ...box, opacity: 0, filter: 'blur(16px)', ...scaled(1.15) }
+    case 'blur-slide':
+      return { ...box, opacity: 0, filter: 'blur(16px)', top: l.y + 40 }
+    default:
+      return undefined
+  }
+}
+
+// Where a layer goes when the next frame drops it: the mirror of its entrance preset.
+export const departure = (l: Layer) => {
+  const dist = Math.min(400, Math.max(80, l.w / 2))
+  const scaled = (f: number) => ({ scaleX: (l.scaleX ?? 1) * f, scaleY: (l.scaleY ?? 1) * f })
+  switch (l.exit) {
+    case 'slide-up':
+      return { top: l.y - dist }
+    case 'slide-down':
+      return { top: l.y + dist }
+    case 'slide-left':
+      return { left: l.x - dist }
+    case 'slide-right':
+      return { left: l.x + dist }
+    case 'grow':
+      return scaled(1.15)
+    case 'shrink':
+      return scaled(0.9)
+    case 'spin':
+      return { rotate: l.rotation + 180 }
+    case 'twist':
+      return { rotate: l.rotation + 20, ...scaled(0.9) }
+    case 'blur':
+      return { filter: 'blur(16px)' }
+    case 'blur-scale':
+      return { filter: 'blur(16px)', ...scaled(1.15) }
+    case 'blur-slide':
+      return { filter: 'blur(16px)', top: l.y - 40 }
+    default:
+      return {}
+  }
+}
+
 // Animatable box values (used by the player).
 export const layerBox = (l: Layer) => ({
   left: l.x,
@@ -84,6 +152,7 @@ export const layerBox = (l: Layer) => ({
   scaleY: l.scaleY ?? 1,
   opacity: l.opacity,
   ...(l.kind === 'text' ? { fontSize: l.fontSize, color: l.color } : {}),
+  ...(l.enter?.startsWith('blur') || l.exit?.startsWith('blur') ? { filter: 'blur(0px)' } : {}),
 })
 
 // Static CSS for the same box (used on the canvas).
@@ -96,6 +165,7 @@ export const layerStyle = (l: Layer): CSSProperties => ({
   opacity: l.opacity,
   transform: `rotate(${l.rotation}deg) scale(${l.scaleX ?? 1}, ${l.scaleY ?? 1})`,
   ...(l.kind === 'text' ? { fontSize: l.fontSize, color: l.color } : {}),
+  ...(l.enter?.startsWith('blur') || l.exit?.startsWith('blur') ? { filter: 'blur(0px)' } : {}),
 })
 
 // A screen recording: cued to the layer's start time, playing only when asked.

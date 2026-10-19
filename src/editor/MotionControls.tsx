@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react'
 import { FRAME_H, FRAME_W, clampCamera } from '../board'
 import { LayerBody, layerStyle } from '../components/Layer'
-import type { Camera, Frame } from '../types'
+import { animate, motion, useMotionValue, useTransform } from 'motion/react'
+import type { Camera, CutAnimation, Frame } from '../types'
 
 type Bezier = [number, number, number, number]
 
@@ -59,7 +60,7 @@ export function BezierEditor({ value, onChange }: { value: Bezier; onChange: (b:
             r={2.6}
             style={{ fill: 'var(--raised)', stroke: 'var(--accent-line)' }}
             strokeWidth={1}
-            className="cursor-grab active:cursor-grabbing"
+            className="cursor-hand active:cursor-hand-grabbing"
             onPointerDown={drag(h as 1 | 2)}
           />
         ))}
@@ -68,16 +69,53 @@ export function BezierEditor({ value, onChange }: { value: Bezier; onChange: (b:
   )
 }
 
-// A square that slides back and forth with the chosen easing and duration.
-export function EasePreview({ bezier, ms }: { bezier: Bezier; ms: number }) {
-  const curve = `cubic-bezier(${bezier.join(',')})`
+// A mini cut between two frames that loops with the chosen transition, easing and duration:
+// Smart animate moves and scales the same block (so back easings overshoot), Dissolve crossfades
+// two different frames, and Instant swaps them with no blend.
+export function EasePreview({ bezier, ms, animation }: { bezier: Bezier; ms: number; animation: CutAnimation }) {
+  const p = useMotionValue(0)
+  const curve = bezier.join(',')
+
+  useEffect(() => {
+    p.set(0)
+    const controls =
+      animation === 'instant'
+        ? animate(p, 1, { duration: 1.4, ease: 'linear', repeat: Infinity, repeatType: 'reverse' })
+        : animate(p, 1, { duration: Math.max(0.15, ms / 1000), ease: bezier, repeat: Infinity, repeatType: 'reverse', repeatDelay: 0.6 })
+    return () => controls.stop()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [curve, ms, animation, p])
+
+  // Not clamped, so an overshooting curve visibly overshoots.
+  const free = { clamp: false }
+  const x = useTransform(p, [0, 1], [-62, 62], free)
+  const scale = useTransform(p, [0, 1], [1, 1.5], free)
+  const radius = useTransform(p, [0, 1], [4, 14], free)
+  const barScale = useTransform(p, [0, 1], [1, 20 / 56], free)
+  const toB = useTransform(p, (v) => (animation === 'instant' ? (v < 0.5 ? 0 : 1) : Math.min(1, Math.max(0, v))))
+  const toA = useTransform(toB, (v) => 1 - v)
+
+  const block = 'absolute top-1/2 left-1/2 size-8 -mt-4 -ml-4 bg-secondary'
   return (
-    <div className="flex h-24 items-center justify-center overflow-hidden rounded-lg bg-control">
-      <div
-        key={`${curve}-${ms}`}
-        className="size-12 border border-ink bg-raised"
-        style={{ animation: `ease-preview ${Math.max(150, ms)}ms ${curve} infinite alternate` }}
-      />
+    <div className="relative h-24 overflow-hidden rounded-lg bg-control">
+      {animation === 'smart' ? (
+        <>
+          <motion.div className={block} style={{ x, scale, borderRadius: radius }} />
+          <motion.div className="absolute bottom-3 left-1/2 -ml-8 h-1.5 w-16 origin-center rounded-full bg-line-strong" style={{ scaleX: barScale }} />
+        </>
+      ) : (
+        <>
+          <motion.div className="absolute inset-0" style={{ opacity: toA }}>
+            <div className={block} style={{ transform: 'translateX(-62px)', borderRadius: 4 }} />
+            <div className="absolute bottom-3 left-1/2 -ml-8 h-1.5 w-16 rounded-full bg-line-strong" />
+          </motion.div>
+          <motion.div className="absolute inset-0 bg-raised" style={{ opacity: toB }}>
+            <div className={block} style={{ transform: 'translateX(62px) scale(1.5)', borderRadius: 14 }} />
+            <div className="absolute bottom-3 left-1/2 -ml-2.5 h-1.5 w-5 rounded-full bg-line-strong" />
+          </motion.div>
+        </>
+      )}
+      <span className="absolute top-1.5 left-2 text-[10px] text-subtle">{animation === 'instant' ? 'Instant' : `${Math.round(ms)} ms`}</span>
     </div>
   )
 }

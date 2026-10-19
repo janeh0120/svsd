@@ -5,22 +5,23 @@ import { domId, useApp } from '../context'
 import type { Message } from '../types'
 import { Icon } from './icons'
 import { QuestionCard } from './QuestionCard'
+import { StartForm } from './StartForm'
 
 export function LeftPanel({ width }: { width: number }) {
   return (
     <aside className="flex shrink-0 flex-col bg-surface" style={{ width }}>
-      {/* App bar: logo (placeholder) and the file name */}
+      {/* App bar: the Sequence logo and the file name */}
       <div className="flex h-10 shrink-0 items-center">
         <div className="flex h-full w-10 shrink-0 items-center justify-center">
-          <span className="size-5 rounded-md border border-dashed border-line-strong bg-control" title="Logo" />
+          <img src="/sequence-logo.svg" alt="Sequence" title="Sequence" draggable={false} className="h-5 w-auto select-none" />
         </div>
-        <button className="flex min-w-0 items-center gap-1.5 px-3 text-[13px] font-semibold">
+        <button className="flex min-w-0 items-center gap-1.5 px-3 font-display text-[13px] font-semibold">
           <span className="truncate">Design File</span>
           <Icon.ChevronDown size={12} className="shrink-0 text-muted" />
         </button>
       </div>
       <div className="flex h-10 shrink-0 items-center border-t border-line px-3">
-        <span className="text-[13px] font-semibold">Agent</span>
+        <span className="font-display text-[13px] font-semibold">Agent</span>
       </div>
       <AgentPanel />
     </aside>
@@ -44,6 +45,9 @@ function AgentPanel() {
     else return
     setText('')
   }
+
+  // A blank project starts from a brief form instead of the chat.
+  if (state.phase === 'empty') return <StartForm />
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -80,20 +84,24 @@ function AgentPanel() {
               }
             }}
             disabled={busy}
-            placeholder={
-              state.phase === 'empty'
-                ? 'Paste your product URL and an outline of the reel'
-                : pending.length
-                  ? 'Add a note, or send the annotations as they are'
-                  : 'Plan, Build, / for skills, @ for context'
-            }
+            placeholder={pending.length ? 'Add a note, or send the annotations as they are' : 'Describe what you want to change...'}
             className="min-h-0 w-full flex-1 resize-none outline-none placeholder:text-subtle"
           />
           <div className="flex items-center gap-1.5">
             <button className="flex size-5 items-center justify-center rounded-full border border-line text-muted">
               <Icon.Plus size={12} />
             </button>
-            <AnnotateButton />
+            <button
+              title="Aspect ratio"
+              className="flex h-5 items-center gap-1 rounded-md px-1 text-[11px] text-muted hover:bg-control-hover"
+            >
+              <span className="block h-[9px] w-4 rounded-[2px] border border-current" />
+              16:9
+            </button>
+            <button title="Video length" className="flex h-5 items-center gap-1 rounded-md px-1 text-[11px] text-muted hover:bg-control-hover">
+              <Icon.Clock size={12} />
+              1m
+            </button>
             <button
               onClick={submit}
               disabled={busy || state.working}
@@ -105,40 +113,6 @@ function AgentPanel() {
           </div>
         </div>
       </div>
-    </div>
-  )
-}
-
-// Toggles annotate mode, with a tooltip explaining what the agent receives.
-function AnnotateButton() {
-  const { state, dispatch } = useApp()
-  const [hover, setHover] = useState(false)
-  const on = state.mode === 'comment'
-  const disabled = !state.board.acts.length
-  return (
-    <div className="relative" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
-      <button
-        onClick={() => !disabled && dispatch({ type: 'mode', mode: on ? 'select' : 'comment' })}
-        aria-label="Select an element or annotate"
-        aria-pressed={on}
-        className={`flex size-5 items-center justify-center rounded-md ${
-          on ? 'bg-accent-soft text-accent-text' : disabled ? 'text-subtle' : 'text-muted hover:bg-control-hover'
-        }`}
-      >
-        <Icon.Pointer size={13} />
-      </button>
-      {hover && (
-        <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-60 rounded-lg bg-inverse p-2.5 text-on-inverse shadow-xl">
-          <div className="flex items-center gap-2">
-            <span className="font-medium">{on ? 'Stop annotating' : 'Select an element or annotate'}</span>
-            <kbd className="ml-auto shrink-0 text-[11px] text-on-inverse/60">⇧⌘S</kbd>
-          </div>
-          <p className="mt-1 text-[11px] leading-snug text-on-inverse/60">
-            Point at a layer, frame, cut or act, or at a moment in the preview or timeline. The agent gets a snapshot of it, its properties and where it sits in
-            the reel.
-          </p>
-        </div>
-      )}
     </div>
   )
 }
@@ -178,7 +152,7 @@ function ChatItem({ m }: { m: Message }) {
         {m.status === 'running' ? (
           <span className="mt-0.5 size-3 shrink-0 animate-spin rounded-full border-[1.5px] border-line border-t-ink" />
         ) : (
-          <span className="mt-0.5 flex size-3 shrink-0 items-center justify-center rounded-full bg-ink text-[8px] text-surface">✓</span>
+          <span className="mt-0.5 flex size-3 shrink-0 items-center justify-center rounded-full bg-secondary-container text-[8px] text-on-secondary-container">✓</span>
         )}
         <div className="min-w-0">
           <p className={m.status === 'running' ? '' : 'text-muted'}>{m.text}</p>

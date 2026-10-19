@@ -48,7 +48,7 @@ export function QuestionCard({ m }: { m: Message }) {
   if (done && questions.length === 1) {
     return (
       <div className="rounded-xl border border-line px-3 py-2">
-        <p className="font-medium">{q.text}</p>
+        <p className="font-display font-medium">{q.text}</p>
         <p className="mt-0.5 text-muted">{answerLabel(answers[0], q.options)}</p>
       </div>
     )
@@ -57,7 +57,7 @@ export function QuestionCard({ m }: { m: Message }) {
   return (
     <div className="rounded-xl border border-line bg-raised p-1 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
       <div className="flex h-9 items-center gap-2 px-2">
-        <p className="min-w-0 flex-1 font-medium">{q.text}</p>
+        <p className="min-w-0 flex-1 font-display font-medium">{q.text}</p>
         {questions.length > 1 && (
           <div className="flex shrink-0 items-center gap-1 text-muted">
             <button onClick={() => setView(Math.max(0, view - 1))} disabled={view === 0} className="disabled:opacity-30">
