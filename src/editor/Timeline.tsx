@@ -8,12 +8,12 @@ import { PinMarker } from './Pin'
 
 // Room either side of the reel so the playhead pill stays centred on its line at 0 and at the end.
 const EDGE = 28
-const ACCENT = 'var(--accent)' // lime: the act under the playhead
+const ACCENT = 'var(--accent)' // lime: the chapter under the playhead
 const ACCENT_LINE = 'var(--accent-line)' // lime strokes: playhead, selected clip
 const THUMB_H = 28
 
-// Transport, ruler, act blocks and frame thumbnails. Every width is time:
-// a frame's thumbnail spans its cut-in plus its hold, an act spans its frames.
+// Transport, ruler, chapter blocks and frame thumbnails. Every width is time:
+// a frame's thumbnail spans its cut-in plus its hold, an chapter spans its frames.
 // It spans the full width of the window.
 export function Timeline({ height }: { height: number }) {
   const { state, dispatch, startComment } = useApp()
@@ -58,18 +58,18 @@ export function Timeline({ height }: { height: number }) {
 
   // Segments: each frame owns the time from the end of the previous frame to its own end.
   const segments = t.frames.map((f, i) => ({ ...f, from: i === 0 ? 0 : t.frames[i - 1].end }))
-  const acts = board.acts.map((act) => {
-    const own = segments.filter((s) => act.frameIds.includes(s.id))
-    return { act, from: own[0]?.from ?? 0, to: own[own.length - 1]?.end ?? 0 }
+  const chapters = board.chapters.map((chapter) => {
+    const own = segments.filter((s) => chapter.frameIds.includes(s.id))
+    return { chapter, from: own[0]?.from ?? 0, to: own[own.length - 1]?.end ?? 0 }
   })
 
   // While trimming, the scale is frozen so the edge stays under the pointer.
   const [lockSpan, setLockSpan] = useState<number | null>(null)
-  const [readout, setReadout] = useState<{ x: number; text: string; row: 'act' | 'frame' } | null>(null)
+  const [readout, setReadout] = useState<{ x: number; text: string; row: 'chapter' | 'frame' } | null>(null)
   const span = lockSpan ?? Math.max(total, 4000)
   const pxPerMs = (width / span) * zoom
   const x = (ms: number) => ms * pxPerMs
-  const atPlayhead = acts.find((a) => playhead >= a.from && playhead < a.to) ?? (playhead >= total ? acts[acts.length - 1] : acts[0])
+  const atPlayhead = chapters.find((a) => playhead >= a.from && playhead < a.to) ?? (playhead >= total ? chapters[chapters.length - 1] : chapters[0])
 
   const seekTo = (ms: number) => dispatch({ type: 'playhead', ms: Math.min(total, Math.max(0, ms)) })
   const go = (target: Target, ms: number) => {
@@ -111,19 +111,19 @@ export function Timeline({ height }: { height: number }) {
   // Trim like a video editor. Ripple edits: everything after the clip shifts.
   //  - frame end   → how long the frame holds
   //  - frame start → how long the cut into it lasts
-  //  - act end     → stretches every frame in the act proportionally
-  //  - act start   → the cut into the act's first frame
+  //  - chapter end     → stretches every frame in the chapter proportionally
+  //  - chapter start   → the cut into the chapter's first frame
   const ids = order(board)
-  const trim = (kind: 'frame' | 'act', id: string, edge: 'start' | 'end') => (e: React.PointerEvent) => {
+  const trim = (kind: 'frame' | 'chapter', id: string, edge: 'start' | 'end') => (e: React.PointerEvent) => {
     e.preventDefault()
     e.stopPropagation()
     const sx = e.clientX
     const ppm = pxPerMs
     setLockSpan(span)
-    const act = kind === 'act' ? board.acts.find((a) => a.id === id)! : undefined
-    const frameId = act ? act.frameIds[0] : id
+    const chapter = kind === 'chapter' ? board.chapters.find((a) => a.id === id)! : undefined
+    const frameId = chapter ? chapter.frameIds[0] : id
     const prev = ids[ids.indexOf(frameId) - 1]
-    const holds0 = (act ? act.frameIds : [id]).map((f) => board.frames[f].hold * 1000)
+    const holds0 = (chapter ? chapter.frameIds : [id]).map((f) => board.frames[f].hold * 1000)
     const cut0 = prev ? cutMs(getCut(board, prev, frameId)) : 0
     const snap = (ms: number) => Math.round(ms / 50) * 50
 
@@ -134,11 +134,11 @@ export function Timeline({ height }: { height: number }) {
         const duration = Math.min(4000, Math.max(0, snap(cut0 - d)))
         dispatch({ type: 'cut', key: cutKey(prev, frameId), patch: { duration } })
         setReadout({ x: ev.clientX, text: `Cut in ${(duration / 1000).toFixed(2)}s`, row: kind })
-      } else if (act) {
+      } else if (chapter) {
         const total0 = holds0.reduce((a, b) => a + b, 0)
         const f = Math.max(0.1, (total0 + d) / total0)
-        act.frameIds.forEach((fid, i) => dispatch({ type: 'frame', frameId: fid, patch: { hold: Math.max(0.2, snap(holds0[i] * f) / 1000) } }))
-        setReadout({ x: ev.clientX, text: `${act.label} ${((total0 * f) / 1000).toFixed(1)}s`, row: 'act' })
+        chapter.frameIds.forEach((fid, i) => dispatch({ type: 'frame', frameId: fid, patch: { hold: Math.max(0.2, snap(holds0[i] * f) / 1000) } }))
+        setReadout({ x: ev.clientX, text: `${chapter.label} ${((total0 * f) / 1000).toFixed(1)}s`, row: 'chapter' })
       } else {
         const hold = Math.max(200, snap(holds0[0] + d))
         dispatch({ type: 'frame', frameId: id, patch: { hold: hold / 1000 } })
@@ -158,21 +158,21 @@ export function Timeline({ height }: { height: number }) {
   }
 
   // Edge grips shown on hover (and while selected); hidden in annotate mode.
-  const handles = (kind: 'frame' | 'act', id: string, first: boolean, show: boolean) =>
+  const handles = (kind: 'frame' | 'chapter', id: string, first: boolean, show: boolean) =>
     comment ? null : (
       <>
         {!first && (
           <span
             onPointerDown={trim(kind, id, 'start')}
             onClick={(e) => e.stopPropagation()}
-            title={kind === 'act' ? 'Drag to change the cut into this act' : 'Drag to change the cut into this frame'}
+            title={kind === 'chapter' ? 'Drag to change the cut into this chapter' : 'Drag to change the cut into this frame'}
             className={`absolute inset-y-0 left-0 z-10 w-2 cursor-ew-resize rounded-l-[3px] bg-inverse/70 after:absolute after:inset-y-[30%] after:left-[3px] after:w-px after:bg-raised ${show ? 'opacity-100' : 'opacity-0 group-hover/clip:opacity-100'}`}
           />
         )}
         <span
           onPointerDown={trim(kind, id, 'end')}
           onClick={(e) => e.stopPropagation()}
-          title={kind === 'act' ? 'Drag to stretch the whole act' : 'Drag to change how long this frame holds'}
+          title={kind === 'chapter' ? 'Drag to stretch the whole chapter' : 'Drag to change how long this frame holds'}
           className={`absolute inset-y-0 right-0 z-10 w-2 cursor-ew-resize rounded-r-[3px] bg-inverse/70 after:absolute after:inset-y-[30%] after:right-[3px] after:w-px after:bg-raised ${show ? 'opacity-100' : 'opacity-0 group-hover/clip:opacity-100'}`}
         />
       </>
@@ -236,7 +236,7 @@ export function Timeline({ height }: { height: number }) {
         </div>
       </div>
 
-      {/* Ruler, acts and thumbnails share one horizontal scroll */}
+      {/* Ruler, chapters and thumbnails share one horizontal scroll */}
       <div ref={area} className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden">
         <div style={{ width: contentW + 2 * EDGE, paddingInline: EDGE }}>
         <div ref={content} className="relative" style={{ width: contentW }}>
@@ -253,12 +253,12 @@ export function Timeline({ height }: { height: number }) {
           </div>
 
           <div className="relative mt-2 h-9">
-            {acts.map(({ act, from, to }) => {
-              const active = act.id === atPlayhead?.act.id
+            {chapters.map(({ chapter, from, to }) => {
+              const active = chapter.id === atPlayhead?.chapter.id
               return (
                 <button
-                  key={act.id}
-                  onClick={() => (comment ? startComment({ kind: 'act', actId: act.id }) : go({ kind: 'act', actId: act.id }, from))}
+                  key={chapter.id}
+                  onClick={() => (comment ? startComment({ kind: 'chapter', chapterId: chapter.id }) : go({ kind: 'chapter', chapterId: chapter.id }, from))}
                   className="group/clip absolute top-0 h-full truncate rounded-md border px-2 text-[12px]"
                   style={{
                     left: x(from),
@@ -268,8 +268,8 @@ export function Timeline({ height }: { height: number }) {
                     color: active ? 'var(--on-accent)' : 'var(--ink)',
                   }}
                 >
-                  {act.label}
-                  {handles('act', act.id, act.id === board.acts[0].id, false)}
+                  {chapter.label}
+                  {handles('chapter', chapter.id, chapter.id === board.chapters[0].id, false)}
                 </button>
               )
             })}
@@ -301,7 +301,7 @@ export function Timeline({ height }: { height: number }) {
           {readout && content.current && (
             <span
               className="pointer-events-none absolute z-30 -translate-x-1/2 rounded bg-inverse px-1.5 py-0.5 text-[11px] whitespace-nowrap text-on-inverse tabular-nums"
-              style={{ left: readout.x - content.current.getBoundingClientRect().left, top: readout.row === 'act' ? 22 : 66 }}
+              style={{ left: readout.x - content.current.getBoundingClientRect().left, top: readout.row === 'chapter' ? 22 : 66 }}
             >
               {readout.text}
             </span>
@@ -316,7 +316,7 @@ export function Timeline({ height }: { height: number }) {
           {total > 0 && (
             <div className="pointer-events-none absolute top-0 bottom-0" style={{ left: x(playhead) }}>
               <div
-                className="absolute top-1 flex h-5 -translate-x-1/2 items-center rounded-full bg-accent px-2 text-[11px] font-medium text-on-accent tabular-nums"
+                className="absolute top-0.5 flex h-5 -translate-x-1/2 items-center rounded-full bg-accent px-2 text-[11px] font-medium text-on-accent tabular-nums"
               >
                 {(playhead / 1000).toFixed(2)}
               </div>

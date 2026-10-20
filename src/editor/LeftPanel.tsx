@@ -74,7 +74,7 @@ function AgentPanel() {
             onChange={(e) => {
               const v = e.target.value
               // "@ for context": typing @ lets you point at something on the canvas.
-              if (v.endsWith('@') && state.board.acts.length && state.mode !== 'comment') dispatch({ type: 'mode', mode: 'comment' })
+              if (v.endsWith('@') && state.board.chapters.length && state.mode !== 'comment') dispatch({ type: 'mode', mode: 'comment' })
               setText(v)
             }}
             onKeyDown={(e) => {

@@ -1,6 +1,6 @@
 import type { Frame, Layer, Storyboard } from '../types'
 
-// Example draft: the ElevenAgents Architect launch video, 31 shots in 5 acts.
+// Example draft: the ElevenAgents Architect launch video, 31 shots in 5 chapters.
 // Shots 5–7 are rebuilt from layers (prompt box, cursor, the dark analysis
 // panels) so the prompt and cursor carry across cuts; every other shot is a
 // still from public/shots/elevenagents, filled edge to edge.
@@ -221,7 +221,7 @@ export function agentChatDraft(): Storyboard {
     ...['08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31'].map((n) => S[n]),
   ]
   const ids = frames.map((f) => f.id)
-  const act = (id: string, name: string, from: number, to: number) => ({ id, name, label: name, frameIds: ids.slice(from - 1, to) })
+  const chapter = (id: string, name: string, from: number, to: number) => ({ id, name, label: name, frameIds: ids.slice(from - 1, to) })
 
   // Smart animate everywhere except around the built shots (5–7), which carry their own cuts.
   // Each cut takes 0.3s out of the hold of the shot it leads into, so the reel stays 1:07.
@@ -243,7 +243,7 @@ export function agentChatDraft(): Storyboard {
   frames.find((f) => f.id === 's08')!.hold -= 0.6
 
   return {
-    acts: [act('a1', 'Intro', 1, 4), act('a2', 'Demo', 5, 12), act('a3', 'Features', 13, 20), act('a4', 'Build-up', 21, 29), act('a5', 'Outro', 30, 31)],
+    chapters: [chapter('a1', 'Intro', 1, 4), chapter('a2', 'Demo', 5, 12), chapter('a3', 'Features', 13, 20), chapter('a4', 'Build-up', 21, 29), chapter('a5', 'Outro', 30, 31)],
     frames: Object.fromEntries(frames.map((f) => [f.id, f])),
     cuts,
   }

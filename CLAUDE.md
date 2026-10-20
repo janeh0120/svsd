@@ -27,7 +27,7 @@ Vite + React 19 + TypeScript · Tailwind v4 (`src/index.css` `@theme` tokens) ·
    length, audio, variations). Only the prompt and site URLs reach `chat()`; the
    properties are UI only. Length presets are `15s / 1m / 2m` (default 1m).
 2. **drafting**: `startProject` in `context.tsx` plays a timed script: reads the URL
-   (regex), "captures" screens, outlines the arc, then reveals the storyboard act by act.
+   (regex), "captures" screens, outlines the arc, then reveals the storyboard chapter by chapter.
 3. **review**: agent asks "Does this storyboard look right?" (`QuestionCard`). Yes →
    animating. No / comments → `mock/agent.ts` `agentRespond`, then asks again.
 4. **animating**: timed fake steps; `withRecordings` swaps screenshots for screen recordings.
@@ -45,7 +45,7 @@ Vite + React 19 + TypeScript · Tailwind v4 (`src/index.css` `@theme` tokens) ·
 
 ## Data model (`src/types.ts`, helpers in `src/board.ts`)
 
-- `Storyboard = { acts, frames, cuts }`. Frame order is `acts.flatMap(a => a.frameIds)`.
+- `Storyboard = { chapters, frames, cuts }`. Frame order is `chapters.flatMap(a => a.frameIds)`.
 - **Frame**: `hold`, `background`, `layers`, optional `camera` (focus box, 0–1 units).
 - **Layer**: lives in a 1440×900 frame. **Same layer id across neighbouring frames →
   it morphs** (smart animate); only in the first → exit; only in the second → enter.
@@ -53,7 +53,7 @@ Vite + React 19 + TypeScript · Tailwind v4 (`src/index.css` `@theme` tokens) ·
 - **Cut** (between two frames, keyed `${from}->${to}`): `feel` (snappy / smooth / bouncy /
   cinematic), `animation` (smart / dissolve / instant), optional `bezier` / `duration`.
   Feels live in `board.ts` `FEELS`.
-- **Target / Pin**: anything selectable or commentable (layer, frame, cut, act, time).
+- **Target / Pin**: anything selectable or commentable (layer, frame, cut, chapter, time).
 
 ## Editor decisions
 

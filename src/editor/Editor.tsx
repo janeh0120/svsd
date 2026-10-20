@@ -60,7 +60,7 @@ export function Editor() {
       // ⇧⌘S toggles annotate mode from anywhere, even while typing.
       if (e.key.toLowerCase() === 's' && e.shiftKey && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
-        if (state.board.acts.length) dispatch({ type: 'mode', mode: state.mode === 'comment' ? 'select' : 'comment' })
+        if (state.board.chapters.length) dispatch({ type: 'mode', mode: state.mode === 'comment' ? 'select' : 'comment' })
         return
       }
       if (e.target instanceof Element && e.target.closest('input, textarea, select')) return
@@ -76,7 +76,7 @@ export function Editor() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [state.preview, state.composing, state.mode, state.board.acts.length, dispatch])
+  }, [state.preview, state.composing, state.mode, state.board.chapters.length, dispatch])
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-surface text-[12px] text-ink">

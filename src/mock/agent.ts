@@ -44,16 +44,16 @@ export function agentRespond(pin: Pin, board: Storyboard): AgentResult {
     return { reply: feel ? `Switched to a ${feel} cut and saved your note.` : "Saved as this cut's note. I'll follow it when animating.", actions }
   }
 
-  if (target.kind === 'act') {
-    const act = board.acts.find((a) => a.id === target.actId)
-    if (!act) return { reply: "I can't find that act anymore.", actions }
+  if (target.kind === 'chapter') {
+    const chapter = board.chapters.find((a) => a.id === target.chapterId)
+    if (!chapter) return { reply: "I can't find that chapter anymore.", actions }
     const factor = /faster|shorter|tighter|quicker/.test(t) ? 0.7 : /slower|longer/.test(t) ? 1.3 : 0
     if (factor) {
-      for (const id of act.frameIds) actions.push({ type: 'frame', frameId: id, patch: { hold: +(board.frames[id].hold * factor).toFixed(1) } })
-      done.push(factor < 1 ? 'tightened every frame in this act' : 'gave every frame in this act more time')
+      for (const id of chapter.frameIds) actions.push({ type: 'frame', frameId: id, patch: { hold: +(board.frames[id].hold * factor).toFixed(1) } })
+      done.push(factor < 1 ? 'tightened every frame in this chapter' : 'gave every frame in this chapter more time')
     }
     if (feel) {
-      act.frameIds.slice(1).forEach((id, i) => actions.push({ type: 'cut', key: cutKey(act.frameIds[i], id), patch: { feel, bezier: undefined, duration: undefined } }))
+      chapter.frameIds.slice(1).forEach((id, i) => actions.push({ type: 'cut', key: cutKey(chapter.frameIds[i], id), patch: { feel, bezier: undefined, duration: undefined } }))
       done.push(`made the cuts ${feel}`)
     }
   }
@@ -68,7 +68,7 @@ export function agentRespond(pin: Pin, board: Storyboard): AgentResult {
     }
     holdChange(fr.id)
     // "make it snappy" on a frame (or a moment in it) → the cut into this frame.
-    const ids = board.acts.flatMap((a) => a.frameIds)
+    const ids = board.chapters.flatMap((a) => a.frameIds)
     const prev = ids[ids.indexOf(fr.id) - 1]
     if (feel && prev && getCut(board, prev, fr.id).feel !== feel) {
       actions.push({ type: 'cut', key: cutKey(prev, fr.id), patch: { feel, bezier: undefined, duration: undefined } })
@@ -115,7 +115,7 @@ export function agentRespond(pin: Pin, board: Storyboard): AgentResult {
     if (Object.keys(patch).length) actions.push({ type: 'layer', frameId: fr.id, layerId: l.id, patch })
     holdChange(fr.id)
     // "make it bounce in" on a layer → the cut into this frame.
-    const ids = board.acts.flatMap((a) => a.frameIds)
+    const ids = board.chapters.flatMap((a) => a.frameIds)
     const prev = ids[ids.indexOf(fr.id) - 1]
     if (feel && prev && getCut(board, prev, fr.id).feel !== feel) {
       actions.push({ type: 'cut', key: cutKey(prev, fr.id), patch: { feel, bezier: undefined, duration: undefined } })

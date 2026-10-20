@@ -11,7 +11,7 @@ export function DesignPanel() {
   const sel = state.selection
   if (!sel) return <Hint>Select a frame or a layer to edit its design.</Hint>
   if (sel.kind === 'cut') return <Hint>A connector is the motion between two frames. Edit it in Animate.</Hint>
-  if (sel.kind === 'act' || sel.kind === 'time') return <Hint>Select a frame or a layer to edit its design.</Hint>
+  if (sel.kind === 'chapter' || sel.kind === 'time') return <Hint>Select a frame or a layer to edit its design.</Hint>
 
   const frame = state.board.frames[sel.frameId]
   if (!frame) return null

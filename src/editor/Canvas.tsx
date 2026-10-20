@@ -5,7 +5,7 @@ import { LayerBody, arrival, layerBox, layerStyle } from '../components/Layer'
 import { onZoomRequest, publishZoom } from './canvasZoom'
 import { useApp } from '../context'
 import { pinsFor } from '../store'
-import type { Act, Layer } from '../types'
+import type { Chapter, Layer } from '../types'
 import { Icon } from './icons'
 import { PinMarker } from './Pin'
 
@@ -24,7 +24,7 @@ const MAX_ZOOM = 2
 // The canvas zoom, so drags and clicks inside a frame can undo the scale.
 const ZoomContext = createContext(1)
 
-// The storyboard canvas: acts side by side, each a row of frames. Pinch (or
+// The storyboard canvas: chapters side by side, each a row of frames. Pinch (or
 // ctrl/cmd + scroll) zooms the storyboard around the middle of the view; it is
 // centered whenever it fits and scrolls once it outgrows the canvas.
 export function Canvas() {
@@ -96,7 +96,7 @@ export function Canvas() {
     window.addEventListener('pointerup', up)
   }
 
-  // What a lasso is about: several frames of one act → the act; otherwise the frame it covers most.
+  // What a lasso is about: several frames of one chapter → the chapter; otherwise the frame it covers most.
   const lassoTarget = (r: { x0: number; y0: number; x1: number; y1: number }) => {
     const l = Math.min(r.x0, r.x1)
     const t = Math.min(r.y0, r.y1)
@@ -111,9 +111,9 @@ export function Canvas() {
       })
       .filter((h) => h !== null)
     if (!hits.length) return
-    const acts = new Set(hits.map((h) => state.board.acts.find((a) => a.frameIds.includes(h.id))?.id))
-    if (hits.length > 1 && acts.size === 1) {
-      startComment({ kind: 'act', actId: [...acts][0]! })
+    const chapters = new Set(hits.map((h) => state.board.chapters.find((a) => a.frameIds.includes(h.id))?.id))
+    if (hits.length > 1 && chapters.size === 1) {
+      startComment({ kind: 'chapter', chapterId: [...chapters][0]! })
       return
     }
     const best = hits.reduce((a, h) => (h.area > a.area ? h : a))
@@ -207,13 +207,13 @@ export function Canvas() {
           else if (state.composing) dispatch({ type: 'compose', id: null })
         }}
       >
-        {/* At least as big as the viewport, so the acts sit in the middle at any zoom and scroll once they outgrow it. */}
+        {/* At least as big as the viewport, so the chapters sit in the middle at any zoom and scroll once they outgrow it. */}
         <div className="flex min-h-full w-max min-w-full items-center justify-center">
           <div className="shrink-0" style={size ? { width: size.w * zoom, height: size.h * zoom } : undefined}>
             <ZoomContext value={zoom}>
               <div ref={content} className="flex w-max origin-top-left items-start gap-12 px-8 py-16" style={{ transform: `scale(${zoom})` }}>
-                {state.board.acts.map((act, i) => (
-                  <ActGroup key={act.id} act={act} prevAct={state.board.acts[i - 1]} />
+                {state.board.chapters.map((chapter, i) => (
+                  <ChapterGroup key={chapter.id} chapter={chapter} prevChapter={state.board.chapters[i - 1]} />
                 ))}
               </div>
             </ZoomContext>
@@ -231,13 +231,13 @@ export function Canvas() {
   )
 }
 
-// An act is a group of frames: label inside the top-left, thin border, and a
+// An chapter is a group of frames: label inside the top-left, thin border, and a
 // blue fill and label when selected.
-function ActGroup({ act, prevAct }: { act: Act; prevAct?: Act }) {
+function ChapterGroup({ chapter, prevChapter }: { chapter: Chapter; prevChapter?: Chapter }) {
   const { state, dispatch, startComment } = useApp()
-  const target = { kind: 'act' as const, actId: act.id }
+  const target = { kind: 'chapter' as const, chapterId: chapter.id }
   const selected = sameTarget(state.selection, target)
-  const prevLast = prevAct?.frameIds[prevAct.frameIds.length - 1]
+  const prevLast = prevChapter?.frameIds[prevChapter.frameIds.length - 1]
 
   const pick = (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -247,7 +247,7 @@ function ActGroup({ act, prevAct }: { act: Act; prevAct?: Act }) {
 
   return (
     <motion.section
-      id={`act-${act.id}`}
+      id={`chapter-${chapter.id}`}
       onClick={pick}
       className={`relative shrink-0 scroll-m-6 rounded-xl border p-2 ${
         selected ? 'border-transparent' : 'border-line'
@@ -266,17 +266,17 @@ function ActGroup({ act, prevAct }: { act: Act; prevAct?: Act }) {
       transition={{ duration: 0.4, ease: 'easeOut' }}
     >
       <div className="mb-3 flex h-7 items-center px-0.5">
-        <h2 className={`text-[13px] leading-none font-normal ${selected ? 'text-accent-text' : 'text-muted'}`}>{act.name}</h2>
+        <h2 className={`text-[13px] leading-none font-normal ${selected ? 'text-accent-text' : 'text-muted'}`}>{chapter.name}</h2>
         {pinsFor(state.pins, target).map((p, i) => (
           <PinMarker key={p.id} pin={p} style={{ position: 'relative', marginLeft: i ? 4 : 8 }} />
         ))}
       </div>
-      {/* The cut from the previous act runs across the space between the two groups. */}
-      {prevLast && act.frameIds[0] && <Connector from={prevLast} to={act.frameIds[0]} className="absolute top-[48px] -left-12" width={48} />}
+      {/* The cut from the previous chapter runs across the space between the two groups. */}
+      {prevLast && chapter.frameIds[0] && <Connector from={prevLast} to={chapter.frameIds[0]} className="absolute top-[48px] -left-12" width={48} />}
       <div className="flex">
-        {act.frameIds.map((id, i) => (
+        {chapter.frameIds.map((id, i) => (
           <Fragment key={id}>
-            {i > 0 && <Connector from={act.frameIds[i - 1]} to={id} inset={CARD_INSET} />}
+            {i > 0 && <Connector from={chapter.frameIds[i - 1]} to={id} inset={CARD_INSET} />}
             <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15 + i * 0.12, duration: 0.3 }}>
               <FrameCard frameId={id} />
             </motion.div>
@@ -287,7 +287,7 @@ function ActGroup({ act, prevAct }: { act: Act; prevAct?: Act }) {
   )
 }
 
-// The cut between two frames, drawn in the act-border colour until selected, then as a gradient wire (off-white → pink → lime
+// The cut between two frames, drawn in the chapter-border colour until selected, then as a gradient wire (off-white → pink → lime
 // → off-white) from a solid nub on the outgoing frame to a ring on the incoming
 // one. Select the wire or the ring to edit the animation between the frames (or
 // comment on it in annotate mode).
@@ -452,16 +452,18 @@ function FrameCard({ frameId }: { frameId: string }) {
             {`${span.from.toFixed(1)}\u00a0–\u00a0${span.to.toFixed(1)}s\u00a0\u00a0\u00a0·\u00a0\u00a0\u00a0${(span.to - span.from).toFixed(1)}s`}
           </span>
         )}
-        <button
-          onClick={(e) => {
-            e.stopPropagation()
-            dispatch({ type: 'preview', open: true, from: frameId })
-          }}
-          title="Preview from this frame"
-          className={`flex size-4 shrink-0 items-center justify-center rounded-full ${frameSelected ? 'bg-accent text-on-accent' : 'bg-secondary-container text-on-secondary-container'}`}
-        >
-          <Icon.Play size={7} fill="currentColor" className="ml-px" />
-        </button>
+        {(state.phase === 'animating' || state.phase === 'ready') && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              dispatch({ type: 'preview', open: true, from: frameId })
+            }}
+            title="Preview from this frame"
+            className={`flex size-4 shrink-0 items-center justify-center rounded-full ${frameSelected ? 'bg-accent text-on-accent' : 'bg-secondary-container text-on-secondary-container'}`}
+          >
+            <Icon.Play size={7} fill="currentColor" className="ml-px" />
+          </button>
+        )}
       </div>
       <div className="relative" style={{ width: CARD_W, height: CARD_H }}>
         <div className="absolute inset-0 overflow-hidden rounded-md ring-1 ring-line">
@@ -598,8 +600,24 @@ function Toolbar({ pointer, setPointer }: { pointer: PointerMode; setPointer: (m
   const active = pointer === 'ai' ? 'pointer' : tool
   const current = POINTER_MODES.find((m) => m.id === pointer)!
   const Current = current.icon
+  // Anchored to the middle of the viewport, not the canvas: the side panels resize the canvas but not the bar.
+  const bar = useRef<HTMLDivElement>(null)
+  const [left, setLeft] = useState<number | null>(null)
+  useLayoutEffect(() => {
+    const host = bar.current?.parentElement
+    if (!host) return
+    const place = () => setLeft(window.innerWidth / 2 - host.getBoundingClientRect().left)
+    place()
+    const ro = new ResizeObserver(place)
+    ro.observe(host)
+    window.addEventListener('resize', place)
+    return () => {
+      ro.disconnect()
+      window.removeEventListener('resize', place)
+    }
+  }, [])
   return (
-    <div className="absolute bottom-3 left-1/2 z-30 flex h-8 -translate-x-1/2 items-center gap-0.5 rounded-lg bg-raised px-1 shadow-[0_1px_4px_rgba(0,0,0,0.12)]">
+    <div ref={bar} style={left === null ? undefined : { left }} className="absolute bottom-3 left-1/2 z-30 flex h-8 -translate-x-1/2 items-center gap-0.5 rounded-lg bg-raised px-1 shadow-[0_1px_4px_rgba(0,0,0,0.12)]">
       <div className="relative flex items-center">
         <button
           onClick={() => setTool('pointer')}
