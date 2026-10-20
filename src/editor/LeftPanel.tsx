@@ -62,8 +62,15 @@ function AgentPanel() {
         <div ref={end} />
       </div>
 
-      <div className="px-2 pb-2">
-        <div className="flex min-h-20 flex-col rounded-lg border border-line p-2 focus-within:border-line-strong">
+      <div className="relative px-2 pb-2">
+        {/* While the agent works, a glow rises and falls behind the chat box. */}
+        <div
+          aria-hidden
+          className={`agent-glow pointer-events-none absolute inset-x-0 bottom-0 transition-opacity duration-700 ${
+            busy || state.working ? 'opacity-100' : 'opacity-0'
+          }`}
+        />
+        <div className="relative flex min-h-20 flex-col rounded-lg border border-line bg-surface p-2 focus-within:border-line-strong">
           {pending.length > 0 && (
             <div className="mb-1.5 flex flex-wrap gap-1">
               {pending.map((p) => (

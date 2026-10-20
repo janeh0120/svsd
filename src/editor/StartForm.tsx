@@ -48,7 +48,7 @@ export function StartForm() {
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-2">
-        <div className="rounded-lg bg-control p-3 focus-within:ring-1 focus-within:ring-line-strong">
+        <div className="rounded-lg border border-line bg-surface p-3 focus-within:border-line-strong">
           <p className="font-display text-[12px] font-medium text-muted">Prompt</p>
           <textarea
             rows={5}

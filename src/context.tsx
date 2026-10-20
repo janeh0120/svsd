@@ -52,7 +52,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       kind: 'question',
       purpose: 'approval',
       text: '',
-      questions: [{ text: 'Does this storyboard look right?', options: ['Yes, continue', 'No, request changes'] }],
+      questions: [{ text: "I've created the storyboard. Can I continue and add the animation?", options: ['Yes, add animation', 'No, request changes'] }],
     })
   }, [say])
 
@@ -138,17 +138,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
       else if (a !== 'skip' && 'option' in a)
         say({
           author: 'agent',
-          text: 'What should change? Point at a frame, a cut or an act (press C or type @) and leave a comment, or describe it here.',
+          text: "What should change? Point at a frame, a cut or an act (press C or type @) and leave a comment, or describe it here. When you're happy, tell me to continue and I'll add the animation.",
         })
       else if (a !== 'skip') {
-        // "Something else": treat it as feedback on the storyboard, then ask again.
-        setTimeout(() => {
-          say({ author: 'agent', text: "Noted. I'll fold that into the storyboard." })
-          askApproval()
-        }, 700)
-      } else say({ author: 'agent', text: 'No problem. Tell me when you want me to continue.' })
+        // "Something else": treat it as feedback on the storyboard.
+        setTimeout(() => say({ author: 'agent', text: "Noted. I'll fold that into the storyboard. Tell me to continue when you want the animation." }), 700)
+      } else say({ author: 'agent', text: 'No problem. Tell me when you want me to continue and add the animation.' })
     },
-    [animate, say, askApproval],
+    [animate, say],
   )
 
   // Drop a draft pin on a target and open its composer.
@@ -188,11 +185,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
         say({ author: 'agent', text: lines.join('\n') })
         dispatch({ type: 'working', on: false })
-        // Still reviewing the storyboard: ask again before moving on.
-        if (latest.current.phase === 'review') askApproval()
       }, 1100)
     },
-    [say, askApproval],
+    [say],
   )
 
   // Send the comments attached to the agent input. `note` is anything typed alongside them.
@@ -224,20 +219,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
       const phase = latest.current.phase
       if (phase === 'empty') return void startProject(text)
       if (phase === 'drafting' || phase === 'animating') return
+      // Reviewing the storyboard: a go-ahead in chat starts the animation.
+      if (phase === 'review' && /\b(continue|go ahead|animat\w*|looks good|lgtm|approve\w*)\b|^(yes|yep|ok(ay)?)\b/i.test(text.trim())) {
+        say({ author: 'you', text })
+        return void animate()
+      }
       say({ author: 'you', text })
+      dispatch({ type: 'working', on: true })
       setTimeout(() => {
+        dispatch({ type: 'working', on: false })
         if (phase === 'review') {
-          say({ author: 'agent', text: "Noted. I'll fold that into the storyboard." })
-          askApproval()
+          say({ author: 'agent', text: "Noted. I'll fold that into the storyboard. Tell me to continue when you want the animation." })
         } else {
           say({
             author: 'agent',
             text: 'To change something specific, point at it: type @ or press C, click an element, a gap between frames or an act title, and I’ll edit only that.',
           })
         }
-      }, 700)
+      }, 1600)
     },
-    [startProject, say, askApproval],
+    [startProject, animate, say],
   )
 
   return <AppContext.Provider value={{ state, dispatch, startComment, send, sendPin, chat, answer }}>{children}</AppContext.Provider>

@@ -98,3 +98,56 @@ h2 {
 @utility cursor-hand-grabbing {
   cursor: grabbing;
 }
+
+/* Agent working glow: a grainy band behind the agent's chat box whose
+   pink, lime and white stops drift so their share of the band keeps changing. */
+.agent-glow {
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.55'/%3E%3C/svg%3E"),
+    linear-gradient(90deg, #f3c9d5, #e4fe99, #ffffff, #f3c9d5, #e4fe99, #f3c9d5);
+  background-size:
+    160px 160px,
+    300% 100%;
+  background-blend-mode: overlay, normal;
+  /* A wave-shaped top edge that rolls sideways, softened by a fade towards the top. */
+  mask-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 100' preserveAspectRatio='none'%3E%3Cfilter id='b' x='-50%25' y='-50%25' width='200%25' height='200%25'%3E%3CfeGaussianBlur stdDeviation='14'/%3E%3C/filter%3E%3Cpath filter='url(%23b)' d='M-120 40C-80 55-40 55 0 40C40 25 80 25 120 40C160 55 200 55 240 40C280 25 320 25 360 40V160H-120Z'/%3E%3C/svg%3E"),
+    linear-gradient(to top, black, black 30%, rgb(0 0 0 / 0.5) 60%, transparent);
+  mask-size:
+    240px 100%,
+    100% 100%;
+  mask-repeat: repeat-x, no-repeat;
+  mask-composite: intersect;
+  animation:
+    agent-glow 9s ease-in-out infinite alternate,
+    agent-glow-rise 1.6s ease-in-out infinite alternate,
+    agent-glow-wave 2.4s linear infinite;
+}
+@keyframes agent-glow-wave {
+  from {
+    mask-position: 0 0, 0 0;
+  }
+  to {
+    mask-position: 240px 0, 0 0;
+  }
+}
+/* Loading pulse: the glow's top edge rises above the chat box and settles back. */
+@keyframes agent-glow-rise {
+  from {
+    height: calc(100% + 16px);
+  }
+  to {
+    height: calc(100% + 64px);
+  }
+}
+@keyframes agent-glow {
+  0% {
+    background-position: 0 0, 0% 0;
+  }
+  50% {
+    background-position: 0 0, 60% 0;
+  }
+  100% {
+    background-position: 0 0, 100% 0;
+  }
+}
