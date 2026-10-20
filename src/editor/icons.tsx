@@ -231,6 +231,13 @@ export const Icon = {
       <path d="M8 20h8M12 16v4" />
     </Svg>
   ),
+  Gauge: (p: P) => (
+    <Svg {...p}>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 12l3.5-3.5" />
+      <path d="M12 3.5v1.5M3.5 12H5M19 12h1.5" />
+    </Svg>
+  ),
   Clock: (p: P) => (
     <Svg {...p}>
       <circle cx="12" cy="12" r="9" />

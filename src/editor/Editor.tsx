@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { Player } from '../components/Player'
+import { Player, type LoopMode } from '../components/Player'
 import { useApp } from '../context'
+import { Icon } from './icons'
 import { Canvas } from './Canvas'
 import { LeftPanel } from './LeftPanel'
 import { CollapsedAnimatePanel, PropertiesPanel } from './PropertiesPanel'
@@ -63,6 +64,8 @@ export function Editor() {
   useEffect(() => {
     if (!starting) setLeft(DEFAULTS.left)
   }, [starting])
+  const [loopMode, setLoopMode] = useState<LoopMode>('shot')
+  const [speed, setSpeed] = useState(1)
   const [timelineCollapsed, setTimelineCollapsed] = useState(false)
 
   useEffect(() => {
@@ -122,10 +125,50 @@ export function Editor() {
       {state.preview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-10" onClick={() => dispatch({ type: 'preview', open: false })}>
           <div className="w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
-            <Player board={state.board} autoPlay startId={state.previewFrom} />
+            <Player key={state.previewLoop ? loopMode : 'full'} board={state.board} autoPlay startId={state.previewFrom} loop={state.previewLoop && loopMode} speed={speed} />
+            {state.previewLoop && (
+              <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-white/70">
+                <Segmented
+                  value={loopMode}
+                  onChange={setLoopMode}
+                  options={[
+                    ['shot', 'Shot only'],
+                    ['cut', 'With transition'],
+                  ]}
+                />
+                <span className="ml-auto" title="Playback speed"><Icon.Gauge size={20} strokeWidth={1.4} /></span>
+                <Segmented
+                  value={speed}
+                  onChange={setSpeed}
+                  options={[
+                    [1, '1×'],
+                    [0.5, '0.5×'],
+                    [0.25, '0.25×'],
+                    [0.1, '0.1×'],
+                  ]}
+                />
+              </div>
+            )}
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+// A small segmented control for the preview's loop and speed options.
+function Segmented<T extends string | number>({ value, onChange, options }: { value: T; onChange: (v: T) => void; options: [T, string][] }) {
+  return (
+    <div className="flex rounded-tile bg-white/10 p-1">
+      {options.map(([v, label]) => (
+        <button
+          key={String(v)}
+          onClick={() => onChange(v)}
+          className={`h-7 rounded-control px-3 transition-colors ${v === value ? 'bg-white/20 font-medium text-white' : 'hover:text-white'}`}
+        >
+          {label}
+        </button>
+      ))}
     </div>
   )
 }

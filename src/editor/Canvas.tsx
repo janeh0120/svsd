@@ -506,9 +506,9 @@ function FrameCard({ frameId }: { frameId: string }) {
           <button
             onClick={(e) => {
               e.stopPropagation()
-              dispatch({ type: 'preview', open: true, from: frameId })
+              dispatch({ type: 'preview', open: true, from: frameId, loop: true })
             }}
-            title="Preview from this shot"
+            title="Loop this shot's animation"
             className={`flex size-4 shrink-0 items-center justify-center rounded-full ${frameSelected ? 'bg-accent text-on-accent' : 'bg-secondary-container text-on-secondary-container'}`}
           >
             <Icon.Play size={7} fill="currentColor" className="ml-px" />

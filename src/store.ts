@@ -14,6 +14,7 @@ export type State = {
   working: boolean
   preview: boolean
   previewFrom: string | null // frame to start the preview at
+  previewLoop: boolean // loop just previewFrom's animation (its cut in plus hold) instead of playing on
   playhead: number // ms
   playing: boolean // the timeline is playing
   past: Storyboard[] // board snapshots for ⌘Z, oldest first
@@ -29,7 +30,7 @@ export type Action =
   | { type: 'messageUpdate'; id: string; patch: Partial<Message> }
   | { type: 'select'; target: Target | null }
   | { type: 'mode'; mode: Mode }
-  | { type: 'preview'; open: boolean; from?: string }
+  | { type: 'preview'; open: boolean; from?: string; loop?: boolean }
   | { type: 'layer'; frameId: string; layerId: string; patch: Partial<Layer> }
   | { type: 'frame'; frameId: string; patch: Partial<Frame> }
   | { type: 'cut'; key: string; patch: Partial<Cut> }
@@ -59,6 +60,7 @@ export const initialState: State = {
   working: false,
   preview: false,
   previewFrom: null,
+  previewLoop: false,
   playhead: 0,
   playing: false,
   past: [],
@@ -116,7 +118,7 @@ function baseReducer(state: State, action: Action): State {
       // Leaving comment mode throws away a half-typed comment.
       return { ...state, mode: action.mode, pins: dropDrafts(state.pins), composing: null }
     case 'preview':
-      return { ...state, preview: action.open, previewFrom: action.open ? (action.from ?? null) : null }
+      return { ...state, preview: action.open, previewFrom: action.open ? (action.from ?? null) : null, previewLoop: action.open && !!action.loop }
     case 'layer': {
       const fr = board.frames[action.frameId]
       if (!fr) return state
