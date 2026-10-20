@@ -43,7 +43,7 @@ export function StartForm() {
   const ready = prompt.trim().length > 0 || sites.length > 0 || boards.length > 0
 
   const tile = 'flex flex-col items-center justify-center gap-1.5 rounded-lg bg-control px-2 py-4 text-center text-[11px] leading-tight text-muted hover:bg-control-hover hover:text-ink'
-  const pill = 'flex h-8 items-center justify-center gap-1.5 rounded-lg bg-control text-[12px] hover:bg-control-hover'
+  const pill = 'flex h-8 items-center justify-center gap-1.5 rounded-full bg-control text-[12px] hover:bg-control-hover'
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -152,7 +152,7 @@ export function StartForm() {
         <button
           onClick={generate}
           disabled={!ready}
-          className="flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-accent font-medium text-on-accent hover:brightness-95 disabled:opacity-40"
+          className="flex h-10 w-full items-center justify-center gap-1.5 rounded-full bg-accent font-medium text-on-accent hover:brightness-95 disabled:opacity-40"
         >
           Generate
           <Icon.Send size={13} />

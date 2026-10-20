@@ -617,16 +617,16 @@ function Toolbar({ pointer, setPointer }: { pointer: PointerMode; setPointer: (m
     }
   }, [])
   return (
-    <div ref={bar} style={left === null ? undefined : { left }} className="absolute bottom-3 left-1/2 z-30 flex h-8 -translate-x-1/2 items-center gap-0.5 rounded-lg bg-raised px-1 shadow-[0_1px_4px_rgba(0,0,0,0.12)]">
+    <div ref={bar} style={left === null ? undefined : { left }} className="absolute bottom-3 left-1/2 z-30 flex h-8 -translate-x-1/2 items-center gap-0.5 rounded-full bg-raised px-1 shadow-[0_1px_4px_rgba(0,0,0,0.12)]">
       <div className="relative flex items-center">
         <button
           onClick={() => setTool('pointer')}
           title={current.label}
-          className={`flex size-6 items-center justify-center rounded-md ${active === 'pointer' ? 'bg-accent text-on-accent' : 'hover:bg-control-hover'}`}
+          className={`flex size-6 items-center justify-center rounded-full ${active === 'pointer' ? 'bg-accent text-on-accent' : 'hover:bg-control-hover'}`}
         >
           <Current size={14} />
         </button>
-        <button onClick={() => setMenu((m) => !m)} title="Cursor, hand or AI" className="flex h-6 w-4 items-center justify-center rounded-md hover:bg-control-hover">
+        <button onClick={() => setMenu((m) => !m)} title="Cursor, hand or AI" className="flex h-6 w-4 items-center justify-center rounded-full hover:bg-control-hover">
           <Icon.ChevronDown size={12} />
         </button>
         {menu && (
@@ -664,7 +664,7 @@ function Toolbar({ pointer, setPointer }: { pointer: PointerMode; setPointer: (m
             setTool(id)
             if (pointer !== 'select') setPointer('select')
           }}
-          className={`flex size-6 items-center justify-center rounded-md ${active === id ? 'bg-accent text-on-accent' : 'hover:bg-control-hover'}`}
+          className={`flex size-6 items-center justify-center rounded-full ${active === id ? 'bg-accent text-on-accent' : 'hover:bg-control-hover'}`}
         >
           <I size={14} />
         </button>

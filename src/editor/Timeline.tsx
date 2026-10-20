@@ -224,7 +224,7 @@ export function Timeline({ height }: { height: number }) {
             step={0.1}
             value={zoom}
             onChange={(e) => setZoom(+e.target.value)}
-            className="h-1 w-14 cursor-pointer accent-[var(--accent-line)]"
+            className="h-1 w-14 cursor-pointer accent-secondary"
             title="Zoom"
           />
           <button onClick={() => setZoom((z) => Math.min(4, +(z + 0.5).toFixed(1)))} title="Zoom in">

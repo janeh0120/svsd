@@ -106,7 +106,7 @@ export function QuestionCard({ m }: { m: Message }) {
                 placeholder="Something else"
                 className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-subtle"
               />
-              <button onClick={() => answer(m.id, view, 'skip')} className="h-6 shrink-0 rounded-md bg-control px-2 text-[11px] text-muted hover:bg-control-hover">
+              <button onClick={() => answer(m.id, view, 'skip')} className="h-6 shrink-0 rounded-full bg-control px-2.5 text-[11px] text-muted hover:bg-control-hover">
                 Skip
               </button>
             </div>
