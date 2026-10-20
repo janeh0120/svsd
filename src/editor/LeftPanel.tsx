@@ -129,7 +129,7 @@ function AnnotateButton() {
         onClick={() => !disabled && dispatch({ type: 'mode', mode: on ? 'select' : 'comment' })}
         aria-label="Select an element or annotate"
         aria-pressed={on}
-        className={`flex size-5 items-center justify-center rounded-md ${
+        className={`flex size-5 items-center justify-center rounded-full ${
           on ? 'bg-accent-soft text-accent-text' : disabled ? 'text-subtle' : 'text-muted hover:bg-control-hover'
         }`}
       >
