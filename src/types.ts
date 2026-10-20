@@ -68,10 +68,10 @@ export type Cut = {
 }
 
 // `name` shows on the canvas, `label` on the timeline tabs.
-export type Act = { id: string; name: string; label: string; frameIds: string[] }
+export type Chapter = { id: string; name: string; label: string; frameIds: string[] }
 
 export type Storyboard = {
-  acts: Act[]
+  chapters: Chapter[]
   frames: Record<string, Frame>
   cuts: Record<string, Cut> // keyed by `${fromId}->${toId}`
 }
@@ -81,7 +81,7 @@ export type Target =
   | { kind: 'layer'; frameId: string; layerId: string }
   | { kind: 'frame'; frameId: string }
   | { kind: 'cut'; key: string }
-  | { kind: 'act'; actId: string }
+  | { kind: 'chapter'; chapterId: string }
   // A moment in the reel, from the preview or the timeline ruler. `layerId` is
   // set when the click landed on a layer in the preview.
   | { kind: 'time'; ms: number; layerId?: string }

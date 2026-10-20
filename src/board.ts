@@ -28,12 +28,12 @@ export function clampCamera(c: Camera): Camera {
   return { w, x: Math.min(Math.max(0, c.x), 1 - w), y: Math.min(Math.max(0, c.y), 1 - w) }
 }
 
-export const order = (b: Storyboard) => b.acts.flatMap((a) => a.frameIds)
+export const order = (b: Storyboard) => b.chapters.flatMap((a) => a.frameIds)
 export const cutKey = (from: string, to: string) => `${from}->${to}`
 export const getCut = (b: Storyboard, from: string, to: string) => b.cuts[cutKey(from, to)] ?? DEFAULT_CUT
 export const frameNumber = (b: Storyboard, id: string) => order(b).indexOf(id) + 1
-export const actDuration = (b: Storyboard, actId: string) =>
-  (b.acts.find((a) => a.id === actId)?.frameIds ?? []).reduce((s, id) => s + (b.frames[id]?.hold ?? 0), 0)
+export const chapterDuration = (b: Storyboard, chapterId: string) =>
+  (b.chapters.find((a) => a.id === chapterId)?.frameIds ?? []).reduce((s, id) => s + (b.frames[id]?.hold ?? 0), 0)
 
 export const uid = (prefix: string) => `${prefix}_${Math.random().toString(36).slice(2, 8)}`
 
@@ -54,8 +54,8 @@ export function targetLabel(t: Target, b: Storyboard): string {
       const [from, to] = t.key.split('->')
       return `Cut ${frameNumber(b, from)} → ${frameNumber(b, to)}`
     }
-    case 'act':
-      return b.acts.find((a) => a.id === t.actId)?.name ?? 'Act'
+    case 'chapter':
+      return b.chapters.find((a) => a.id === t.chapterId)?.name ?? 'Chapter'
     case 'time': {
       const at = resolveTime(b, t.ms, t.layerId)
       return `${clock(t.ms)} · ${at.kind === 'time' ? 'Reel' : targetLabel(at, b)}`
@@ -127,8 +127,8 @@ export function targetFrame(t: Target, b: Storyboard): string | undefined {
       return t.frameId
     case 'cut':
       return t.key.split('->')[1]
-    case 'act':
-      return b.acts.find((a) => a.id === t.actId)?.frameIds[0]
+    case 'chapter':
+      return b.chapters.find((a) => a.id === t.chapterId)?.frameIds[0]
     case 'time': {
       const at = resolveTime(b, t.ms, t.layerId)
       return at.kind === 'time' ? undefined : targetFrame(at, b)

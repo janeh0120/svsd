@@ -47,7 +47,7 @@ export function productDemoDraft(): Storyboard {
     // Prompt the agent
     { id: 'p1', hold: 2.5, background: ui, layers: [shot('demo-prompt', 130, 585, 2.8), caption('Describe the reel.')] },
     { id: 'p2', hold: 2.5, background: ui, layers: [shot('demo-agent', 130, 280, 1.9), caption('It pulls screens from your product.')] },
-    { id: 'p3', hold: 3, background: ui, layers: [shot('demo-drafted'), caption('And drafts the story, act by act.')] },
+    { id: 'p3', hold: 3, background: ui, layers: [shot('demo-drafted'), caption('And drafts the story, chapter by chapter.')] },
     { id: 'p4', hold: 2.5, background: ui, layers: [shot('demo-drafted', 130, 371, 2.4), caption('You approve before it animates.')] },
     { id: 'p5', hold: 2.5, background: ui, layers: [shot('demo-ready'), caption('Then it records and animates.')] },
 
@@ -73,7 +73,7 @@ export function productDemoDraft(): Storyboard {
   ]
 
   return {
-    acts: [
+    chapters: [
       { id: 'a1', name: 'Hook', label: 'Hook', frameIds: ['h1', 'h2', 'h3'] },
       { id: 'a2', name: 'Intro', label: 'Intro', frameIds: ['i1', 'i2'] },
       { id: 'a3', name: 'Prompt the agent', label: 'Prompt', frameIds: ['p1', 'p2', 'p3', 'p4', 'p5'] },

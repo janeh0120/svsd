@@ -93,7 +93,7 @@ export function figmaConfigDraft(): Storyboard {
   ]
 
   return {
-    acts: [
+    chapters: [
       { id: 'a1', name: 'Intro', label: 'Intro', frameIds: ['i1', 'i2'] },
       { id: 'a2', name: 'Figma Sites', label: 'Sites', frameIds: ['s1', 's2', 's3', 's4', 's5'] },
       { id: 'a3', name: 'Figma Make', label: 'Make', frameIds: ['m1', 'm2', 'm3', 'm4'] },

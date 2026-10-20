@@ -84,7 +84,7 @@ function AgentPanel() {
             onChange={(e) => {
               const v = e.target.value
               // "@ for context": typing @ lets you point at something on the canvas.
-              if (v.endsWith('@') && state.board.acts.length && state.mode !== 'comment') dispatch({ type: 'mode', mode: 'comment' })
+              if (v.endsWith('@') && state.board.chapters.length && state.mode !== 'comment') dispatch({ type: 'mode', mode: 'comment' })
               setText(v)
             }}
             onKeyDown={(e) => {
@@ -122,7 +122,7 @@ function AnnotateButton() {
   const { state, dispatch } = useApp()
   const [hover, setHover] = useState(false)
   const on = state.mode === 'comment'
-  const disabled = !state.board.acts.length
+  const disabled = !state.board.chapters.length
   return (
     <div className="relative" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}>
       <button
@@ -142,7 +142,7 @@ function AnnotateButton() {
             <kbd className="ml-auto shrink-0 text-[11px] text-on-inverse/60">⇧⌘S</kbd>
           </div>
           <p className="mt-1 text-[11px] leading-snug text-on-inverse/60">
-            Point at a layer, frame, cut or act, or at a moment in the preview or timeline. The agent gets a snapshot of it, its properties and where it sits in
+            Point at a layer, frame, cut or chapter, or at a moment in the preview or timeline. The agent gets a snapshot of it, its properties and where it sits in
             the reel.
           </p>
         </div>

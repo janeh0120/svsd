@@ -20,7 +20,7 @@ const AppContext = createContext<Ctx | null>(null)
 
 // DOM id of whatever a target lives in, so we can scroll the canvas to it.
 export const domId = (t: Target) =>
-  t.kind === 'act' ? `act-${t.actId}` : t.kind === 'cut' ? `cut-${t.key}` : t.kind === 'time' ? 'timeline' : `frame-${t.frameId}`
+  t.kind === 'chapter' ? `chapter-${t.chapterId}` : t.kind === 'cut' ? `cut-${t.key}` : t.kind === 'time' ? 'timeline' : `frame-${t.frameId}`
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
@@ -56,7 +56,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   }, [say])
 
   // Blank project → the agent reads the site, captures screens, outlines the
-  // narrative arc and drafts the storyboard act by act, then asks for approval.
+  // narrative arc and drafts the storyboard chapter by chapter, then asks for approval.
   // Mocked: the draft is src/mock/draft.ts.
   const startProject = useCallback(
     async (prompt: string) => {
@@ -77,13 +77,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
         shots,
       })
       await sleep(500)
-      await step('Outlining the narrative arc', draft.acts.map((a) => a.name).join(' → '), 1200)
+      await step('Outlining the narrative arc', draft.chapters.map((a) => a.name).join(' → '), 1200)
 
-      // Draft the storyboard one act at a time so it fills in on the canvas.
+      // Draft the storyboard one chapter at a time so it fills in on the canvas.
       const id = say({ author: 'agent', kind: 'step', text: 'Drafting storyboard frames', status: 'running' })
-      for (let n = 1; n <= draft.acts.length; n++) {
-        dispatch({ type: 'load', board: { ...draft, acts: draft.acts.slice(0, n) } })
-        document.getElementById(`act-${draft.acts[n - 1].id}`)?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' })
+      for (let n = 1; n <= draft.chapters.length; n++) {
+        dispatch({ type: 'load', board: { ...draft, chapters: draft.chapters.slice(0, n) } })
+        document.getElementById(`chapter-${draft.chapters[n - 1].id}`)?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' })
         await sleep(700)
       }
       dispatch({ type: 'messageUpdate', id, patch: { status: 'done', detail: `${order(draft).length} frames with copy and screenshots` } })
@@ -91,7 +91,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await sleep(400)
       say({
         author: 'agent',
-        text: `Here's the first storyboard: ${draft.acts.length} acts and ${order(draft).length} frames. Have a look on the canvas. You can comment on any frame, cut or act (C or @). Once you approve, I'll record the screen flows and animate the frames together.`,
+        text: `Here's the first storyboard: ${draft.chapters.length} chapters and ${order(draft).length} frames. Have a look on the canvas. You can comment on any frame, cut or chapter (C or @). Once you approve, I'll record the screen flows and animate the frames together.`,
       })
       dispatch({ type: 'phase', phase: 'review' })
       askApproval()
@@ -103,7 +103,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const animate = useCallback(async () => {
     dispatch({ type: 'phase', phase: 'animating' })
     await sleep(400)
-    const middle = latest.current.board.acts.slice(1, -1).map((a) => a.name)
+    const middle = latest.current.board.chapters.slice(1, -1).map((a) => a.name)
     await step('Recording screen flows', middle.join(', '), 1600)
     // Swap the storyboard's still screens for the real recordings.
     const recorded = withRecordings(latest.current.board)
@@ -137,7 +137,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       else if (a !== 'skip' && 'option' in a)
         say({
           author: 'agent',
-          text: "What should change? Point at a frame, a cut or an act (press C or type @) and leave a comment, or describe it here. When you're happy, tell me to continue and I'll add the animation.",
+          text: "What should change? Point at a frame, a cut or a chapter (press C or type @) and leave a comment, or describe it here. When you're happy, tell me to continue and I'll add the animation.",
         })
       else if (a !== 'skip') {
         // "Something else": treat it as feedback on the storyboard.
@@ -232,7 +232,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         } else {
           say({
             author: 'agent',
-            text: 'To change something specific, point at it: type @ or press C, click an element, a gap between frames or an act title, and I’ll edit only that.',
+            text: 'To change something specific, point at it: type @ or press C, click an element, a gap between frames or a chapter title, and I’ll edit only that.',
           })
         }
       }, 1600)

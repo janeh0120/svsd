@@ -114,7 +114,7 @@ function AnimateSelection() {
     return (
       <>
         {title}
-        <MotionSection cutId={sel.key} cut={getCut(board, from, to)} between={crossesActs(board, from, to)} />
+        <MotionSection cutId={sel.key} cut={getCut(board, from, to)} between={crossesChapters(board, from, to)} />
       </>
     )
   }
@@ -127,7 +127,7 @@ function AnimateSelection() {
   return (
     <>
       {title}
-      {prev && <MotionSection cutId={cutKey(prev, frame.id)} cut={getCut(board, prev, frame.id)} label="Cut in" between={crossesActs(board, prev, frame.id)} />}
+      {prev && <MotionSection cutId={cutKey(prev, frame.id)} cut={getCut(board, prev, frame.id)} label="Cut in" between={crossesChapters(board, prev, frame.id)} />}
       <Section title="Timing">
         <Labeled label="Hold">
           <Field
@@ -146,9 +146,9 @@ function AnimateSelection() {
 }
 
 // Animation type, easing (preset or custom bezier), duration, curve and preview.
-// A cut between the last frame of one act and the first of the next is a transition between chapters.
-const crossesActs = (b: Storyboard, from: string, to: string) =>
-  b.acts.find((a) => a.frameIds.includes(from))?.id !== b.acts.find((a) => a.frameIds.includes(to))?.id
+// A cut between the last frame of one chapter and the first of the next is a transition between chapters.
+const crossesChapters = (b: Storyboard, from: string, to: string) =>
+  b.chapters.find((a) => a.frameIds.includes(from))?.id !== b.chapters.find((a) => a.frameIds.includes(to))?.id
 
 function MotionSection({ cutId, cut, label, between }: { cutId: string; cut: Cut; label?: string; between?: boolean }) {
   const { dispatch } = useApp()

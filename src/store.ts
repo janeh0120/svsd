@@ -29,7 +29,7 @@ export type Action =
   | { type: 'layer'; frameId: string; layerId: string; patch: Partial<Layer> }
   | { type: 'frame'; frameId: string; patch: Partial<Frame> }
   | { type: 'cut'; key: string; patch: Partial<Cut> }
-  | { type: 'reorder'; actId: string; from: number; to: number }
+  | { type: 'reorder'; chapterId: string; from: number; to: number }
   | { type: 'duplicate'; frameId: string }
   | { type: 'remove'; frameId: string }
   | { type: 'pinAdd'; pin: Pin }
@@ -44,7 +44,7 @@ export type Action =
 export const initialState: State = {
   name: 'Design File',
   phase: 'empty',
-  board: { acts: [], frames: {}, cuts: {} },
+  board: { chapters: [], frames: {}, cuts: {} },
   selection: null,
   mode: 'select',
   pins: [],
@@ -102,7 +102,7 @@ export function reducer(state: State, action: Action): State {
         ...state,
         board: {
           ...board,
-          acts: board.acts.map((a) => (a.id === action.actId ? { ...a, frameIds: arrayMove(a.frameIds, action.from, action.to) } : a)),
+          chapters: board.chapters.map((a) => (a.id === action.chapterId ? { ...a, frameIds: arrayMove(a.frameIds, action.from, action.to) } : a)),
         },
       }
     case 'duplicate': {
@@ -115,7 +115,7 @@ export function reducer(state: State, action: Action): State {
         board: {
           ...board,
           frames: { ...board.frames, [id]: { ...src, id, layers: src.layers.map((l) => ({ ...l })) } },
-          acts: board.acts.map((a) => {
+          chapters: board.chapters.map((a) => {
             const i = a.frameIds.indexOf(action.frameId)
             if (i === -1) return a
             const frameIds = [...a.frameIds]
@@ -135,7 +135,7 @@ export function reducer(state: State, action: Action): State {
         ...state,
         selection: state.selection && onFrame(state.selection) ? null : state.selection,
         pins: state.pins.filter((p) => !onFrame(p.target)),
-        board: { ...board, frames, acts: board.acts.map((a) => ({ ...a, frameIds: a.frameIds.filter((f) => f !== action.frameId) })) },
+        board: { ...board, frames, chapters: board.chapters.map((a) => ({ ...a, frameIds: a.frameIds.filter((f) => f !== action.frameId) })) },
       }
     }
     case 'pinAdd':

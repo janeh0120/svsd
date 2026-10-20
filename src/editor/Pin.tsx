@@ -138,7 +138,7 @@ function placeholderFor(pin: Pin) {
       return 'e.g. push in closer, hold longer'
     case 'cut':
       return 'e.g. card slides up, make it bouncy'
-    case 'act':
+    case 'chapter':
       return 'e.g. this section feels slow, make it snappy'
     case 'time':
       return 'e.g. this moment drags, make it snappy'
