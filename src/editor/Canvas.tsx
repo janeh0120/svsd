@@ -187,7 +187,7 @@ export function Canvas() {
         ref={scroller}
         className={`h-full overflow-auto ${
           comment
-            ? 'cursor-ai select-none shadow-[inset_0_0_0_2px_var(--accent-line)] [&_*]:cursor-ai!'
+            ? 'cursor-ai select-none [&_*]:cursor-ai!'
             : hand
               ? `select-none ${panning ? '[&_*]:cursor-hand-grabbing!' : '[&_*]:cursor-hand!'}`
               : ''
@@ -226,6 +226,13 @@ export function Canvas() {
           style={{ left: Math.min(lasso.x0, lasso.x1), top: Math.min(lasso.y0, lasso.y1), width: Math.abs(lasso.x1 - lasso.x0), height: Math.abs(lasso.y1 - lasso.y0) }}
         />
       )}
+      {/* Agent pointer: a Siri-style light that glows around the whole canvas edge. */}
+      <div aria-hidden className={`canvas-glow pointer-events-none absolute inset-0 z-30 transition-opacity duration-700 ${comment ? 'opacity-100' : 'opacity-0'}`}>
+        <i />
+        <i />
+        <i />
+        <i />
+      </div>
       <Toolbar pointer={pointer} setPointer={setPointer} />
     </div>
   )
@@ -262,16 +269,7 @@ function ChapterGroup({ chapter, prevChapter }: { chapter: Chapter; prevChapter?
         ))}
       </div>
       <div
-        className={`relative rounded-tile border p-4 ${selected ? 'chapter-spin border-transparent' : 'border-line'} ${state.mode === 'comment' ? 'hover:border-accent-line' : ''}`}
-        // Selected: no fill, just a border that runs off-white → lime → pink → off-white (the padding-box layer is the canvas colour, so only the border shows the gradient).
-        style={
-          selected
-            ? {
-                background:
-                  'linear-gradient(var(--canvas), var(--canvas)) padding-box, conic-gradient(from var(--chapter-angle), var(--ink), var(--accent), var(--secondary), var(--ink)) border-box',
-              }
-            : undefined
-        }
+        className={`relative rounded-tile border p-4 ${selected ? 'border-accent-line' : 'border-line'} ${state.mode === 'comment' ? 'hover:border-accent-line' : ''}`}
       >
         {/* The cut from the previous chapter runs across the space between the two groups. */}
         {prevLast && chapter.frameIds[0] && <Connector from={prevLast} to={chapter.frameIds[0]} className="absolute top-[16px] -left-12" width={48} />}

@@ -163,6 +163,76 @@ h2 {
   cursor: grabbing;
 }
 
+/* Agent pointer glow: rings of light hugging the canvas edge. Each <i> is a conic
+   gradient of pink, lime and white, masked down to a border-width band; the
+   angle spins at a different speed per layer so the hues keep shifting, and
+   the wider layers are blurred into a halo that bleeds inward. */
+@property --glow-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes canvas-glow-spin {
+  to {
+    --glow-angle: 360deg;
+  }
+}
+@keyframes canvas-glow-breathe {
+  50% {
+    opacity: 0.55;
+  }
+}
+.canvas-glow > i {
+  position: absolute;
+  inset: 0;
+  /* A tight inset shadow plus a wider, fainter one gives a long feathered tail. */
+  box-shadow:
+    inset 0 0 var(--blur) var(--spread) var(--c),
+    inset 0 0 calc(var(--blur) * 2) 0 color-mix(in srgb, var(--c) 45%, transparent);
+  /* A rotating arc of the edge: this colour is only visible where the mask is open. */
+  mask-image: conic-gradient(from var(--glow-angle), transparent 0deg, #000 var(--arc), transparent calc(var(--arc) * 1.9), transparent 360deg);
+  animation:
+    canvas-glow-spin var(--t) linear infinite,
+    canvas-glow-breathe 3.6s ease-in-out infinite;
+}
+.canvas-glow > i:nth-child(1) {
+  --c: #f7a8c4;
+  --blur: 40px;
+  --spread: 2px;
+  --arc: 150deg;
+  --t: 9s;
+}
+.canvas-glow > i:nth-child(2) {
+  --c: #d8f56a;
+  --blur: 44px;
+  --spread: 1px;
+  --arc: 130deg;
+  --t: 13s;
+  animation-direction: reverse, normal;
+}
+.canvas-glow > i:nth-child(3) {
+  --c: #ffffff;
+  --blur: 28px;
+  --spread: 0px;
+  --arc: 100deg;
+  --t: 7s;
+  animation-delay: -2s;
+}
+.canvas-glow > i:nth-child(4) {
+  --c: #f7a8c4;
+  --blur: 56px;
+  --spread: 0px;
+  --arc: 170deg;
+  --t: 17s;
+  animation-direction: reverse, normal;
+  opacity: 0.6;
+}
+@media (prefers-reduced-motion: reduce) {
+  .canvas-glow > i {
+    animation: none;
+  }
+}
+
 /* Agent working glow: a grainy band behind the agent's chat box whose
    pink, lime and white stops drift so their share of the band keeps changing. */
 .agent-glow {
