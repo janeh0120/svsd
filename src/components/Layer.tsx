@@ -7,7 +7,10 @@ import type { Layer } from '../types'
 // one character at a time over `duration` ms.
 export type Typing = { from: string; delay: number; duration: number }
 
-export function LayerBody({ layer, playing = false, typing }: { layer: Layer; playing?: boolean; typing?: Typing }) {
+// Set on a text layer being edited in place: Enter or blur saves, Escape cancels.
+export type TextEdit = { onCommit: (text: string) => void; onCancel: () => void }
+
+export function LayerBody({ layer, playing = false, typing, edit }: { layer: Layer; playing?: boolean; typing?: Typing; edit?: TextEdit }) {
   if (layer.kind === 'video') return <VideoBody layer={layer} playing={playing} />
   if (layer.kind === 'image') {
     return (
@@ -30,7 +33,7 @@ export function LayerBody({ layer, playing = false, typing }: { layer: Layer; pl
   const justify = layer.align === 'left' ? 'flex-start' : layer.align === 'right' ? 'flex-end' : 'center'
   return (
     <div
-      className="flex h-full w-full items-center whitespace-nowrap select-none"
+      className={`flex h-full w-full items-center whitespace-nowrap ${edit ? 'cursor-text' : 'cursor-default select-none'}`}
       style={{
         justifyContent: justify,
         fontFamily: layer.fontFamily,
@@ -42,8 +45,47 @@ export function LayerBody({ layer, playing = false, typing }: { layer: Layer; pl
         padding: layer.fill ? '0 0.7em' : undefined,
       }}
     >
-      {typing ? <TypedText text={layer.text ?? ''} typing={typing} /> : layer.text}
+      {edit ? <EditableText text={layer.text ?? ''} edit={edit} /> : typing ? <TypedText text={layer.text ?? ''} typing={typing} /> : layer.text}
     </div>
+  )
+}
+
+// The text itself, editable in place. It focuses with everything selected and keeps the layer's own styling.
+function EditableText({ text, edit }: { text: string; edit: TextEdit }) {
+  const done = useRef(false)
+  const finish = (value: string | null) => {
+    if (done.current) return
+    done.current = true
+    if (value === null) edit.onCancel()
+    else edit.onCommit(value)
+  }
+  return (
+    <span
+      contentEditable
+      suppressContentEditableWarning
+      spellCheck={false}
+      ref={(el) => {
+        if (!el || el === document.activeElement) return
+        el.focus()
+        const range = document.createRange()
+        range.selectNodeContents(el)
+        const sel = window.getSelection()
+        sel?.removeAllRanges()
+        sel?.addRange(range)
+      }}
+      onBlur={(e) => finish(e.currentTarget.textContent ?? '')}
+      onKeyDown={(e) => {
+        e.stopPropagation()
+        if (e.key === 'Enter') {
+          e.preventDefault()
+          finish(e.currentTarget.textContent ?? '')
+        }
+        if (e.key === 'Escape') finish(null)
+      }}
+      className="min-w-[1ch] cursor-text outline-none"
+    >
+      {text}
+    </span>
   )
 }
 

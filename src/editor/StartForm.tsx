@@ -47,7 +47,7 @@ export function StartForm() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="min-h-0 flex-1 space-y-4 overflow-y-auto p-2">
+      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-3">
         <div className="rounded-lg border border-line bg-surface p-3 focus-within:border-line-strong">
           <p className="font-display text-[12px] font-medium text-muted">Prompt</p>
           <textarea
@@ -75,7 +75,7 @@ export function StartForm() {
             </button>
             <button
               onClick={() => toggle('app')}
-              title="Import boards and frames from Figma, Miro, Mural and more"
+              title="Import boards and shots from Figma, Miro, Mural and more"
               className={`${tile} ${adding === 'app' ? 'text-ink' : ''}`}
             >
               <Icon.Apps size={16} />
@@ -148,14 +148,14 @@ export function StartForm() {
         </section>
       </div>
 
-      <div className="p-2">
+      <div className="p-3">
         <button
           onClick={generate}
           disabled={!ready}
           className="flex h-10 w-full items-center justify-center gap-1.5 rounded-lg bg-accent font-medium text-on-accent hover:brightness-95 disabled:opacity-40"
         >
+          <Icon.Sparkle size={14} />
           Generate
-          <Icon.Send size={13} />
         </button>
       </div>
     </div>

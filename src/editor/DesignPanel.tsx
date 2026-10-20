@@ -9,9 +9,9 @@ import { Icon } from './icons'
 export function DesignPanel() {
   const { state, dispatch } = useApp()
   const sel = state.selection
-  if (!sel) return <Hint>Select a frame or a layer to edit its design.</Hint>
-  if (sel.kind === 'cut') return <Hint>A connector is the motion between two frames. Edit it in Animate.</Hint>
-  if (sel.kind === 'chapter' || sel.kind === 'time') return <Hint>Select a frame or a layer to edit its design.</Hint>
+  if (!sel) return <Hint>Select a shot or a layer to edit its design.</Hint>
+  if (sel.kind === 'cut') return <Hint>A connector is the motion between two shots. Edit it in Animate.</Hint>
+  if (sel.kind === 'chapter' || sel.kind === 'time') return <Hint>Select a shot or a layer to edit its design.</Hint>
 
   const frame = state.board.frames[sel.frameId]
   if (!frame) return null
@@ -40,7 +40,7 @@ function LayerDesign({ frame, layer: l }: { frame: Frame; layer: Layer }) {
       <Header title={KIND_NAME[l.kind]} />
 
       <Section title="Position">
-        <div className="grid grid-cols-2 gap-1">
+        <div className="grid grid-cols-2 gap-1.5">
           <Seg>
             <SegBtn title="Align left" onClick={() => set({ x: 0 })} icon={<Icon.AlignLeft size={13} />} />
             <SegBtn title="Align center" onClick={() => set({ x: Math.round((FRAME_W - l.w) / 2) })} icon={<Icon.AlignCenterH size={13} />} />
@@ -64,14 +64,14 @@ function LayerDesign({ frame, layer: l }: { frame: Frame; layer: Layer }) {
 
       <Section title="Layout">
         {l.kind === 'text' && (
-          <Seg className="mb-1">
+          <Seg className="mb-1.5">
             <SegBtn title="Auto width" active={sizing === 'width'} onClick={() => setSizing('width')} icon={<Icon.HugWidth size={13} />} />
             <SegBtn title="Auto height" active={sizing === 'height'} onClick={() => setSizing('height')} icon={<Icon.AlignCenterH size={13} />} />
             <SegBtn title="Fixed size" active={sizing === 'fixed'} onClick={() => setSizing('fixed')} icon={<Icon.FixedSize size={13} />} />
           </Seg>
         )}
-        <div className="flex items-center gap-1">
-          <div className="grid flex-1 grid-cols-2 gap-1">
+        <div className="flex items-center gap-1.5">
+          <div className="grid flex-1 grid-cols-2 gap-1.5">
             <Num prefix="W" value={l.w} onChange={(w) => set({ w })} />
             <Num prefix="H" value={l.h} onChange={(h) => set({ h })} muted={l.kind === 'text' && sizing !== 'fixed'} />
           </div>
@@ -82,7 +82,7 @@ function LayerDesign({ frame, layer: l }: { frame: Frame; layer: Layer }) {
       </Section>
 
       <Section title="Appearance" actions={[<Icon.Eye key="e" size={13} />, <Icon.Droplet key="d" size={13} />]}>
-        <div className="grid grid-cols-2 gap-1 pr-8">
+        <div className="grid grid-cols-2 gap-1.5 pr-8">
           <Num prefix={<Icon.Square size={12} />} value={Math.round(l.opacity * 100)} suffix="%" onChange={(v) => set({ opacity: Math.min(1, Math.max(0, v / 100)) })} />
           <Num prefix={<Icon.Corners size={12} />} value={l.radius ?? 0} onChange={(radius) => set({ radius })} muted={l.kind === 'text'} />
         </div>
@@ -90,9 +90,9 @@ function LayerDesign({ frame, layer: l }: { frame: Frame; layer: Layer }) {
 
       {l.kind === 'text' && (
         <Section title="Typography" actions={[<Icon.Styles key="s" size={13} />]}>
-          <input value={l.text ?? ''} onChange={(e) => set({ text: e.target.value })} className="mb-1 h-7 w-full rounded-md bg-control px-2 outline-none" />
+          <input value={l.text ?? ''} onChange={(e) => set({ text: e.target.value })} className="mb-1.5 h-7 w-full rounded-md bg-control px-2 outline-none" />
           <Dropdown value={l.fontFamily ?? 'Inter'} options={['Inter', 'Helvetica', 'Georgia', 'Menlo']} onChange={(fontFamily) => set({ fontFamily })} full />
-          <div className="mt-1 grid grid-cols-2 gap-1">
+          <div className="mt-1.5 grid grid-cols-2 gap-1.5">
             <Dropdown
               value={String(l.fontWeight ?? 700)}
               options={[['400', 'Regular'], ['500', 'Medium'], ['600', 'Semi Bold'], ['700', 'Bold']]}
@@ -102,7 +102,7 @@ function LayerDesign({ frame, layer: l }: { frame: Frame; layer: Layer }) {
             <Num prefix={<span className="text-[10px]">A͟</span>} value="Auto" />
             <Num prefix={<span className="text-[10px]">|A|</span>} value={l.letterSpacing ?? -2} suffix="%" onChange={(letterSpacing) => set({ letterSpacing })} />
           </div>
-          <div className="mt-1 grid grid-cols-2 gap-1 pr-8">
+          <div className="mt-1.5 grid grid-cols-2 gap-1.5 pr-8">
             <Seg>
               <SegBtn title="Align text left" active={l.align === 'left'} onClick={() => set({ align: 'left' })} icon={<Icon.TextLeft size={13} />} />
               <SegBtn title="Align text center" active={!l.align || l.align === 'center'} onClick={() => set({ align: 'center' })} icon={<Icon.TextCenter size={13} />} />
@@ -153,9 +153,9 @@ function FrameDesign({ frame, onPick }: { frame: Frame; onPick: (layerId: string
   const { dispatch } = useApp()
   return (
     <>
-      <Header title="Frame" />
+      <Header title="Shot" />
       <Section title="Layout">
-        <div className="grid grid-cols-2 gap-1 pr-8">
+        <div className="grid grid-cols-2 gap-1.5 pr-8">
           <Num prefix="W" value={FRAME_W} muted />
           <Num prefix="H" value={FRAME_H} muted />
         </div>
@@ -186,7 +186,7 @@ function Hint({ children }: { children: ReactNode }) {
 
 function Header({ title }: { title: string }) {
   return (
-    <div className="flex h-11 items-center gap-3 border-b border-line px-3">
+    <div className="flex h-11 items-center gap-3 rule-b px-3">
       <span className="flex-1 font-display text-[13px] font-semibold">{title}</span>
       <Icon.Link size={13} />
       <Icon.Target size={13} />
@@ -198,12 +198,12 @@ function Header({ title }: { title: string }) {
 
 function Section({ title, actions = [], muted = false, children }: { title: string; actions?: ReactNode[]; muted?: boolean; children?: ReactNode }) {
   return (
-    <div className="border-b border-line p-3">
+    <div className="rule-b p-3">
       <div className="flex h-5 items-center">
         <span className={`font-display font-semibold ${muted ? 'text-muted' : ''}`}>{title}</span>
         <div className={`ml-auto flex items-center gap-3 ${muted ? 'text-muted' : ''}`}>{actions}</div>
       </div>
-      {children && <div className="mt-2">{children}</div>}
+      {children && <div className="mt-3">{children}</div>}
     </div>
   )
 }
@@ -283,7 +283,7 @@ function Dropdown({ value, options, onChange, full = false }: { value: string; o
 function ColorRow({ value, onChange, onRemove }: { value: string; onChange: (c: string) => void; onRemove?: () => void }) {
   const hex = /^#[0-9a-f]{6}$/i.test(value)
   return (
-    <div className="flex items-center gap-1">
+    <div className="flex items-center gap-1.5">
       <label className="flex h-7 min-w-0 flex-1 items-center gap-2 rounded-md bg-control px-2">
         {hex ? (
           <input type="color" value={value} onChange={(e) => onChange(e.target.value)} className="size-4 cursor-pointer rounded border-0 bg-transparent p-0" />

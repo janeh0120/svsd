@@ -16,11 +16,15 @@ export type State = {
   previewFrom: string | null // frame to start the preview at
   playhead: number // ms
   playing: boolean // the timeline is playing
+  past: Storyboard[] // board snapshots for ⌘Z, oldest first
+  future: Storyboard[] // snapshots undone, for ⇧⌘Z
+  lastEdit: { type: string; at: number } | null // so a drag or a run of keystrokes is one undo step
 }
 
 export type Action =
   | { type: 'phase'; phase: Phase }
   | { type: 'rename'; name: string }
+  | { type: 'chapterRename'; chapterId: string; name: string }
   | { type: 'load'; board: Storyboard }
   | { type: 'messageUpdate'; id: string; patch: Partial<Message> }
   | { type: 'select'; target: Target | null }
@@ -40,6 +44,8 @@ export type Action =
   | { type: 'working'; on: boolean }
   | { type: 'playhead'; ms: number }
   | { type: 'playing'; on: boolean }
+  | { type: 'undo' }
+  | { type: 'redo' }
 
 export const initialState: State = {
   name: 'Design File',
@@ -55,13 +61,43 @@ export const initialState: State = {
   previewFrom: null,
   playhead: 0,
   playing: false,
+  past: [],
+  future: [],
+  lastEdit: null,
 }
 
 const dropDrafts = (pins: Pin[]) => pins.filter((p) => p.status !== 'draft')
 
+// Edits to the storyboard that ⌘Z can take back.
+const UNDOABLE = new Set<Action['type']>(['layer', 'frame', 'cut', 'reorder', 'duplicate', 'remove', 'chapterRename'])
+const COALESCE_MS = 600
+
 export function reducer(state: State, action: Action): State {
+  if (action.type === 'undo' || action.type === 'redo') {
+    const from = action.type === 'undo' ? state.past : state.future
+    const board = from[from.length - 1]
+    if (!board || state.phase === 'drafting') return state
+    const rest = from.slice(0, -1)
+    return action.type === 'undo'
+      ? { ...state, board, past: rest, future: [...state.future, state.board], lastEdit: null }
+      : { ...state, board, future: rest, past: [...state.past, state.board], lastEdit: null }
+  }
+  const next = baseReducer(state, action)
+  if (action.type === 'load') return { ...next, past: [], future: [], lastEdit: null }
+  if (!UNDOABLE.has(action.type) || next.board === state.board) return next
+  const now = Date.now()
+  const same = state.lastEdit?.type === action.type && now - state.lastEdit.at < COALESCE_MS
+  return { ...next, past: same ? state.past : [...state.past.slice(-49), state.board], future: [], lastEdit: { type: action.type, at: now } }
+}
+
+function baseReducer(state: State, action: Action): State {
   const { board } = state
   switch (action.type) {
+    case 'chapterRename':
+      return {
+        ...state,
+        board: { ...board, chapters: board.chapters.map((c) => (c.id === action.chapterId ? { ...c, name: action.name, label: action.name } : c)) },
+      }
     case 'phase':
       return { ...state, phase: action.phase }
     case 'rename':
@@ -155,6 +191,8 @@ export function reducer(state: State, action: Action): State {
       return { ...state, playhead: action.ms }
     case 'playing':
       return { ...state, playing: action.on }
+    default:
+      return state // undo and redo are handled in reducer()
   }
 }
 

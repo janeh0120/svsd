@@ -12,8 +12,8 @@ import { PinMarker } from './Pin'
 const CARD_W = 280
 const SCALE = CARD_W / FRAME_W
 const CARD_H = Math.round((CARD_W * FRAME_H) / FRAME_W)
-// Card chrome: 2px border + 6px padding + 28px header above the frame image.
-const CARD_TOP = 2 + 6 + 28
+// Card chrome: 2px border + 6px padding + 28px header + 4px gap above the frame image.
+const CARD_TOP = 2 + 6 + 28 + 4
 const CARD_FULL_H = CARD_TOP + CARD_H + 6 + 2
 // How far a frame's image sits inside its card: 2px border + 6px padding.
 const CARD_INSET = 8
@@ -249,47 +249,97 @@ function ChapterGroup({ chapter, prevChapter }: { chapter: Chapter; prevChapter?
     <motion.section
       id={`chapter-${chapter.id}`}
       onClick={pick}
-      className={`relative shrink-0 scroll-m-6 rounded-xl border p-2 ${
-        selected ? 'border-transparent' : 'border-line'
-      } ${state.mode === 'comment' ? 'hover:border-accent-line' : ''}`}
-      // Selected: a tinted fill inside a border that runs off-white → lime → pink → off-white.
-      style={
-        selected
-          ? {
-              background:
-                'linear-gradient(var(--accent-soft), var(--accent-soft)) padding-box, linear-gradient(90deg, var(--ink), var(--accent), var(--secondary), var(--ink)) border-box',
-            }
-          : undefined
-      }
+      className="relative shrink-0 scroll-m-6"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
     >
-      <div className="mb-3 flex h-7 items-center px-0.5">
-        <h2 className={`text-[13px] leading-none font-normal ${selected ? 'text-accent-text' : 'text-muted'}`}>{chapter.name}</h2>
+      {/* The name sits above the box in its own outlined tag. Double-click to rename; the timeline block follows. */}
+      <div className="mb-2 flex h-7 items-center">
+        <ChapterTag chapter={chapter} selected={selected} />
         {pinsFor(state.pins, target).map((p, i) => (
           <PinMarker key={p.id} pin={p} style={{ position: 'relative', marginLeft: i ? 4 : 8 }} />
         ))}
       </div>
-      {/* The cut from the previous chapter runs across the space between the two groups. */}
-      {prevLast && chapter.frameIds[0] && <Connector from={prevLast} to={chapter.frameIds[0]} className="absolute top-[48px] -left-12" width={48} />}
-      <div className="flex">
-        {chapter.frameIds.map((id, i) => (
-          <Fragment key={id}>
-            {i > 0 && <Connector from={chapter.frameIds[i - 1]} to={id} inset={CARD_INSET} />}
-            <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15 + i * 0.12, duration: 0.3 }}>
-              <FrameCard frameId={id} />
-            </motion.div>
-          </Fragment>
-        ))}
+      <div
+        className={`relative rounded-xl border p-4 ${selected ? 'chapter-spin border-transparent' : 'border-line'} ${state.mode === 'comment' ? 'hover:border-accent-line' : ''}`}
+        // Selected: no fill, just a border that runs off-white → lime → pink → off-white (the padding-box layer is the canvas colour, so only the border shows the gradient).
+        style={
+          selected
+            ? {
+                background:
+                  'linear-gradient(var(--canvas), var(--canvas)) padding-box, conic-gradient(from var(--chapter-angle), var(--ink), var(--accent), var(--secondary), var(--ink)) border-box',
+              }
+            : undefined
+        }
+      >
+        {/* The cut from the previous chapter runs across the space between the two groups. */}
+        {prevLast && chapter.frameIds[0] && <Connector from={prevLast} to={chapter.frameIds[0]} className="absolute top-[16px] -left-12" width={48} />}
+        <div className="flex">
+          {chapter.frameIds.map((id, i) => (
+            <Fragment key={id}>
+              {i > 0 && <Connector from={chapter.frameIds[i - 1]} to={id} inset={CARD_INSET} />}
+              <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15 + i * 0.12, duration: 0.3 }}>
+                <FrameCard frameId={id} />
+              </motion.div>
+            </Fragment>
+          ))}
+        </div>
       </div>
     </motion.section>
   )
 }
 
+function ChapterTag({ chapter, selected }: { chapter: Chapter; selected: boolean }) {
+  const { dispatch } = useApp()
+  const [editing, setEditing] = useState(false)
+  const [draft, setDraft] = useState(chapter.name)
+  const tone = selected ? 'border-accent-line text-accent-text' : 'border-line text-muted'
+  // The serif's ink sits about 1px below the middle of its line box, so the bottom padding is 2px taller to centre it.
+  const box = `h-7 rounded-md border px-3 pb-[2px] text-center text-[13px] leading-none ${tone}`
+
+  const commit = () => {
+    const name = draft.trim()
+    if (name && name !== chapter.name) dispatch({ type: 'chapterRename', chapterId: chapter.id, name })
+    setEditing(false)
+  }
+
+  if (editing)
+    return (
+      <input
+        autoFocus
+        value={draft}
+        size={Math.max(draft.length, 4)}
+        onChange={(e) => setDraft(e.target.value)}
+        onFocus={(e) => e.currentTarget.select()}
+        onBlur={commit}
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={(e) => {
+          e.stopPropagation()
+          if (e.key === 'Enter') commit()
+          if (e.key === 'Escape') setEditing(false)
+        }}
+        className={`${box} bg-transparent font-display font-normal outline-none`}
+      />
+    )
+  return (
+    <h2
+      title="Double-click to rename"
+      onDoubleClick={(e) => {
+        e.stopPropagation()
+        setDraft(chapter.name)
+        setEditing(true)
+      }}
+      className={`${box} flex items-center justify-center font-normal`}
+    >
+      {chapter.name}
+    </h2>
+  )
+}
+
 // The cut between two frames, drawn in the chapter-border colour until selected, then as a gradient wire (off-white → pink → lime
 // → off-white) from a solid nub on the outgoing frame to a ring on the incoming
-// one. Select the wire or the ring to edit the animation between the frames (or
+// one. Select the wire or the ring to edit the animation between the shots (or
 // comment on it in annotate mode).
 // The wire runs `inset` px past each end of the gap, so the arrow's tip lands on the edge of the box it points at.
 function Connector({
@@ -347,7 +397,7 @@ function Connector({
         <path d={wire} fill="none" stroke={selected ? `url(#${gradient})` : 'var(--line)'} strokeWidth={sw} />
         {/* Wide invisible stroke so the whole wire is easy to hit. */}
         <path d={wire} fill="none" stroke="transparent" strokeWidth={16} style={{ pointerEvents: 'stroke', cursor: 'pointer' }} onClick={pick}>
-          <title>Edit the animation between these frames</title>
+          <title>Edit the animation between these shots</title>
         </path>
         <rect x={x0} y={y0 - 5} width={4} height={10} rx={2} fill={selected ? 'var(--ink)' : 'var(--line)'} />
         {/* Every cut ends in an arrowhead. */}
@@ -362,7 +412,7 @@ function Connector({
       </svg>
       <button
         onClick={pick}
-        title="Edit the animation between these frames"
+        title="Edit the animation between these shots"
         className="absolute z-10 flex size-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center"
         style={{ left: x1, top: y1 }}
       />
@@ -379,6 +429,7 @@ function FrameCard({ frameId }: { frameId: string }) {
   const inner = useRef<HTMLDivElement>(null)
   const zoom = useContext(ZoomContext)
   const [hover, setHover] = useState<string | null>(null)
+  const [editing, setEditing] = useState<string | null>(null) // a text layer being edited in place (double-click)
   const comment = state.mode === 'comment'
   const sel = state.selection
   const frameSelected = sel?.kind === 'frame' && sel.frameId === frameId
@@ -387,6 +438,7 @@ function FrameCard({ frameId }: { frameId: string }) {
   // The frame under the timeline's playhead: highlighted, with its progress, and playing.
   const isCurrent = currentFrameId(state) === frameId && (state.playing || state.playhead > 0)
   const playing = isCurrent && state.playing
+  const lit = frameSelected || isCurrent // the header text turns green instead of the card getting a box
 
   const toFrame = (e: React.MouseEvent) => {
     const r = inner.current!.getBoundingClientRect()
@@ -396,7 +448,7 @@ function FrameCard({ frameId }: { frameId: string }) {
   // Select tool: press to select, drag to move.
   const onLayerDown = (l: Layer) => (e: React.PointerEvent) => {
     e.stopPropagation()
-    if (comment) return
+    if (comment || editing === l.id) return
     dispatch({ type: 'select', target: { kind: 'layer', frameId, layerId: l.id } })
     const sx = e.clientX
     const sy = e.clientY
@@ -440,15 +492,13 @@ function FrameCard({ frameId }: { frameId: string }) {
     <div
       id={`frame-${frameId}`}
       onClick={onFrameClick}
-      className={`shrink-0 rounded-xl border-2 p-1.5 pt-0 transition-colors ${
-        frameSelected ? 'border-accent-line bg-accent-soft' : isCurrent ? 'border-accent-line' : 'border-transparent hover:border-line'
-      }`}
+      className="group/card shrink-0 rounded-xl border-2 border-transparent p-1.5 pt-0"
     >
-      <div className="flex h-7 items-center gap-1.5 px-0.5 text-[12px]" style={{ width: CARD_W }}>
-        <span className={`font-medium ${frameSelected ? 'text-accent-text' : 'text-muted'}`}>{n}</span>
-        <span className={`mr-3 min-w-0 flex-1 truncate ${frameSelected ? 'text-accent-text' : 'text-ink'}`}>{frameTitle(frame)}</span>
+      <div className="mb-1 flex h-7 cursor-default items-center gap-1.5 px-0.5 text-[12px] select-none" style={{ width: CARD_W }}>
+        <span className={`font-medium transition-colors ${lit ? 'text-accent-text' : 'text-muted group-hover/card:text-accent-text'}`}>{n}</span>
+        <span className={`mr-3 min-w-0 flex-1 truncate transition-colors ${lit ? 'text-accent-text' : 'text-ink group-hover/card:text-accent-text'}`}>{frameTitle(frame)}</span>
         {span && (
-          <span className={`shrink-0 text-[11px] tabular-nums ${frameSelected ? 'text-accent-text' : 'text-muted'}`}>
+          <span className={`shrink-0 text-[11px] tabular-nums transition-colors ${lit ? 'text-accent-text' : 'text-muted group-hover/card:text-accent-text'}`}>
             {`${span.from.toFixed(1)}\u00a0–\u00a0${span.to.toFixed(1)}s\u00a0\u00a0\u00a0·\u00a0\u00a0\u00a0${(span.to - span.from).toFixed(1)}s`}
           </span>
         )}
@@ -458,7 +508,7 @@ function FrameCard({ frameId }: { frameId: string }) {
               e.stopPropagation()
               dispatch({ type: 'preview', open: true, from: frameId })
             }}
-            title="Preview from this frame"
+            title="Preview from this shot"
             className={`flex size-4 shrink-0 items-center justify-center rounded-full ${frameSelected ? 'bg-accent text-on-accent' : 'bg-secondary-container text-on-secondary-container'}`}
           >
             <Icon.Play size={7} fill="currentColor" className="ml-px" />
@@ -466,7 +516,7 @@ function FrameCard({ frameId }: { frameId: string }) {
         )}
       </div>
       <div className="relative" style={{ width: CARD_W, height: CARD_H }}>
-        <div className="absolute inset-0 overflow-hidden rounded-md ring-1 ring-line">
+        <div className="absolute inset-0 overflow-hidden rounded-md">
           <div
             ref={inner}
             className="absolute top-0 left-0 origin-top-left"
@@ -479,13 +529,32 @@ function FrameCard({ frameId }: { frameId: string }) {
                 style={layerStyle(l)}
                 onPointerDown={onLayerDown(l)}
                 onClick={onLayerClick(l)}
+                onDoubleClick={l.kind === 'text' && !comment ? (e) => {
+                  e.stopPropagation()
+                  setEditing(l.id)
+                } : undefined}
                 onPointerEnter={() => setHover(l.id)}
                 onPointerLeave={() => setHover((h) => (h === l.id ? null : h))}
               >
-                <LayerBody layer={l} />
+                <LayerBody
+                  layer={l}
+                  edit={
+                    editing === l.id
+                      ? {
+                          onCommit: (text) => {
+                            setEditing(null)
+                            if (text !== (l.text ?? '')) dispatch({ type: 'layer', frameId, layerId: l.id, patch: { text } })
+                          },
+                          onCancel: () => setEditing(null),
+                        }
+                      : undefined
+                  }
+                />
               </div>
             ))}
           </div>
+          {/* The ring is drawn over the image with the thumbnail's own radius, so the two always match. */}
+          <div className={`pointer-events-none absolute inset-0 rounded-md ring-inset transition-shadow ${frameSelected ? 'ring-2 ring-accent' : 'ring-1 ring-line group-hover/card:ring-2 group-hover/card:ring-accent'}`} />
           {isCurrent && span && (
             <div className="absolute inset-x-0 bottom-0 h-[3px] bg-black/20">
               <div
@@ -563,6 +632,8 @@ function Outline({ layer, tone, label }: { layer: Layer; tone: 'hover' | 'select
   const x1 = Math.min(FRAME_W, layer.x + layer.w)
   const y1 = Math.min(FRAME_H, layer.y + layer.h)
   if (x1 <= x0 || y1 <= y0) return null
+  // A hovered layer that (nearly) fills the shot would draw a thin square box on top of the card's rounded ring.
+  if (tone === 'hover' && ((x1 - x0) * (y1 - y0)) / (FRAME_W * FRAME_H) >= 0.9) return null
   const styles = {
     hover: 'border border-accent-line',
     selected: 'border border-accent-line',

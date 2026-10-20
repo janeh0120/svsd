@@ -50,7 +50,7 @@ export function agentRespond(pin: Pin, board: Storyboard): AgentResult {
     const factor = /faster|shorter|tighter|quicker/.test(t) ? 0.7 : /slower|longer/.test(t) ? 1.3 : 0
     if (factor) {
       for (const id of chapter.frameIds) actions.push({ type: 'frame', frameId: id, patch: { hold: +(board.frames[id].hold * factor).toFixed(1) } })
-      done.push(factor < 1 ? 'tightened every frame in this chapter' : 'gave every frame in this chapter more time')
+      done.push(factor < 1 ? 'tightened every shot in this chapter' : 'gave every shot in this chapter more time')
     }
     if (feel) {
       chapter.frameIds.slice(1).forEach((id, i) => actions.push({ type: 'cut', key: cutKey(chapter.frameIds[i], id), patch: { feel, bezier: undefined, duration: undefined } }))
@@ -60,7 +60,7 @@ export function agentRespond(pin: Pin, board: Storyboard): AgentResult {
 
   if (target.kind === 'frame') {
     const fr = board.frames[target.frameId]
-    if (!fr) return { reply: "I can't find that frame anymore.", actions }
+    if (!fr) return { reply: "I can't find that shot anymore.", actions }
     const f = /closer|zoom in|push in/.test(t) ? 1.3 : /wider|zoom out|pull out/.test(t) ? 0.8 : 0
     if (f) {
       for (const l of fr.layers) actions.push({ type: 'layer', frameId: fr.id, layerId: l.id, patch: zoomLayer(l, f) })
@@ -72,7 +72,7 @@ export function agentRespond(pin: Pin, board: Storyboard): AgentResult {
     const prev = ids[ids.indexOf(fr.id) - 1]
     if (feel && prev && getCut(board, prev, fr.id).feel !== feel) {
       actions.push({ type: 'cut', key: cutKey(prev, fr.id), patch: { feel, bezier: undefined, duration: undefined } })
-      done.push(`made the cut into this frame ${feel}`)
+      done.push(`made the cut into this shot ${feel}`)
     }
   }
 
@@ -98,7 +98,7 @@ export function agentRespond(pin: Pin, board: Storyboard): AgentResult {
     }
     if (/hide|remove|fade out/.test(t)) {
       patch.opacity = 0
-      done.push('hid it in this frame')
+      done.push('hid it in this shot')
     } else if (/fade|subtle|dim/.test(t)) {
       patch.opacity = 0.4
       done.push('faded it back')
@@ -119,7 +119,7 @@ export function agentRespond(pin: Pin, board: Storyboard): AgentResult {
     const prev = ids[ids.indexOf(fr.id) - 1]
     if (feel && prev && getCut(board, prev, fr.id).feel !== feel) {
       actions.push({ type: 'cut', key: cutKey(prev, fr.id), patch: { feel, bezier: undefined, duration: undefined } })
-      done.push(`made the cut into this frame ${feel}`)
+      done.push(`made the cut into this shot ${feel}`)
     }
   }
 

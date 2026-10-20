@@ -21,7 +21,7 @@ export function PropertiesPanel({ width, onCollapse }: { width: number; onCollap
   }, [state.selection])
 
   return (
-    <aside className="flex shrink-0 flex-col bg-surface" style={{ width }}>
+    <aside className="flex shrink-0 flex-col bg-surface pl-2" style={{ width: width + 8 }}>
       <div className="flex h-10 shrink-0 items-center gap-1 px-3">
         <button onClick={onCollapse} title="Hide panel" className="-ml-1.5 flex size-7 items-center justify-center rounded-md text-muted hover:bg-control-hover">
           <Icon.PanelRight size={14} />
@@ -31,14 +31,14 @@ export function PropertiesPanel({ width, onCollapse }: { width: number; onCollap
           title="Preview the reel"
           className="ml-auto flex h-7 items-center gap-1.5 rounded-md px-2 font-medium hover:bg-control-hover"
         >
-          <Icon.Play size={11} />
+          <Icon.Play size={14} className="relative -top-px" />
           Preview
         </button>
         <button className="h-7 rounded-md bg-accent px-2.5 font-medium text-on-accent hover:brightness-95" title="Coming soon">
           Export
         </button>
       </div>
-      <div className="flex h-10 shrink-0 items-center gap-1 border-b border-line px-2">
+      <div className="flex h-10 shrink-0 items-center gap-1 rule-b px-2">
         {(['design', 'animate'] as const).map((t) => (
           <button
             key={t}
@@ -107,7 +107,7 @@ function AnimateSelection() {
   const { board, selection: sel } = state
   if (!sel) return null
 
-  const title = <p className="px-3 pt-3 pb-1 font-display text-[13px] font-semibold">{targetLabel(sel, board)}</p>
+  const title = <p className="px-3 pt-3 pb-2 font-display text-[13px] font-semibold">{targetLabel(sel, board)}</p>
 
   if (sel.kind === 'cut') {
     const [from, to] = sel.key.split('->')
@@ -157,7 +157,7 @@ function MotionSection({ cutId, cut, label, between }: { cutId: string; cut: Cut
   const easing = cut.bezier ? 'custom' : cut.feel
 
   return (
-    <div className="space-y-2 border-b border-line p-3 pt-2">
+    <div className="space-y-3 rule-b p-3">
       {label && <p className="text-[11px] text-muted">{label}</p>}
       <Labeled label={between ? 'Transition' : 'Animation'}>
         <TransitionPicker value={cut.animation ?? 'smart'} onPick={(v) => set({ animation: v })} />
@@ -201,7 +201,7 @@ function CameraSection({ frameId }: { frameId: string }) {
       <button
         onClick={() => dispatch({ type: 'frame', frameId, patch: { camera: DEFAULT_CAMERA } })}
         className="h-7 w-full rounded-md bg-control text-[11px] text-muted hover:bg-control-hover"
-        title="Reset to the whole frame"
+        title="Reset to the whole shot"
       >
         Adjust the area to control zoom.
       </button>
@@ -455,7 +455,7 @@ function EasingPicker({ bezier, custom, feel, onPick }: { bezier: [number, numbe
 
 function Section({ title, action, children }: { title: string; action?: ReactNode; children: ReactNode }) {
   return (
-    <div className="space-y-2 border-b border-line p-3">
+    <div className="space-y-3 rule-b p-3">
       <div className="flex h-5 items-center">
         <span className="font-display font-semibold">{title}</span>
         <span className="ml-auto">{action}</span>

@@ -82,7 +82,7 @@ export function figmaConfigDraft(): Storyboard {
     { id: 'd5', hold: 3.5, background: '#5A2E1E', layers: [screen('draw-poster')] },
 
     // Figma Buzz
-    { id: 'b1', hold: 1.6, background: black, layers: [title('Figma Buzz', '#FF4DD8'), rect('box', 'Frame', 150, 330, 1140, 240, { stroke: '#FF4DD8' })] },
+    { id: 'b1', hold: 1.6, background: black, layers: [title('Figma Buzz', '#FF4DD8'), rect('box', 'Shot', 150, 330, 1140, 240, { stroke: '#FF4DD8' })] },
     { id: 'b2', hold: 3.5, background: '#C988D9', layers: [screen('buzz-template')] },
     { id: 'b3', hold: 3, background: '#ffffff', layers: [screen('buzz-table')] },
     { id: 'b4', hold: 3.5, background: '#ECECEC', layers: [screen('buzz-grid')] },

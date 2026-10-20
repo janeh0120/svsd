@@ -10,7 +10,7 @@ import { StartForm } from './StartForm'
 export function LeftPanel({ width }: { width: number }) {
   const { state } = useApp()
   return (
-    <aside className="flex shrink-0 flex-col bg-surface" style={{ width }}>
+    <aside className="flex shrink-0 flex-col bg-surface pr-2" style={{ width: width + 8 }}>
       {/* App bar: the Sequence logo and the file name */}
       <div className="flex h-10 shrink-0 items-center">
         <div className="flex h-full w-10 shrink-0 items-center justify-center">
@@ -23,7 +23,7 @@ export function LeftPanel({ width }: { width: number }) {
           <Icon.ChevronDown size={12} className="shrink-0 text-muted" />
         </button>
       </div>
-      <div className="flex h-10 shrink-0 items-center border-t border-line px-3">
+      <div className="flex h-10 shrink-0 items-center rule-t px-3">
         <span className="font-display text-[13px] font-semibold">Agent</span>
       </div>
       <AgentPanel />
@@ -54,7 +54,7 @@ function AgentPanel() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="min-h-0 flex-1 space-y-2 overflow-y-auto p-2">
+      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto p-3">
         {state.messages.map((m) => (
           <ChatItem key={m.id} m={m} />
         ))}
@@ -62,7 +62,7 @@ function AgentPanel() {
         <div ref={end} />
       </div>
 
-      <div className="relative px-2 pb-2">
+      <div className="relative px-3 pb-3">
         {/* While the agent works, a glow rises and falls behind the chat box. */}
         <div
           aria-hidden
@@ -70,7 +70,7 @@ function AgentPanel() {
             busy || state.working ? 'opacity-100' : 'opacity-0'
           }`}
         />
-        <div className="relative flex min-h-20 flex-col rounded-lg border border-line bg-surface p-2 focus-within:border-line-strong">
+        <div className="relative flex min-h-20 flex-col rounded-lg border border-line bg-surface p-2.5 focus-within:border-line-strong">
           {pending.length > 0 && (
             <div className="mb-1.5 flex flex-wrap gap-1">
               {pending.map((p) => (
@@ -182,7 +182,7 @@ function AttachmentChip({ pinId }: { pinId: string }) {
 function ChatItem({ m }: { m: Message }) {
   if (m.kind === 'step') {
     return (
-      <div className="flex items-start gap-2 px-2">
+      <div className="flex items-start gap-2">
         {m.status === 'running' ? (
           <span className="mt-0.5 size-3 shrink-0 animate-spin rounded-full border-[1.5px] border-line border-t-ink" />
         ) : (
@@ -198,7 +198,7 @@ function ChatItem({ m }: { m: Message }) {
 
   if (m.kind === 'shots') {
     return (
-      <div className="grid grid-cols-3 gap-1 px-2">
+      <div className="grid grid-cols-3 gap-1.5">
         {m.shots?.map((src) => (
           <img key={src} src={src} className="aspect-[1.6] w-full rounded border border-line bg-control object-contain" />
         ))}
@@ -210,7 +210,7 @@ function ChatItem({ m }: { m: Message }) {
 
   return (
     <div className={`flex ${m.author === 'you' ? 'justify-end' : ''}`}>
-      <p className={`max-w-[90%] rounded-lg px-2 py-1.5 whitespace-pre-line ${m.author === 'you' ? 'bg-control' : ''}`}>{m.text}</p>
+      <p className={`max-w-[90%] rounded-lg whitespace-pre-line ${m.author === 'you' ? 'bg-control px-3 py-2' : ''}`}>{m.text}</p>
     </div>
   )
 }

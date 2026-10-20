@@ -56,8 +56,8 @@ export function QuestionCard({ m }: { m: Message }) {
 
   return (
     <div className="rounded-xl border border-line bg-raised p-1 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
-      <div className="flex h-9 items-center gap-2 px-2">
-        <p className="min-w-0 flex-1 font-display font-medium">{q.text}</p>
+      <div className="flex min-h-9 items-center gap-2 px-2 py-2">
+        <p className="min-w-0 flex-1 font-display leading-snug font-medium">{q.text}</p>
         {questions.length > 1 && (
           <div className="flex shrink-0 items-center gap-1 text-muted">
             <button onClick={() => setView(Math.max(0, view - 1))} disabled={view === 0} className="disabled:opacity-30">
@@ -104,7 +104,7 @@ export function QuestionCard({ m }: { m: Message }) {
                   if (e.key === 'Enter' && text.trim()) answer(m.id, view, { text: text.trim() })
                 }}
                 placeholder="Something else"
-                className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-subtle"
+                className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-subtle placeholder:text-ellipsis text-ellipsis"
               />
               <button onClick={() => answer(m.id, view, 'skip')} className="h-6 shrink-0 rounded-md bg-control px-2 text-[11px] text-muted hover:bg-control-hover">
                 Skip

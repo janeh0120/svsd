@@ -10,10 +10,25 @@ function Svg({ size = 18, children, ...rest }: P & { children: ReactNode }) {
   )
 }
 
+// Closed polygon with softened corners: each vertex is replaced by a quadratic curve that starts and ends r before it.
+function rp(pts: [number, number][], r = 1.6) {
+  return pts
+    .map((c, i) => {
+      const a = pts[(i + pts.length - 1) % pts.length]
+      const b = pts[(i + 1) % pts.length]
+      const t = (q: [number, number]) => Math.min(r, Math.hypot(q[0] - c[0], q[1] - c[1]) / 2) / Math.hypot(q[0] - c[0], q[1] - c[1])
+      const s: [number, number] = [c[0] + (a[0] - c[0]) * t(a), c[1] + (a[1] - c[1]) * t(a)]
+      const e: [number, number] = [c[0] + (b[0] - c[0]) * t(b), c[1] + (b[1] - c[1]) * t(b)]
+      const f = (n: number) => +n.toFixed(2)
+      return `${i ? 'L' : 'M'}${f(s[0])} ${f(s[1])}Q${c[0]} ${c[1]} ${f(e[0])} ${f(e[1])}`
+    })
+    .join('') + 'Z'
+}
+
 export const Icon = {
   Cursor: (p: P) => (
     <Svg {...p}>
-      <path d="M5 3l6.5 17 2.4-7.1L21 10.5z" fill="currentColor" />
+      <path d={rp([[5, 3], [11.5, 20], [13.9, 12.9], [21, 10.5]], 1.6)} fill="currentColor" />
     </Svg>
   ),
   Frame: (p: P) => (
@@ -23,7 +38,7 @@ export const Icon = {
   ),
   Square: (p: P) => (
     <Svg {...p}>
-      <rect x="4" y="4" width="16" height="16" rx="1" />
+      <rect x="4" y="4" width="16" height="16" rx="3" />
     </Svg>
   ),
   Pen: (p: P) => (
@@ -57,18 +72,18 @@ export const Icon = {
   ),
   Copy: (p: P) => (
     <Svg {...p}>
-      <rect x="8" y="8" width="13" height="13" rx="2" />
+      <rect x="8" y="8" width="13" height="13" rx="3" />
       <path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3" />
     </Svg>
   ),
   Expand: (p: P) => (
     <Svg {...p}>
-      <path d="M3 8V3h5M21 8V3h-5M3 16v5h5M21 16v5h-5" />
+      <path d="M3 8V6a3 3 0 0 1 3-3h2M21 8V6a3 3 0 0 0-3-3h-2M3 16v2a3 3 0 0 0 3 3h2M21 16v2a3 3 0 0 1-3 3h-2" />
     </Svg>
   ),
   Grid: (p: P) => (
     <Svg {...p}>
-      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <rect x="3" y="3" width="18" height="18" rx="3" />
       <path d="M3 12h18M12 3v18" />
     </Svg>
   ),
@@ -85,7 +100,7 @@ export const Icon = {
   ),
   Diamond: (p: P) => (
     <Svg {...p}>
-      <path d="M12 4l8 8-8 8-8-8z" />
+      <path d={rp([[12, 4], [20, 12], [12, 20], [4, 12]], 2.4)} />
     </Svg>
   ),
   LinkOut: (p: P) => (
@@ -136,7 +151,7 @@ export const Icon = {
   ),
   Play: (p: P) => (
     <Svg {...p}>
-      <path d="M7 4l13 8-13 8z" />
+      <path d={rp([[7, 4], [20, 12], [7, 20]], 2.4)} />
     </Svg>
   ),
   Pause: (p: P) => (
@@ -159,7 +174,7 @@ export const Icon = {
   ),
   Group: (p: P) => (
     <Svg {...p}>
-      <rect x="4" y="4" width="16" height="16" rx="1" />
+      <rect x="4" y="4" width="16" height="16" rx="3" />
       <path d="M4 12h16M12 4v16" />
     </Svg>
   ),
@@ -186,23 +201,23 @@ export const Icon = {
   SkipBack: (p: P) => (
     <Svg {...p}>
       <path d="M6 5v14" />
-      <path d="M19 6l-9 6 9 6z" />
+      <path d={rp([[19, 6], [10, 12], [19, 18]], 1.8)} />
     </Svg>
   ),
   SkipForward: (p: P) => (
     <Svg {...p}>
       <path d="M18 5v14" />
-      <path d="M5 6l9 6-9 6z" />
+      <path d={rp([[5, 6], [14, 12], [5, 18]], 1.8)} />
     </Svg>
   ),
   Rewind: (p: P) => (
     <Svg {...p}>
-      <path d="M11 6l-8 6 8 6zM21 6l-8 6 8 6z" fill="currentColor" />
+      <path d={rp([[11, 6], [3, 12], [11, 18]], 1.6) + rp([[21, 6], [13, 12], [21, 18]], 1.6)} fill="currentColor" />
     </Svg>
   ),
   FastForward: (p: P) => (
     <Svg {...p}>
-      <path d="M13 6l8 6-8 6zM3 6l8 6-8 6z" fill="currentColor" />
+      <path d={rp([[13, 6], [21, 12], [13, 18]], 1.6) + rp([[3, 6], [11, 12], [3, 18]], 1.6)} fill="currentColor" />
     </Svg>
   ),
   Minus: (p: P) => (
@@ -212,7 +227,7 @@ export const Icon = {
   ),
   Monitor: (p: P) => (
     <Svg {...p}>
-      <rect x="3" y="4" width="18" height="12" rx="2" />
+      <rect x="3" y="4" width="18" height="12" rx="3" />
       <path d="M8 20h8M12 16v4" />
     </Svg>
   ),
@@ -232,7 +247,7 @@ export const Icon = {
   ),
   Sparkle: (p: P) => (
     <Svg {...p}>
-      <path d="M11 3l1.9 5.1L18 10l-5.1 1.9L11 17l-1.9-5.1L4 10l5.1-1.9z" />
+      <path d={rp([[11, 3], [12.9, 8.1], [18, 10], [12.9, 11.9], [11, 17], [9.1, 11.9], [4, 10], [9.1, 8.1]], 1.3)} />
       <path d="M19 15v5M16.5 17.5h5" />
     </Svg>
   ),
@@ -250,22 +265,22 @@ export const Icon = {
   ),
   Apps: (p: P) => (
     <Svg {...p}>
-      <rect x="4" y="4" width="6.5" height="6.5" rx="1.5" />
-      <rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5" />
-      <rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5" />
+      <rect x="4" y="4" width="6.5" height="6.5" rx="2.2" />
+      <rect x="13.5" y="4" width="6.5" height="6.5" rx="2.2" />
+      <rect x="4" y="13.5" width="6.5" height="6.5" rx="2.2" />
       <path d="M16.75 13.5v6.5M13.5 16.75H20" />
     </Svg>
   ),
   Image: (p: P) => (
     <Svg {...p}>
-      <rect x="4" y="4" width="16" height="16" rx="2" />
+      <rect x="4" y="4" width="16" height="16" rx="3" />
       <circle cx="9" cy="9" r="1.5" />
       <path d="M20 16l-4.5-4.5L7 20" />
     </Svg>
   ),
   Resolution: (p: P) => (
     <Svg {...p}>
-      <path d="M4 9V4h5M20 15v5h-5M4 4l6 6M20 20l-6-6" />
+      <path d="M4 9V6a2 2 0 0 1 2-2h3M20 15v3a2 2 0 0 1-2 2h-3M4 4l6 6M20 20l-6-6" />
     </Svg>
   ),
   Volume: (p: P) => (
@@ -282,18 +297,31 @@ export const Icon = {
   ),
   Layers: (p: P) => (
     <Svg {...p}>
-      <path d="M12 3l9 5-9 5-9-5z" />
+      <path d={rp([[12, 3], [21, 8], [12, 13], [3, 8]], 1.8)} />
       <path d="M3 12l9 5 9-5M3 16l9 5 9-5" />
+    </Svg>
+  ),
+  // A rounded screen with a bar along the bottom: the timeline panel, open (solid bar) and closed (outline bar).
+  PanelBottom: (p: P) => (
+    <Svg {...p}>
+      <rect x="3" y="3.5" width="18" height="17" rx="4" />
+      <path d="M3 14.5h18v2.5a3.5 3.5 0 0 1-3.5 3.5h-11A3.5 3.5 0 0 1 3 17z" fill="currentColor" />
+    </Svg>
+  ),
+  PanelBottomClosed: (p: P) => (
+    <Svg {...p}>
+      <rect x="3" y="3.5" width="18" height="17" rx="4" />
+      <path d="M7.5 16.5h9" />
     </Svg>
   ),
   Pointer: (p: P) => (
     <Svg {...p}>
-      <path d="M5 3l6.5 17 2.4-7.1L21 10.5z" />
+      <path d={rp([[5, 3], [11.5, 20], [13.9, 12.9], [21, 10.5]], 1.6)} />
     </Svg>
   ),
   PanelRight: (p: P) => (
     <Svg {...p}>
-      <rect x="3" y="4" width="18" height="16" rx="2" />
+      <rect x="3" y="4" width="18" height="16" rx="3" />
       <path d="M15 4v16" />
     </Svg>
   ),
@@ -305,7 +333,7 @@ export const Icon = {
   ),
   Component: (p: P) => (
     <Svg {...p}>
-      <path d="M12 3l3 3-3 3-3-3zM12 15l3 3-3 3-3-3zM6 9l3 3-3 3-3-3zM18 9l3 3-3 3-3-3z" />
+      <path d={[[12, 6], [12, 18], [6, 12], [18, 12]].map(([x, y]) => rp([[x, y - 3], [x + 3, y], [x, y + 3], [x - 3, y]], 1.1)).join("")} />
     </Svg>
   ),
   More: (p: P) => (
@@ -361,12 +389,12 @@ export const Icon = {
   ),
   FlipH: (p: P) => (
     <Svg {...p}>
-      <path d="M12 3v18M8 7l-5 5 5 5zM16 7l5 5-5 5z" />
+      <path d={"M12 3v18" + rp([[8, 7], [3, 12], [8, 17]], 1.2) + rp([[16, 7], [21, 12], [16, 17]], 1.2)} />
     </Svg>
   ),
   FlipV: (p: P) => (
     <Svg {...p}>
-      <path d="M3 12h18M7 8l5-5 5 5zM7 16l5 5 5-5z" />
+      <path d={"M3 12h18" + rp([[7, 8], [12, 3], [17, 8]], 1.2) + rp([[7, 16], [12, 21], [17, 16]], 1.2)} />
     </Svg>
   ),
   HugWidth: (p: P) => (
@@ -381,7 +409,7 @@ export const Icon = {
   ),
   FixedSize: (p: P) => (
     <Svg {...p}>
-      <rect x="4" y="5" width="16" height="14" rx="2" />
+      <rect x="4" y="5" width="16" height="14" rx="3" />
       <path d="M8 10h8M8 14h5" />
     </Svg>
   ),

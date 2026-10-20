@@ -54,6 +54,7 @@ export function Editor() {
   const { state, dispatch } = useApp()
   const [sizes, set] = usePanelSizes()
   const [animateOpen, setAnimateOpen] = useAnimateOpen()
+  const [timelineCollapsed, setTimelineCollapsed] = useState(false)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -64,6 +65,12 @@ export function Editor() {
         return
       }
       if (e.target instanceof Element && e.target.closest('input, textarea, select')) return
+      // ⌘Z undoes the last storyboard edit, ⇧⌘Z (or ⌘Y) redoes it. Text fields keep their own undo.
+      if ((e.metaKey || e.ctrlKey) && !e.altKey && ['z', 'y'].includes(e.key.toLowerCase())) {
+        e.preventDefault()
+        dispatch({ type: e.key.toLowerCase() === 'y' || e.shiftKey ? 'redo' : 'undo' })
+        return
+      }
       if (e.metaKey || e.ctrlKey || e.altKey) return
       if (e.key === 'c') dispatch({ type: 'mode', mode: 'comment' })
       if (e.key === 'v') dispatch({ type: 'mode', mode: 'select' })
@@ -79,7 +86,7 @@ export function Editor() {
   }, [state.preview, state.composing, state.mode, state.board.chapters.length, dispatch])
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-surface text-[12px] text-ink">
+    <div className="flex h-screen flex-col overflow-hidden bg-surface p-2 text-[12px] text-ink">
       <div className="flex min-h-0 flex-1">
         <LeftPanel width={sizes.left} />
         <Resizer axis="x" value={sizes.left} min={200} max={420} sign={1} onChange={set('left')} onReset={() => set('left')(DEFAULTS.left)} />
@@ -93,8 +100,8 @@ export function Editor() {
           <CollapsedAnimatePanel onExpand={() => setAnimateOpen(true)} />
         )}
       </div>
-      <Resizer axis="y" value={sizes.bottom} min={150} max={400} sign={-1} onChange={set('bottom')} onReset={() => set('bottom')(DEFAULTS.bottom)} />
-      <Timeline height={sizes.bottom} />
+      {!timelineCollapsed && <Resizer axis="y" value={sizes.bottom} min={150} max={400} sign={-1} onChange={set('bottom')} onReset={() => set('bottom')(DEFAULTS.bottom)} />}
+      <Timeline height={sizes.bottom} collapsed={timelineCollapsed} onToggle={() => setTimelineCollapsed((c) => !c)} />
       {state.preview && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-10" onClick={() => dispatch({ type: 'preview', open: false })}>
           <div className="w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
@@ -149,7 +156,7 @@ function Resizer({
     <div
       onPointerDown={down}
       onDoubleClick={onReset}
-      className={`group relative z-30 shrink-0 ${axis === 'x' ? 'w-px cursor-col-resize bg-line' : 'h-px cursor-row-resize bg-line'}`}
+      className={`group relative z-30 shrink-0 ${axis === 'x' ? '-mt-2 w-px cursor-col-resize bg-line' : '-mx-2 h-px cursor-row-resize bg-line'}`}
     >
       <div
         className={`absolute transition-colors group-hover:bg-accent-line/50 group-active:bg-accent ${

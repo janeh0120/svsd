@@ -7,7 +7,7 @@ import { Icon } from './icons'
 import { PinMarker } from './Pin'
 
 // Room either side of the reel so the playhead pill stays centred on its line at 0 and at the end.
-const EDGE = 28
+const EDGE = 24
 const ACCENT = 'var(--accent)' // lime: the chapter under the playhead
 const ACCENT_LINE = 'var(--accent-line)' // lime strokes: playhead, selected clip
 const THUMB_H = 28
@@ -15,7 +15,7 @@ const THUMB_H = 28
 // Transport, ruler, chapter blocks and frame thumbnails. Every width is time:
 // a frame's thumbnail spans its cut-in plus its hold, a chapter spans its frames.
 // It spans the full width of the window.
-export function Timeline({ height }: { height: number }) {
+export function Timeline({ height, collapsed, onToggle }: { height: number; collapsed: boolean; onToggle: () => void }) {
   const { state, dispatch, startComment } = useApp()
   const comment = state.mode === 'comment'
   const content = useRef<HTMLDivElement>(null)
@@ -30,7 +30,7 @@ export function Timeline({ height }: { height: number }) {
 
   useEffect(() => {
     if (!area.current) return
-    const ro = new ResizeObserver(([e]) => setWidth(e.contentRect.width - 2 * EDGE))
+    const ro = new ResizeObserver(([e]) => e.contentRect.width && setWidth(e.contentRect.width - 2 * EDGE))
     ro.observe(area.current)
     return () => ro.disconnect()
   }, [])
@@ -165,14 +165,14 @@ export function Timeline({ height }: { height: number }) {
           <span
             onPointerDown={trim(kind, id, 'start')}
             onClick={(e) => e.stopPropagation()}
-            title={kind === 'chapter' ? 'Drag to change the cut into this chapter' : 'Drag to change the cut into this frame'}
+            title={kind === 'chapter' ? 'Drag to change the cut into this chapter' : 'Drag to change the cut into this shot'}
             className={`absolute inset-y-0 left-0 z-10 w-2 cursor-ew-resize rounded-l-[3px] bg-inverse/70 after:absolute after:inset-y-[30%] after:left-[3px] after:w-px after:bg-raised ${show ? 'opacity-100' : 'opacity-0 group-hover/clip:opacity-100'}`}
           />
         )}
         <span
           onPointerDown={trim(kind, id, 'end')}
           onClick={(e) => e.stopPropagation()}
-          title={kind === 'chapter' ? 'Drag to stretch the whole chapter' : 'Drag to change how long this frame holds'}
+          title={kind === 'chapter' ? 'Drag to stretch the whole chapter' : 'Drag to change how long this shot holds'}
           className={`absolute inset-y-0 right-0 z-10 w-2 cursor-ew-resize rounded-r-[3px] bg-inverse/70 after:absolute after:inset-y-[30%] after:right-[3px] after:w-px after:bg-raised ${show ? 'opacity-100' : 'opacity-0 group-hover/clip:opacity-100'}`}
         />
       </>
@@ -186,9 +186,9 @@ export function Timeline({ height }: { height: number }) {
   const ticks = Array.from({ length: Math.floor(contentW / (minor * pxPerSec)) + 1 }, (_, i) => +(i * minor).toFixed(2))
 
   return (
-    <div id="timeline" className="flex shrink-0 flex-col bg-surface px-4" style={{ height }}>
+    <div id="timeline" className="flex shrink-0 flex-col bg-surface" style={{ height: collapsed ? 40 : height }}>
       {/* Transport */}
-      <div className="relative flex h-10 shrink-0 items-center">
+      <div className="relative flex h-10 shrink-0 items-center px-2">
         <span className="text-[11px] tabular-nums">
           {clock(playhead)} / {clock(total)}
         </span>
@@ -196,7 +196,7 @@ export function Timeline({ height }: { height: number }) {
           <button onClick={() => seekTo(0)} title="Go to start" className="hover:text-ink">
             <Icon.SkipBack size={12} />
           </button>
-          <button onClick={prevFrame} title="Previous frame" className="hover:text-ink">
+          <button onClick={prevFrame} title="Previous shot" className="hover:text-ink">
             <Icon.Rewind size={12} />
           </button>
           <button
@@ -206,7 +206,7 @@ export function Timeline({ height }: { height: number }) {
           >
             {playing ? <Icon.Pause size={12} /> : <Icon.Play size={11} fill="currentColor" />}
           </button>
-          <button onClick={nextFrame} title="Next frame" className="hover:text-ink">
+          <button onClick={nextFrame} title="Next shot" className="hover:text-ink">
             <Icon.FastForward size={12} />
           </button>
           <button onClick={() => seekTo(total)} title="Go to end" className="hover:text-ink">
@@ -230,14 +230,14 @@ export function Timeline({ height }: { height: number }) {
           <button onClick={() => setZoom((z) => Math.min(4, +(z + 0.5).toFixed(1)))} title="Zoom in">
             <Icon.Plus size={12} />
           </button>
-          <button onClick={() => dispatch({ type: 'preview', open: true })} title="Preview" className="ml-3">
-            <Icon.Monitor size={14} />
+          <button onClick={onToggle} title={collapsed ? 'Expand timeline' : 'Collapse timeline'} className="ml-3">
+            {collapsed ? <Icon.PanelBottomClosed size={16} /> : <Icon.PanelBottom size={16} />}
           </button>
         </div>
       </div>
 
       {/* Ruler, chapters and thumbnails share one horizontal scroll */}
-      <div ref={area} className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden">
+      <div ref={area} className={`min-h-0 flex-1 overflow-x-auto overflow-y-hidden ${collapsed ? 'hidden' : ''}`}>
         <div style={{ width: contentW + 2 * EDGE, paddingInline: EDGE }}>
         <div ref={content} className="relative" style={{ width: contentW }}>
           <div className={`relative h-8 ${comment ? 'cursor-ai hover:bg-accent-soft' : 'cursor-pointer'}`} onPointerDown={scrub}>
@@ -286,11 +286,12 @@ export function Timeline({ height }: { height: number }) {
                   style={{
                     left: x(s.from),
                     width: Math.max(2, x(s.end) - x(s.from) - 2),
-                    boxShadow: selected ? `inset 0 0 0 2px ${ACCENT_LINE}` : undefined,
                   }}
-                  title={`Frame ${i + 1} · ${((s.end - s.from) / 1000).toFixed(1)}s`}
+                  title={`Shot ${i + 1} · ${((s.end - s.from) / 1000).toFixed(1)}s`}
                 >
                   <FrameThumb frame={board.frames[s.id]} width={Math.max(2, x(s.end) - x(s.from) - 2)} height={THUMB_H} />
+                  {/* Drawn over the thumbnail with the clip's own radius; the old inset shadow sat under the image and barely showed. */}
+                  <span className={`pointer-events-none absolute inset-0 rounded-[3px] ring-inset transition-shadow ${selected ? 'ring-2 ring-accent' : 'group-hover/clip:ring-2 group-hover/clip:ring-accent'}`} />
                   {handles('frame', s.id, i === 0, selected)}
                 </button>
               )

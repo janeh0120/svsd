@@ -82,6 +82,24 @@ h2 {
 }
 
 /* Blinking caret for text that types itself out. */
+/* The selected chapter's border: a conic gradient whose start angle keeps turning, so the colours travel clockwise. */
+@property --chapter-angle {
+  syntax: '<angle>';
+  inherits: false;
+  initial-value: 0deg;
+}
+@keyframes chapter-spin {
+  to {
+    --chapter-angle: 360deg;
+  }
+}
+@utility chapter-spin {
+  animation: chapter-spin 4s linear infinite;
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
 @keyframes caret {
   50% {
     opacity: 0;
@@ -89,6 +107,44 @@ h2 {
 }
 
 /* Mode cursors use the system ones: crosshair while commenting with the agent, grab hand to pan. */
+/* Headings and titles are plain labels: no text cursor or selection until something makes them editable. */
+@layer base {
+  h1,
+  h2,
+  h3,
+  h4,
+  .font-display {
+    cursor: default;
+    user-select: none;
+  }
+}
+
+/* A divider drawn inside a panel that runs the 8px gutter on both sides, so it reaches the window edge and the panel divider. */
+@utility rule-t {
+  position: relative;
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -0.5rem;
+    right: -0.5rem;
+    height: 1px;
+    background: var(--color-line);
+  }
+}
+@utility rule-b {
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: -0.5rem;
+    right: -0.5rem;
+    height: 1px;
+    background: var(--color-line);
+  }
+}
+
 @utility cursor-ai {
   cursor: crosshair;
 }

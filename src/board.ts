@@ -41,15 +41,15 @@ export function sameTarget(a: Target | null, b: Target | null) {
   return !!a && !!b && JSON.stringify(a) === JSON.stringify(b)
 }
 
-// Human label for what a comment points at, e.g. "Frame 2 › Title".
+// Human label for what a comment points at, e.g. "Shot 2 › Title".
 export function targetLabel(t: Target, b: Storyboard): string {
   switch (t.kind) {
     case 'layer': {
       const layer = b.frames[t.frameId]?.layers.find((l) => l.id === t.layerId)
-      return `Frame ${frameNumber(b, t.frameId)} › ${layer?.name ?? 'layer'}`
+      return `Shot ${frameNumber(b, t.frameId)} › ${layer?.name ?? 'layer'}`
     }
     case 'frame':
-      return `Frame ${frameNumber(b, t.frameId)}`
+      return `Shot ${frameNumber(b, t.frameId)}`
     case 'cut': {
       const [from, to] = t.key.split('->')
       return `Cut ${frameNumber(b, from)} → ${frameNumber(b, to)}`
@@ -140,5 +140,5 @@ export function targetFrame(t: Target, b: Storyboard): string | undefined {
 export function frameTitle(f: Frame): string {
   if (f.name) return f.name
   const text = (id: string) => f.layers.find((l) => l.id === id && l.kind === 'text')?.text
-  return text('caption') ?? text('title') ?? f.layers.find((l) => l.kind === 'text')?.text ?? f.layers[0]?.name ?? 'Frame'
+  return text('caption') ?? text('title') ?? f.layers.find((l) => l.kind === 'text')?.text ?? f.layers[0]?.name ?? 'Shot'
 }

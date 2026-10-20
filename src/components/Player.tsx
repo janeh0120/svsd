@@ -185,7 +185,7 @@ export function Player({ board, autoPlay = false, compact = false, startId }: { 
           ))}
         </div>
         <span className="w-24 shrink-0 text-right text-[11px] text-white/60">
-          Frame {idx + 1}/{ids.length} · {(total / 1000).toFixed(1)}s
+          Shot {idx + 1}/{ids.length} · {(total / 1000).toFixed(1)}s
         </span>
       </div>
     </div>

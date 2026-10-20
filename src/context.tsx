@@ -80,18 +80,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
       await step('Outlining the narrative arc', draft.chapters.map((a) => a.name).join(' → '), 1200)
 
       // Draft the storyboard one chapter at a time so it fills in on the canvas.
-      const id = say({ author: 'agent', kind: 'step', text: 'Drafting storyboard frames', status: 'running' })
+      const id = say({ author: 'agent', kind: 'step', text: 'Drafting storyboard shots', status: 'running' })
       for (let n = 1; n <= draft.chapters.length; n++) {
         dispatch({ type: 'load', board: { ...draft, chapters: draft.chapters.slice(0, n) } })
         document.getElementById(`chapter-${draft.chapters[n - 1].id}`)?.scrollIntoView({ behavior: 'smooth', inline: 'nearest', block: 'nearest' })
         await sleep(700)
       }
-      dispatch({ type: 'messageUpdate', id, patch: { status: 'done', detail: `${order(draft).length} frames with copy and screenshots` } })
+      dispatch({ type: 'messageUpdate', id, patch: { status: 'done', detail: `${order(draft).length} shots with copy and screenshots` } })
       document.getElementById('canvas')?.scrollTo({ left: 0, behavior: 'smooth' })
       await sleep(400)
       say({
         author: 'agent',
-        text: `Here's the first storyboard: ${draft.chapters.length} chapters and ${order(draft).length} frames. Have a look on the canvas. You can comment on any frame, cut or chapter (C or @). Once you approve, I'll record the screen flows and animate the frames together.`,
+        text: `Here's the first storyboard: ${draft.chapters.length} chapters and ${order(draft).length} shots. Have a look on the canvas. You can comment on any shot, cut or chapter (C or @). Once you approve, I'll record the screen flows and animate the shots together.`,
       })
       dispatch({ type: 'phase', phase: 'review' })
       askApproval()
@@ -99,7 +99,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     [say, step, askApproval],
   )
 
-  // Approved → the agent records the product flows and animates the frames.
+  // Approved → the agent records the product flows and animates the shots.
   const animate = useCallback(async () => {
     dispatch({ type: 'phase', phase: 'animating' })
     await sleep(400)
@@ -110,15 +110,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
     const swapped = Object.keys(recorded.frames).filter((id) => recorded.frames[id] !== latest.current.board.frames[id]).length
     if (swapped) {
       dispatch({ type: 'load', board: recorded })
-      say({ author: 'agent', text: `Swapped ${swapped} frames from screenshots to screen recordings.` })
+      say({ author: 'agent', text: `Swapped ${swapped} shots from screenshots to screen recordings.` })
     }
-    await step('Matching layers between frames', undefined, 1100)
+    await step('Matching layers between shots', undefined, 1100)
     await step('Timing cuts to your outline', undefined, 1100)
     const t = timing(latest.current.board)
     dispatch({ type: 'phase', phase: 'ready' })
     say({
       author: 'agent',
-      text: `The animated reel is ready: ${t.frames.length} frames, about ${Math.round(t.total / 1000)}s. Press ▷ to preview it, and comment on anything you want changed.`,
+      text: `The animated reel is ready: ${t.frames.length} shots, about ${Math.round(t.total / 1000)}s. Press ▷ to preview it, and comment on anything you want changed.`,
     })
   }, [step, say])
 
@@ -137,7 +137,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       else if (a !== 'skip' && 'option' in a)
         say({
           author: 'agent',
-          text: "What should change? Point at a frame, a cut or a chapter (press C or type @) and leave a comment, or describe it here. When you're happy, tell me to continue and I'll add the animation.",
+          text: "What should change? Point at a shot, a cut or a chapter (press C or type @) and leave a comment, or describe it here. When you're happy, tell me to continue and I'll add the animation.",
         })
       else if (a !== 'skip') {
         // "Something else": treat it as feedback on the storyboard.
@@ -232,7 +232,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         } else {
           say({
             author: 'agent',
-            text: 'To change something specific, point at it: type @ or press C, click an element, a gap between frames or a chapter title, and I’ll edit only that.',
+            text: 'To change something specific, point at it: type @ or press C, click an element, a gap between shots or a chapter title, and I’ll edit only that.',
           })
         }
       }, 1600)
