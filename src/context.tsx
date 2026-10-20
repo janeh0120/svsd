@@ -2,7 +2,6 @@ import { createContext, useCallback, useContext, useReducer, useRef, type ReactN
 import { FRAME_H, FRAME_W, order, targetLabel, timing, uid } from './board'
 import { agentRespond } from './mock/agent'
 import { mockDraft } from './mock/draft'
-import { guessName } from './mock/name'
 import { withRecordings } from './mock/productDemoDraft'
 import { initialState, reducer, type Action, type State } from './store'
 import type { Answer, Message, Pin, Target } from './types'
@@ -67,7 +66,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'phase', phase: 'drafting' })
       await sleep(500)
       say({ author: 'agent', text: `On it. I'll read ${url}, pull screens of the product, and draft a storyboard from your outline.` })
-      dispatch({ type: 'rename', name: guessName(prompt) })
+      dispatch({ type: 'rename', name: 'Agent Demo Reel' })
       await step(`Reading ${url}`, 'Pages, product copy and features', 1300)
       const shots = [...new Set(Object.values(draft.frames).flatMap((f) => f.layers.filter((l) => l.kind === 'image').map((l) => l.src!)))]
       await step('Capturing screens', `${shots.length} screens at 1440 × 900`, 1300)
