@@ -231,6 +231,21 @@ export const Icon = {
       <path d="M8 20h8M12 16v4" />
     </Svg>
   ),
+  Stiffness: (p: P) => (
+    <Svg {...p}>
+      <path d="M3 12h3l1.5-5 3 10 3-10 3 10 1.5-5h3" />
+    </Svg>
+  ),
+  Damping: (p: P) => (
+    <Svg {...p}>
+      <path d="M3 12c2-8 4-8 6 0s4 8 6 0M17 9v6M20 7v10" />
+    </Svg>
+  ),
+  Mass: (p: P) => (
+    <Svg {...p}>
+      <path d="M2 10v4M5 8v8M7 12h10M19 8v8M22 10v4" />
+    </Svg>
+  ),
   Gauge: (p: P) => (
     <Svg {...p}>
       <circle cx="12" cy="12" r="9" />

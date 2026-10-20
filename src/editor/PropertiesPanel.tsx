@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { ANIMATIONS, DEFAULT_CAMERA, DEFAULT_SPRING, FEELS, cutEase, cutKey, cutMs, exitOf, getCut, order, targetLabel } from '../board'
+import { ANIMATIONS, DEFAULT_CAMERA, DEFAULT_SPRING, FEELS, clampSpring, cutEase, cutKey, cutMs, exitOf, getCut, order, targetLabel } from '../board'
 import { useApp } from '../context'
 import type { Cut, CutAnimation, Spring, Storyboard } from '../types'
 import { requestZoom, useCanvasZoom } from './canvasZoom'
 import { DesignPanel } from './DesignPanel'
 import { Icon } from './icons'
-import { BezierEditor, CameraEditor, EasePreview } from './MotionControls'
+import { BezierEditor, CameraEditor, EasePreview, SpringEditor } from './MotionControls'
 
 // Right sidebar: Design (properties of the selected frame or layer) and
 // Animate (live preview plus motion: cuts, timing, camera).
@@ -209,7 +209,7 @@ function MotionSection({ cut, onChange, label, between, noAnimation }: { cut: Cu
         <EasingPicker cut={cut} saved={saved} onRemove={(id) => setSaved(saved.filter((e) => e.id !== id))} onChange={onChange} />
       </Labeled>
       <Labeled label="Duration">
-        <Field prefix={<Icon.Loop size={11} />} value={cutMs(cut)} suffix="ms" step={50} onChange={(v) => onChange({ duration: Math.max(0, v) })} />
+        <Field prefix={<Icon.Loop size={11} />} value={cutMs(cut)} suffix="ms" step={50} disabled={cut.custom === 'spring'} onChange={(v) => onChange({ duration: Math.max(0, v) })} />
       </Labeled>
       {cut.custom === 'bezier' && (
         <>
@@ -233,17 +233,14 @@ function MotionSection({ cut, onChange, label, between, noAnimation }: { cut: Cu
         </>
       )}
       {cut.custom === 'spring' && (
-        <div className="space-y-1.5">
-          <Labeled label="Stiffness">
-            <Field prefix="K" value={spring.stiffness} step={10} onChange={(v) => onChange({ spring: { ...spring, stiffness: Math.max(1, v) } })} />
-          </Labeled>
-          <Labeled label="Damping">
-            <Field prefix="C" value={spring.damping} step={1} onChange={(v) => onChange({ spring: { ...spring, damping: Math.max(0.1, v) } })} />
-          </Labeled>
-          <Labeled label="Mass">
-            <Field prefix="M" value={spring.mass} step={0.1} onChange={(v) => onChange({ spring: { ...spring, mass: Math.max(0.1, v) } })} />
-          </Labeled>
-        </div>
+        <>
+          <SpringEditor value={spring} onChange={(s) => onChange({ spring: s })} />
+          <div className="space-y-1.5">
+            <Field prefix={<Icon.Stiffness size={13} />} value={spring.stiffness} suffix="Stiffness" step={10} onChange={(v) => onChange({ spring: clampSpring({ ...spring, stiffness: v }) })} />
+            <Field prefix={<Icon.Damping size={13} />} value={spring.damping} suffix="Damping" step={1} onChange={(v) => onChange({ spring: clampSpring({ ...spring, damping: v }) })} />
+            <Field prefix={<Icon.Mass size={13} />} value={spring.mass} suffix="Mass" step={0.1} onChange={(v) => onChange({ spring: clampSpring({ ...spring, mass: v }) })} />
+          </div>
+        </>
       )}
       {cut.custom && (
         <button onClick={save} className="flex h-7 w-full items-center justify-center gap-1.5 rounded-tile bg-control text-[11px] text-muted hover:bg-control-hover hover:text-ink">
@@ -360,7 +357,7 @@ function PickerField({ title, trigger, bare, noChevron, children }: { title: str
   )
 }
 
-// Transition (or animation) type: Smart animate, Dissolve or Instant.
+// Transition (or animation) type: Magic motion, Dissolve or Instant.
 function TransitionPicker({ value, onPick }: { value: CutAnimation; onPick: (v: CutAnimation) => void }) {
   return (
     <PickerField title="Transition" trigger={<span className="min-w-0 flex-1 truncate text-left">{ANIMATIONS[value]}</span>}>
@@ -488,12 +485,13 @@ function Labeled({ label, children }: { label: string; children: ReactNode }) {
   )
 }
 
-function Field({ prefix, value, onChange, suffix, step = 1 }: { prefix: ReactNode; value: number; onChange: (v: number) => void; suffix?: string; step?: number }) {
+function Field({ prefix, value, onChange, suffix, step = 1, disabled }: { prefix: ReactNode; value: number; onChange: (v: number) => void; suffix?: string; step?: number; disabled?: boolean }) {
   return (
-    <label className="flex h-7 min-w-0 items-center gap-1.5 rounded-control bg-control px-2">
+    <label className={`flex h-7 min-w-0 items-center gap-1.5 rounded-control bg-control px-2 ${disabled ? 'opacity-60' : ''}`} title={disabled ? 'A spring takes as long as it needs to settle' : undefined}>
       <span className="flex w-3 shrink-0 justify-center text-[11px] text-muted">{prefix}</span>
       <input
         type="number"
+        disabled={disabled}
         step={step}
         value={Number.isInteger(value) ? value : +value.toFixed(2)}
         onChange={(e) => e.target.value !== '' && onChange(+e.target.value)}

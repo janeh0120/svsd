@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { FRAME_H, FRAME_W, clampCamera } from '../board'
+import { FRAME_H, FRAME_W, clampCamera, clampSpring } from '../board'
 import { LayerBody, layerStyle } from '../components/Layer'
 import { animate, motion, useMotionValue, useTransform } from 'motion/react'
 import type { Camera, CutAnimation, Frame, Spring } from '../types'
@@ -70,7 +70,7 @@ export function BezierEditor({ value, onChange }: { value: Bezier; onChange: (b:
 }
 
 // A mini cut between two frames that loops with the chosen transition, easing and duration:
-// Smart animate moves and scales the same block (so back easings overshoot), Dissolve crossfades
+// Magic motion moves and scales the same block (so back easings overshoot), Dissolve crossfades
 // two different frames, and Instant swaps them with no blend.
 export function EasePreview({ bezier, spring, ms, animation }: { bezier: Bezier; spring?: Spring; ms: number; animation: CutAnimation }) {
   const p = useMotionValue(0)
@@ -82,7 +82,7 @@ export function EasePreview({ bezier, spring, ms, animation }: { bezier: Bezier;
       animation === 'instant'
         ? animate(p, 1, { duration: 1.4, ease: 'linear', repeat: Infinity, repeatType: 'reverse' })
         : spring
-          ? animate(p, 1, { type: 'spring', ...spring, repeat: Infinity, repeatType: 'reverse', repeatDelay: 0.6 })
+          ? animate(p, 1, { type: 'spring', ...clampSpring(spring), repeat: Infinity, repeatType: 'reverse', repeatDelay: 0.6 })
           : animate(p, 1, { duration: Math.max(0.15, ms / 1000), ease: bezier, repeat: Infinity, repeatType: 'reverse', repeatDelay: 0.6 })
     return () => controls.stop()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -203,6 +203,75 @@ function FrameView({ frame }: { frame: Frame }) {
           </div>
         ))}
       </div>
+    </div>
+  )
+}
+
+// Step response of a spring (0 → 1), sampled for plotting.
+function springCurve(spring: Spring, samples = 120) {
+  const { stiffness, damping, mass } = clampSpring(spring)
+  const dt = 1 / 240
+  let x = 0
+  let v = 0
+  const pts: number[] = [0]
+  let t = 0
+  const span = 1.6
+  let next = span / samples
+  while (t < span) {
+    v += ((stiffness * (1 - x) - damping * v) / mass) * dt
+    x += v * dt
+    t += dt
+    if (t >= next) {
+      pts.push(Number.isFinite(x) ? x : 1)
+      next += span / samples
+    }
+  }
+  return pts
+}
+
+// Spring editor: the response curve, with a dot that drags stiffness and a capsule that drags damping.
+export function SpringEditor({ value, onChange }: { value: Spring; onChange: (s: Spring) => void }) {
+  const svg = useRef<SVGSVGElement>(null)
+  const W = 240
+  const H = 170
+  const pad = 14
+  const top = 40 // y of 1.0; the curve may overshoot above it
+  const base = H - 26
+  const pts = springCurve(value)
+  const py = (y: number) => base - y * (base - top)
+  const px = (i: number) => pad + (i / (pts.length - 1)) * (W - pad * 2)
+  const path = pts.map((y, i) => `${i ? 'L' : 'M'}${px(i).toFixed(1)} ${Math.max(6, py(y)).toFixed(1)}`).join(' ')
+
+  // Handle positions come from the values, so the two always agree with the number fields.
+  const along = (n: number) => pad + Math.min(1, Math.max(0, n)) * (W - pad * 2)
+  const kx = along((value.stiffness - 20) / 480)
+  const cx = along((value.damping - 5) / 55)
+
+  const drag = (which: 'k' | 'c') => (e: React.PointerEvent) => {
+    e.preventDefault()
+    const r = svg.current!.getBoundingClientRect()
+    const move = (ev: PointerEvent) => {
+      const gx = ((ev.clientX - r.left) / r.width) * W
+      const f = Math.min(1, Math.max(0, (gx - pad) / (W - pad * 2)))
+      onChange(clampSpring(which === 'k' ? { ...value, stiffness: Math.round(20 + f * 480) } : { ...value, damping: Math.round(5 + f * 55) }))
+    }
+    const up = () => {
+      window.removeEventListener('pointermove', move)
+      window.removeEventListener('pointerup', up)
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', up)
+  }
+
+  return (
+    <div className="rounded-tile bg-control">
+      <svg ref={svg} viewBox={`0 0 ${W} ${H}`} className="block w-full touch-none select-none">
+        <line x1={pad} x2={W - pad} y1={py(1)} y2={py(1)} stroke="var(--line-strong)" strokeWidth="1" />
+        <line x1={pad} x2={W - pad} y1={base} y2={base} stroke="var(--line)" strokeWidth="1" />
+        <path d={path} fill="none" stroke="var(--ink)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+        <circle onPointerDown={drag('k')} cx={kx} cy={(top + base) / 2 + 20} r="6" fill="var(--control)" stroke="var(--accent)" strokeWidth="2" className="cursor-ew-resize" />
+        <rect onPointerDown={drag('c')} x={cx - 4} y={py(1) - 9} width="8" height="18" rx="4" fill="var(--control)" stroke="var(--accent)" strokeWidth="2" className="cursor-ew-resize" />
+      </svg>
     </div>
   )
 }

@@ -66,7 +66,7 @@ function AgentPanel() {
         {/* While the agent works, a glow rises and falls behind the chat box. */}
         <div
           aria-hidden
-          className={`agent-glow pointer-events-none absolute inset-x-0 bottom-0 transition-opacity duration-700 ${
+          className={`agent-glow pointer-events-none absolute bottom-0 left-0 -right-2 transition-opacity duration-700 ${
             busy || state.working ? 'opacity-100' : 'opacity-0'
           }`}
         />

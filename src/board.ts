@@ -17,16 +17,41 @@ export const FEELS: Record<Feel, { label: string; bezier: Bezier; ms: number }> 
 // The easing for every piece of Sequence's own UI motion (not the per-cut feels above).
 export const UI_EASE: Bezier = [0.5, 0, 0, 1]
 
-export const ANIMATIONS: Record<CutAnimation, string> = { smart: 'Smart animate', dissolve: 'Dissolve', instant: 'Instant' }
+export const ANIMATIONS: Record<CutAnimation, string> = { smart: 'Magic motion', dissolve: 'Dissolve', instant: 'Instant' }
 
 export const DEFAULT_CUT: Cut = { feel: 'smooth', note: '' }
 export const DEFAULT_CAMERA: Camera = { x: 0, y: 0, w: 1 }
 
 export const cutEase = (c: Cut): Bezier => c.bezier ?? FEELS[c.feel].bezier
-export const cutMs = (c: Cut) => (c.animation === 'instant' ? 0 : (c.duration ?? FEELS[c.feel].ms))
 export const DEFAULT_SPRING: Spring = { stiffness: 170, damping: 26, mass: 1 }
+
+// Keeps a spring in a range where it always settles and the plot stays stable.
+export const clampSpring = (s: Spring): Spring => ({
+  stiffness: Math.min(1000, Math.max(1, Number.isFinite(s.stiffness) ? s.stiffness : DEFAULT_SPRING.stiffness)),
+  damping: Math.min(100, Math.max(1, Number.isFinite(s.damping) ? s.damping : DEFAULT_SPRING.damping)),
+  mass: Math.min(10, Math.max(0.1, Number.isFinite(s.mass) ? s.mass : DEFAULT_SPRING.mass)),
+})
+
+// A spring has no set length, so cuts that use one take as long as it needs to come to rest
+// (within a tenth of a percent), capped at 4 s. The timeline, holds and typing all use this.
+export function springSettleMs(spring: Spring) {
+  const { stiffness, damping, mass } = clampSpring(spring)
+  const dt = 1 / 240
+  let x = 0
+  let v = 0
+  let lastOff = 0
+  for (let t = 0; t < 4; t += dt) {
+    v += ((stiffness * (1 - x) - damping * v) / mass) * dt
+    x += v * dt
+    if (Math.abs(1 - x) > 0.001 || Math.abs(v) > 0.01) lastOff = t
+  }
+  return Math.max(100, Math.round(lastOff * 1000 / 50) * 50)
+}
+
+export const cutMs = (c: Cut) =>
+  c.animation === 'instant' ? 0 : c.custom === 'spring' ? springSettleMs(c.spring ?? DEFAULT_SPRING) : (c.duration ?? FEELS[c.feel].ms)
 export const cutTransition = (c: Cut): Transition =>
-  c.custom === 'spring' ? { type: 'spring', ...(c.spring ?? DEFAULT_SPRING) } : { duration: cutMs(c) / 1000, ease: cutEase(c) }
+  c.custom === 'spring' ? { type: 'spring', ...clampSpring(c.spring ?? DEFAULT_SPRING) } : { duration: cutMs(c) / 1000, ease: cutEase(c) }
 
 // A frame's exit settings, with defaults for layers that leave without any.
 export const DEFAULT_EXIT: Cut = { feel: 'smooth', note: '', duration: 350 }

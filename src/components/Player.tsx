@@ -19,7 +19,7 @@ function useWidth<T extends HTMLElement>() {
   return [ref, w] as const
 }
 
-// Plays the storyboard. With Smart animate, layers with the same id move from
+// Plays the storyboard. With Magic motion, layers with the same id move from
 // one frame to the next; Dissolve cross-fades whole frames; Instant cuts. The
 // camera pans and zooms to each frame's camera box using the cut's easing.
 // `compact` is the small preview in the sidebar; otherwise it's the full-screen player.
@@ -133,7 +133,7 @@ export function Player({ board, autoPlay = false, compact = false, startId, loop
           <AnimatePresence>
             {frame.layers.map((l) => (
               <motion.div
-                // Same key across frames = the layer moves (Smart animate). Dissolve keys
+                // Same key across frames = the layer moves (Magic motion). Dissolve keys
                 // layers per frame so the old frame fades out as the new one fades in.
                 key={dissolve ? `${frame.id}:${l.id}` : l.kind === 'image' ? `${l.id}:${l.src}` : l.kind === 'video' ? `${frame.id}:${l.id}` : l.id}
                 className={`absolute ${comment ? 'hover:outline-2 hover:outline-dashed hover:outline-accent-line' : ''}`}
