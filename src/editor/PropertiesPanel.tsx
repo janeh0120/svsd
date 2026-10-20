@@ -23,7 +23,7 @@ export function PropertiesPanel({ width, onCollapse }: { width: number; onCollap
   return (
     <aside className="flex shrink-0 flex-col bg-surface pl-2" style={{ width: width + 8 }}>
       <div className="flex h-10 shrink-0 items-center gap-1 px-3">
-        <button onClick={onCollapse} title="Hide panel" className="-ml-1.5 flex size-7 items-center justify-center rounded-full text-muted hover:bg-control-hover">
+        <button onClick={onCollapse} title="Hide panel" className="-ml-1.5 flex size-7 items-center justify-center rounded-md text-muted hover:bg-control-hover">
           <Icon.PanelRight size={14} />
         </button>
         <button
@@ -180,7 +180,7 @@ function MotionSection({ cutId, cut, label, between }: { cutId: string; cut: Cut
               /* clipboard unavailable */
             }
           }}
-          className="flex size-7 shrink-0 items-center justify-center rounded-full hover:bg-control-hover"
+          className="flex size-7 shrink-0 items-center justify-center rounded-md hover:bg-control-hover"
         >
           <Icon.Copy size={12} />
         </button>
@@ -284,7 +284,7 @@ function PickerField({ title, trigger, bare, noChevron, children }: { title: str
           <div className="fixed z-50 max-h-[70vh] w-56 overflow-y-auto rounded-xl bg-raised p-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.45)]" style={{ left: at.x, top: at.y }}>
             <div className="flex h-8 items-center px-2">
               <span className="font-display text-[13px] font-semibold">{title}</span>
-              <button onClick={() => setOpen(false)} title="Close" className="ml-auto flex size-6 items-center justify-center rounded-full text-muted hover:text-ink">
+              <button onClick={() => setOpen(false)} title="Close" className="ml-auto flex size-6 items-center justify-center rounded-md text-muted hover:text-ink">
                 ✕
               </button>
             </div>
@@ -498,7 +498,7 @@ export function CollapsedAnimatePanel({ onExpand }: { onExpand: () => void }) {
       <button
         onClick={onExpand}
         title="Show panel"
-        className="absolute top-1.5 right-2 z-30 flex size-7 items-center justify-center rounded-full border border-line bg-raised text-muted shadow-sm hover:text-ink"
+        className="absolute top-1.5 right-2 z-30 flex size-7 items-center justify-center rounded-md border border-line bg-raised text-muted shadow-sm hover:text-ink"
       >
         <Icon.PanelRight size={14} />
       </button>
