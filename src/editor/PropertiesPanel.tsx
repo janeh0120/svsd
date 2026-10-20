@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
-import { ANIMATIONS, DEFAULT_CAMERA, FEELS, cutEase, cutKey, cutMs, getCut, order, targetLabel } from '../board'
+import { ANIMATIONS, DEFAULT_CAMERA, DEFAULT_SPRING, FEELS, cutEase, cutKey, cutMs, exitOf, getCut, order, targetLabel } from '../board'
 import { useApp } from '../context'
-import type { Cut, CutAnimation, EnterPreset, Feel, Storyboard } from '../types'
+import type { Cut, CutAnimation, Spring, Storyboard } from '../types'
 import { requestZoom, useCanvasZoom } from './canvasZoom'
 import { DesignPanel } from './DesignPanel'
 import { Icon } from './icons'
@@ -38,19 +38,19 @@ export function PropertiesPanel({ width, onCollapse }: { width: number; onCollap
           Export
         </button>
       </div>
-      <div className="flex h-10 shrink-0 items-center rule-b px-2">
+      <div className="flex h-10 shrink-0 items-center rule-b px-1">
         {(['design', 'animate'] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`h-7 rounded-tile px-3 capitalize ${tab === t ? 'bg-control font-medium' : 'text-muted hover:text-ink'}`}
+            className={`h-7 rounded-tile px-2 capitalize ${tab === t ? 'bg-control font-medium' : 'text-muted hover:text-ink'}`}
           >
             {t}
           </button>
         ))}
         <ZoomMenu />
       </div>
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <div className="-mr-2 -ml-2 min-h-0 flex-1 overflow-y-auto px-2">
         {tab === 'design' ? (
           <DesignPanel />
         ) : (
@@ -101,20 +101,24 @@ function ZoomMenu() {
 }
 
 // Animate tab, for the selection: a connector's motion, or a frame's (or its
-// layer's frame's) cut in, hold time and camera.
+// layer's frame's) enter, camera and exit.
 function AnimateSelection() {
   const { state, dispatch } = useApp()
   const { board, selection: sel } = state
   if (!sel) return null
 
-  const title = <p className="px-3 pt-3 pb-2 font-display text-[13px] font-semibold">{targetLabel(sel, board)}</p>
+  const title = (
+    <div className="flex h-11 items-center rule-b px-3">
+      <span className="font-display text-[13px] font-semibold">{targetLabel(sel, board)}</span>
+    </div>
+  )
 
   if (sel.kind === 'cut') {
     const [from, to] = sel.key.split('->')
     return (
       <>
         {title}
-        <MotionSection cutId={sel.key} cut={getCut(board, from, to)} between={crossesChapters(board, from, to)} />
+        <MotionSection cut={getCut(board, from, to)} onChange={(patch) => dispatch({ type: 'cut', key: sel.key, patch })} between={crossesChapters(board, from, to)} />
       </>
     )
   }
@@ -127,20 +131,16 @@ function AnimateSelection() {
   return (
     <>
       {title}
-      {prev && <MotionSection cutId={cutKey(prev, frame.id)} cut={getCut(board, prev, frame.id)} label="Cut in" between={crossesChapters(board, prev, frame.id)} />}
-      <Section title="Timing">
-        <Labeled label="Hold">
-          <Field
-            prefix={<Icon.Diamond size={10} />}
-            value={frame.hold * 1000}
-            suffix="ms"
-            step={100}
-            onChange={(v) => dispatch({ type: 'frame', frameId: frame.id, patch: { hold: Math.max(0.2, v / 1000) } })}
-          />
-        </Labeled>
-      </Section>
+      {prev && (
+        <MotionSection
+          cut={getCut(board, prev, frame.id)}
+          onChange={(patch) => dispatch({ type: 'cut', key: cutKey(prev, frame.id), patch })}
+          label="Enter"
+          between={crossesChapters(board, prev, frame.id)}
+        />
+      )}
+      <MotionSection cut={exitOf(frame)} onChange={(patch) => dispatch({ type: 'frame', frameId: frame.id, patch: { exit: { ...frame.exit, ...patch } } })} label="Exit" noAnimation />
       <CameraSection frameId={frame.id} />
-      {sel.kind === 'layer' && <EntranceSection frameId={frame.id} layerId={sel.layerId} />}
     </>
   )
 }
@@ -150,42 +150,108 @@ function AnimateSelection() {
 const crossesChapters = (b: Storyboard, from: string, to: string) =>
   b.chapters.find((a) => a.frameIds.includes(from))?.id !== b.chapters.find((a) => a.frameIds.includes(to))?.id
 
-function MotionSection({ cutId, cut, label, between }: { cutId: string; cut: Cut; label?: string; between?: boolean }) {
-  const { dispatch } = useApp()
-  const set = (patch: Partial<Cut>) => dispatch({ type: 'cut', key: cutId, patch })
+type Bez = [number, number, number, number]
+
+// Saved custom easings are a per-viewer convenience, so they live in localStorage.
+type SavedEasing = { id: string; name: string; bezier?: Bez; spring?: Spring }
+const SAVED_KEY = 'svsd.saved-easings'
+function useSavedEasings() {
+  const [list, setList] = useState<SavedEasing[]>(() => {
+    try {
+      return JSON.parse(localStorage.getItem(SAVED_KEY) ?? '[]')
+    } catch {
+      return []
+    }
+  })
+  const update = (next: SavedEasing[]) => {
+    setList(next)
+    try {
+      localStorage.setItem(SAVED_KEY, JSON.stringify(next))
+    } catch {
+      /* storage unavailable: it just won't be remembered */
+    }
+  }
+  return [list, update] as const
+}
+
+// Section header, shared by every block in the Animate panel.
+function SectionTitle({ title }: { title: string }) {
+  return (
+    <div className="flex h-5 items-center">
+      <span className="font-display font-semibold">{title}</span>
+    </div>
+  )
+}
+
+// Animation type (cuts only), easing (preset, custom bezier or custom spring), duration and preview.
+// A cut between the last frame of one chapter and the first of the next is a transition between chapters.
+// An exit is the same fields, but it lives on the frame and sets how its layers leave.
+function MotionSection({ cut, onChange, label, between, noAnimation }: { cut: Cut; onChange: (patch: Partial<Cut>) => void; label?: string; between?: boolean; noAnimation?: boolean }) {
   const bezier = cutEase(cut)
-  const easing = cut.bezier ? 'custom' : cut.feel
+  const spring = cut.spring ?? DEFAULT_SPRING
+  const [saved, setSaved] = useSavedEasings()
+
+  const save = () => {
+    const n = saved.length + 1
+    const entry: SavedEasing = cut.custom === 'spring' ? { id: String(Date.now()), name: `Custom spring ${n}`, spring } : { id: String(Date.now()), name: `Custom bezier ${n}`, bezier }
+    setSaved([...saved, entry])
+  }
 
   return (
     <div className="space-y-3 rule-b p-3">
-      {label && <p className="text-[11px] text-muted">{label}</p>}
-      <Labeled label={between ? 'Transition' : 'Animation'}>
-        <TransitionPicker value={cut.animation ?? 'smart'} onPick={(v) => set({ animation: v })} />
-      </Labeled>
+      {label && <SectionTitle title={label} />}
+      {!noAnimation && (
+        <Labeled label={between ? 'Transition' : 'Animation'}>
+          <TransitionPicker value={cut.animation ?? 'smart'} onPick={(v) => onChange({ animation: v })} />
+        </Labeled>
+      )}
       <Labeled label="Easing">
-        <EasingPicker bezier={bezier} custom={!!cut.bezier} feel={cut.feel} onPick={(b) => set({ bezier: b })} />
+        <EasingPicker cut={cut} saved={saved} onRemove={(id) => setSaved(saved.filter((e) => e.id !== id))} onChange={onChange} />
       </Labeled>
       <Labeled label="Duration">
-        <Field prefix={<Icon.Loop size={11} />} value={cutMs(cut)} suffix="ms" step={50} onChange={(v) => set({ duration: Math.max(0, v) })} />
+        <Field prefix={<Icon.Loop size={11} />} value={cutMs(cut)} suffix="ms" step={50} onChange={(v) => onChange({ duration: Math.max(0, v) })} />
       </Labeled>
-      <BezierEditor value={bezier} onChange={(b) => set({ bezier: b })} />
-      <div className="flex items-center gap-1">
-        <BezierInput value={bezier} onChange={(b) => set({ bezier: b })} />
-        <button
-          title="Copy as CSS"
-          onClick={() => {
-            try {
-              navigator.clipboard?.writeText(`cubic-bezier(${bezier.join(', ')})`)
-            } catch {
-              /* clipboard unavailable */
-            }
-          }}
-          className="flex size-7 shrink-0 items-center justify-center rounded-control hover:bg-control-hover"
-        >
-          <Icon.Copy size={12} />
+      {cut.custom === 'bezier' && (
+        <>
+          <BezierEditor value={bezier} onChange={(b) => onChange({ bezier: b })} />
+          <div className="flex items-center gap-1">
+            <BezierInput value={bezier} onChange={(b) => onChange({ bezier: b })} />
+            <button
+              title="Copy as CSS"
+              onClick={() => {
+                try {
+                  navigator.clipboard?.writeText(`cubic-bezier(${bezier.join(', ')})`)
+                } catch {
+                  /* clipboard unavailable */
+                }
+              }}
+              className="flex size-7 shrink-0 items-center justify-center rounded-control hover:bg-control-hover"
+            >
+              <Icon.Copy size={12} />
+            </button>
+          </div>
+        </>
+      )}
+      {cut.custom === 'spring' && (
+        <div className="space-y-1.5">
+          <Labeled label="Stiffness">
+            <Field prefix="K" value={spring.stiffness} step={10} onChange={(v) => onChange({ spring: { ...spring, stiffness: Math.max(1, v) } })} />
+          </Labeled>
+          <Labeled label="Damping">
+            <Field prefix="C" value={spring.damping} step={1} onChange={(v) => onChange({ spring: { ...spring, damping: Math.max(0.1, v) } })} />
+          </Labeled>
+          <Labeled label="Mass">
+            <Field prefix="M" value={spring.mass} step={0.1} onChange={(v) => onChange({ spring: { ...spring, mass: Math.max(0.1, v) } })} />
+          </Labeled>
+        </div>
+      )}
+      {cut.custom && (
+        <button onClick={save} className="flex h-7 w-full items-center justify-center gap-1.5 rounded-tile bg-control text-[11px] text-muted hover:bg-control-hover hover:text-ink">
+          <Icon.Plus size={11} />
+          Save easing
         </button>
-      </div>
-      <EasePreview bezier={bezier} ms={cutMs(cut)} animation={cut.animation ?? 'smart'} />
+      )}
+      <EasePreview bezier={bezier} spring={cut.custom === 'spring' ? spring : undefined} ms={cutMs(cut)} animation={noAnimation ? 'smart' : (cut.animation ?? 'smart')} />
     </div>
   )
 }
@@ -234,11 +300,9 @@ const EASINGS: { label: string; bezier: [number, number, number, number] }[] = [
   { label: 'Ease in', bezier: [0.42, 0, 1, 1] },
   { label: 'Ease out', bezier: [0, 0, 0.58, 1] },
   { label: 'Ease in and out', bezier: [0.42, 0, 0.58, 1] },
-  { label: 'Ease in back', bezier: [0.36, 0, 0.66, -0.56] },
-  { label: 'Ease out back', bezier: [0.34, 1.56, 0.64, 1] },
-  { label: 'Ease in and out back', bezier: [0.68, -0.6, 0.32, 1.6] },
 ]
 const sameBezier = (a: number[], b: number[]) => a.every((n, i) => Math.abs(n - b[i]) < 0.005)
+const sameSpring = (a: Spring, b: Spring) => a.stiffness === b.stiffness && a.damping === b.damping && a.mass === b.mass
 
 // A tiny plot of a cubic bezier, for the easing list.
 function CurveGlyph({ bezier = [0.65, 0, 0.35, 1] }: { bezier?: number[] }) {
@@ -296,93 +360,6 @@ function PickerField({ title, trigger, bare, noChevron, children }: { title: str
   )
 }
 
-const PRESETS: [EnterPreset, string][] = [
-  ['fade', 'Fade in'],
-  ['slide-up', 'Slide up'],
-  ['slide-down', 'Slide down'],
-  ['slide-left', 'Slide from left'],
-  ['slide-right', 'Slide from right'],
-  ['grow', 'Grow in'],
-  ['shrink', 'Shrink in'],
-  ['spin', 'Spin in'],
-  ['twist', 'Twist in'],
-  ['blur', 'Blur in'],
-  ['blur-scale', 'Blur and scale'],
-  ['blur-slide', 'Blur and slide'],
-]
-
-// How the selected layer arrives when it is new in its frame; the presets follow Jitter's.
-function PresetPicker({ value, onPick }: { value?: EnterPreset; onPick: (v: EnterPreset) => void }) {
-  return (
-    <PickerField title="Entrance" trigger={<span className="min-w-0 flex-1 truncate text-left">{PRESETS.find(([k]) => k === value)?.[1]}</span>}>
-      {(close, row) =>
-        PRESETS.map(([k, label]) => (
-          <button
-            key={k}
-            onClick={() => {
-              onPick(k)
-              close()
-            }}
-            className={row}
-          >
-            <span className="flex-1">{label}</span>
-            {value === k && <span className="text-accent-text">✓</span>}
-          </button>
-        ))
-      }
-    </PickerField>
-  )
-}
-
-// An optional override on the selected layer: the cut in sets timing and easing for the whole frame, and
-// this only changes the style this one layer arrives in. Empty by default; + adds one, − clears it.
-function EntranceSection({ frameId, layerId }: { frameId: string; layerId: string }) {
-  const { state, dispatch } = useApp()
-  const layer = state.board.frames[frameId]?.layers.find((l) => l.id === layerId)
-  if (!layer) return null
-  const set = (enter: EnterPreset | undefined) => dispatch({ type: 'layer', frameId, layerId, patch: { enter } })
-  return (
-    <Section
-      title="Entrance"
-      action={
-        layer.enter ? undefined : (
-          <div className="w-7">
-            <PickerField title="Entrance" bare noChevron trigger={<Icon.Plus size={13} />}>
-              {(close, row) =>
-                PRESETS.map(([k, label]) => (
-                  <button
-                    key={k}
-                    onClick={() => {
-                      set(k)
-                      close()
-                    }}
-                    className={row}
-                  >
-                    {label}
-                  </button>
-                ))
-              }
-            </PickerField>
-          </div>
-        )
-      }
-    >
-      {layer.enter ? (
-        <div className="flex items-center gap-1">
-          <Labeled label="Preset">
-            <PresetPicker value={layer.enter} onPick={set} />
-          </Labeled>
-          <button title="Remove" onClick={() => set(undefined)} className="flex size-7 shrink-0 items-center justify-center text-muted hover:text-ink">
-            <Icon.Minus size={13} />
-          </button>
-        </div>
-      ) : (
-        <p className="text-[11px] text-muted">None. The layer arrives with the cut in.</p>
-      )}
-    </Section>
-  )
-}
-
 // Transition (or animation) type: Smart animate, Dissolve or Instant.
 function TransitionPicker({ value, onPick }: { value: CutAnimation; onPick: (v: CutAnimation) => void }) {
   return (
@@ -406,16 +383,21 @@ function TransitionPicker({ value, onPick }: { value: CutAnimation; onPick: (v: 
   )
 }
 
-// Easing field: shows the current curve, and opens a floating list of the presets, plus Custom bezier.
-function EasingPicker({ bezier, custom, feel, onPick }: { bezier: [number, number, number, number]; custom: boolean; feel: Feel; onPick: (b: [number, number, number, number]) => void }) {
-  const match = custom ? EASINGS.find((e) => sameBezier(e.bezier, bezier)) : undefined
-  const name = match?.label ?? (custom ? 'Custom bezier' : FEELS[feel].label)
+// Easing field: shows the current easing, and opens a floating list of the presets, saved easings,
+// Custom bezier and Custom spring.
+function EasingPicker({ cut, saved, onRemove, onChange }: { cut: Cut; saved: SavedEasing[]; onRemove: (id: string) => void; onChange: (patch: Partial<Cut>) => void }) {
+  const bezier = cutEase(cut)
+  const bounce: Bez = [0.34, 1.56, 0.64, 1]
+  const savedMatch = saved.find((e) => (cut.custom === 'spring' ? e.spring && sameSpring(e.spring, cut.spring ?? DEFAULT_SPRING) : cut.custom === 'bezier' && e.bezier && sameBezier(e.bezier, bezier)))
+  const presetMatch = !cut.custom && cut.bezier ? EASINGS.find((e) => sameBezier(e.bezier, cut.bezier!)) : undefined
+  const name = savedMatch?.name ?? (cut.custom === 'spring' ? 'Custom spring' : cut.custom === 'bezier' ? 'Custom bezier' : (presetMatch?.label ?? (cut.bezier ? 'Custom bezier' : FEELS[cut.feel].label)))
+  const chosen = (label: string) => name === label && !savedMatch
   return (
     <PickerField
       title="Easing"
       trigger={
         <>
-          <CurveGlyph bezier={bezier} />
+          <CurveGlyph bezier={cut.custom === 'spring' ? bounce : bezier} />
           <span className="min-w-0 flex-1 truncate text-left">{name}</span>
         </>
       }
@@ -426,26 +408,57 @@ function EasingPicker({ bezier, custom, feel, onPick }: { bezier: [number, numbe
             <button
               key={e.label}
               onClick={() => {
-                onPick(e.bezier)
+                onChange({ bezier: e.bezier, custom: undefined, spring: undefined })
                 close()
               }}
               className={row}
             >
               <CurveGlyph bezier={e.bezier} />
               <span className="flex-1">{e.label}</span>
-              {match?.label === e.label && <span className="text-accent-text">✓</span>}
+              {presetMatch?.label === e.label && <span className="text-accent-text">✓</span>}
             </button>
+          ))}
+          {saved.map((e) => (
+            <div key={e.id} className={`${row} group/saved cursor-pointer`} onClick={() => {
+              onChange(e.spring ? { custom: 'spring', spring: e.spring } : { custom: 'bezier', bezier: e.bezier, spring: undefined })
+              close()
+            }}>
+              <CurveGlyph bezier={e.bezier ?? bounce} />
+              <span className="flex-1 truncate">{e.name}</span>
+              {savedMatch?.id === e.id && <span className="text-accent-text">✓</span>}
+              <button
+                title="Delete saved easing"
+                onClick={(ev) => {
+                  ev.stopPropagation()
+                  onRemove(e.id)
+                }}
+                className="hidden text-subtle group-hover/saved:block hover:text-ink"
+              >
+                ✕
+              </button>
+            </div>
           ))}
           <button
             onClick={() => {
-              onPick(bezier)
+              onChange({ custom: 'bezier', bezier, spring: undefined })
               close()
             }}
             className={row}
           >
             <CurveGlyph bezier={bezier} />
             <span className="flex-1">Custom bezier</span>
-            {!match && custom && <span className="text-accent-text">✓</span>}
+            {chosen('Custom bezier') && <span className="text-accent-text">✓</span>}
+          </button>
+          <button
+            onClick={() => {
+              onChange({ custom: 'spring', spring: cut.spring ?? DEFAULT_SPRING })
+              close()
+            }}
+            className={row}
+          >
+            <CurveGlyph bezier={bounce} />
+            <span className="flex-1">Custom spring</span>
+            {chosen('Custom spring') && <span className="text-accent-text">✓</span>}
           </button>
         </>
       )}

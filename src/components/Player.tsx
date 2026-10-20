@@ -1,6 +1,6 @@
 import { AnimatePresence, motion, type Transition } from 'motion/react'
 import { useEffect, useState } from 'react'
-import { DEFAULT_CAMERA, DEFAULT_CUT, FRAME_H, FRAME_W, cutMs, cutTransition, getCut, order, UI_EASE } from '../board'
+import { DEFAULT_CAMERA, DEFAULT_CUT, FRAME_H, FRAME_W, cutMs, cutTransition, exitOf, getCut, order, UI_EASE } from '../board'
 import { Icon } from '../editor/icons'
 import { useApp } from '../context'
 import type { Storyboard } from '../types'
@@ -36,7 +36,12 @@ export function Player({ board, autoPlay = false, compact = false, startId, loop
   const target = Math.max(0, startId ? ids.indexOf(startId) : 0)
   const solo = loop === 'shot'
   const k = 1 / speed // slow-motion factor: every duration and delay is stretched by it
-  const slow = (t: Transition): Transition => ({ ...t, duration: (("duration" in t ? t.duration : 0) ?? 0) * k, delay: (("delay" in t ? t.delay : 0) ?? 0) * k })
+  const slow = (t: Transition): Transition => {
+    const delay = (("delay" in t ? t.delay : 0) ?? 0) * k
+    // A spring has no duration, so stretching time means a softer, more damped spring.
+    if ('type' in t && t.type === 'spring') return { ...t, stiffness: (t.stiffness ?? 100) / (k * k), damping: (t.damping ?? 10) / k, delay }
+    return { ...t, duration: (("duration" in t ? t.duration : 0) ?? 0) * k, delay }
+  }
   const loopFrom = solo ? target : Math.max(0, target - 1)
   const [round, setRound] = useState(0)
   const [i, setI] = useState(() => (loop ? loopFrom : target))
@@ -143,7 +148,9 @@ export function Player({ board, autoPlay = false, compact = false, startId, loop
                   transition: slow(
                     dissolve && !l.exit
                       ? { duration: 0, delay: cutMs(cut) / 1000 }
-                      : { duration: l.exit && dissolve ? Math.max(0.2, cutMs(cut) / 1000 - (l.exitDelay ?? 0)) : 0.35, delay: l.exitDelay ?? 0, ease: UI_EASE },
+                      : l.exit && dissolve
+                        ? { duration: Math.max(0.2, cutMs(cut) / 1000 - (l.exitDelay ?? 0)), delay: l.exitDelay ?? 0, ease: UI_EASE }
+                        : { ...cutTransition(exitOf(frame)), delay: l.exitDelay ?? 0 },
                   ),
                 }}
                 transition={l.delay ? { ...transition, delay: l.delay * k } : transition}

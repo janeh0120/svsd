@@ -509,7 +509,7 @@ function FrameCard({ frameId }: { frameId: string }) {
               dispatch({ type: 'preview', open: true, from: frameId, loop: true })
             }}
             title="Loop this shot's animation"
-            className={`flex size-4 shrink-0 items-center justify-center rounded-full ${frameSelected ? 'bg-accent text-on-accent' : 'bg-secondary-container text-on-secondary-container'}`}
+            className={`flex size-4 shrink-0 items-center justify-center rounded-full ${lit ? 'bg-accent text-on-accent' : 'bg-secondary-container text-on-secondary-container group-hover/card:bg-accent group-hover/card:text-on-accent'} transition-colors`}
           >
             <Icon.Play size={7} fill="currentColor" className="ml-px" />
           </button>

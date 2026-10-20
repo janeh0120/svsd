@@ -1,5 +1,5 @@
 import type { Transition } from 'motion/react'
-import type { Camera, Cut, CutAnimation, Feel, Frame, Layer, Storyboard, Target } from './types'
+import type { Camera, Cut, CutAnimation, Feel, Frame, Layer, Spring, Storyboard, Target } from './types'
 
 export const FRAME_W = 1440
 export const FRAME_H = 900
@@ -24,7 +24,13 @@ export const DEFAULT_CAMERA: Camera = { x: 0, y: 0, w: 1 }
 
 export const cutEase = (c: Cut): Bezier => c.bezier ?? FEELS[c.feel].bezier
 export const cutMs = (c: Cut) => (c.animation === 'instant' ? 0 : (c.duration ?? FEELS[c.feel].ms))
-export const cutTransition = (c: Cut): Transition => ({ duration: cutMs(c) / 1000, ease: cutEase(c) })
+export const DEFAULT_SPRING: Spring = { stiffness: 170, damping: 26, mass: 1 }
+export const cutTransition = (c: Cut): Transition =>
+  c.custom === 'spring' ? { type: 'spring', ...(c.spring ?? DEFAULT_SPRING) } : { duration: cutMs(c) / 1000, ease: cutEase(c) }
+
+// A frame's exit settings, with defaults for layers that leave without any.
+export const DEFAULT_EXIT: Cut = { feel: 'smooth', note: '', duration: 350 }
+export const exitOf = (f: Frame): Cut => ({ ...DEFAULT_EXIT, ...f.exit })
 
 export function clampCamera(c: Camera): Camera {
   const w = Math.min(1, Math.max(0.2, c.w))

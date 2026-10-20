@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { FRAME_H, FRAME_W, clampCamera } from '../board'
 import { LayerBody, layerStyle } from '../components/Layer'
 import { animate, motion, useMotionValue, useTransform } from 'motion/react'
-import type { Camera, CutAnimation, Frame } from '../types'
+import type { Camera, CutAnimation, Frame, Spring } from '../types'
 
 type Bezier = [number, number, number, number]
 
@@ -72,16 +72,18 @@ export function BezierEditor({ value, onChange }: { value: Bezier; onChange: (b:
 // A mini cut between two frames that loops with the chosen transition, easing and duration:
 // Smart animate moves and scales the same block (so back easings overshoot), Dissolve crossfades
 // two different frames, and Instant swaps them with no blend.
-export function EasePreview({ bezier, ms, animation }: { bezier: Bezier; ms: number; animation: CutAnimation }) {
+export function EasePreview({ bezier, spring, ms, animation }: { bezier: Bezier; spring?: Spring; ms: number; animation: CutAnimation }) {
   const p = useMotionValue(0)
-  const curve = bezier.join(',')
+  const curve = bezier.join(',') + (spring ? `|${spring.stiffness},${spring.damping},${spring.mass}` : '')
 
   useEffect(() => {
     p.set(0)
     const controls =
       animation === 'instant'
         ? animate(p, 1, { duration: 1.4, ease: 'linear', repeat: Infinity, repeatType: 'reverse' })
-        : animate(p, 1, { duration: Math.max(0.15, ms / 1000), ease: bezier, repeat: Infinity, repeatType: 'reverse', repeatDelay: 0.6 })
+        : spring
+          ? animate(p, 1, { type: 'spring', ...spring, repeat: Infinity, repeatType: 'reverse', repeatDelay: 0.6 })
+          : animate(p, 1, { duration: Math.max(0.15, ms / 1000), ease: bezier, repeat: Infinity, repeatType: 'reverse', repeatDelay: 0.6 })
     return () => controls.stop()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [curve, ms, animation, p])

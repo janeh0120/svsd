@@ -53,17 +53,25 @@ export type Layer = {
 // the frame's aspect ratio, so its height equals its width in these units.
 export type Camera = { x: number; y: number; w: number }
 
-export type Frame = { id: string; name?: string; hold: number; background: string; layers: Layer[]; camera?: Camera }
+// How a frame's layers leave when the next frame drops them: the same timing and easing
+// fields as a cut, kept on the frame itself so exits are their own setting.
+export type FrameExit = Pick<Cut, 'feel' | 'bezier' | 'spring' | 'custom' | 'duration'>
+
+export type Frame = { id: string; name?: string; hold: number; background: string; layers: Layer[]; camera?: Camera; exit?: Partial<FrameExit> }
 
 export type CutAnimation = 'smart' | 'dissolve' | 'instant'
 
 // A cut is the motion between two frames. `feel` is an easing preset;
 // `bezier` and `duration` override it when set.
+export type Spring = { stiffness: number; damping: number; mass: number }
+
 export type Cut = {
   feel: Feel
   note: string
   animation?: CutAnimation
   bezier?: [number, number, number, number]
+  custom?: 'bezier' | 'spring' // easing chosen as Custom bezier or Custom spring, which shows its editor
+  spring?: Spring
   duration?: number // ms
 }
 
