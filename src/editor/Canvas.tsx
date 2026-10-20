@@ -128,12 +128,19 @@ export function Canvas() {
   // The storyboard's natural size, so the scaled box takes up the room it shows.
   useLayoutEffect(() => {
     const el = content.current!
-    const measure = () => setSize({ w: el.offsetWidth, h: el.offsetHeight })
+    const measure = () => setSize((s) => (s && s.w === el.offsetWidth && s.h === el.offsetHeight ? s : { w: el.offsetWidth, h: el.offsetHeight }))
     measure()
     const ro = new ResizeObserver(measure)
     ro.observe(el)
     return () => ro.disconnect()
   }, [])
+
+  // Also re-measure after every render: if the observer misses a change the box would stay 0×0 and the
+  // storyboard would hang below the middle instead of being centered at any zoom.
+  useLayoutEffect(() => {
+    const el = content.current!
+    setSize((s) => (s && s.w === el.offsetWidth && s.h === el.offsetHeight ? s : { w: el.offsetWidth, h: el.offsetHeight }))
+  })
 
   // Pinch on a trackpad arrives as a ctrl+wheel; it has to be a non-passive listener to stop the page zooming.
   useEffect(() => {
