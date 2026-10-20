@@ -116,7 +116,16 @@ export function Player({ board, autoPlay = false, compact = false, startId }: { 
                 data-layer={l.id}
                 initial={arrival(l) ?? { ...layerBox(l), opacity: 0, y: dissolve ? 0 : 24 }}
                 animate={{ ...layerBox(l), y: 0 }}
-                exit={{ opacity: 0, ...departure(l), transition: { duration: l.exit && dissolve ? Math.max(0.2, cutMs(cut) / 1000 - (l.exitDelay ?? 0)) : dissolve ? cutMs(cut) / 1000 : 0.35, delay: l.exitDelay ?? 0 } }}
+                // A dissolve keeps the old layer opaque underneath until the new frame has faded
+                // in on top, so the crossfade never dips through the background.
+                exit={{
+                  opacity: 0,
+                  ...departure(l),
+                  transition:
+                    dissolve && !l.exit
+                      ? { duration: 0, delay: cutMs(cut) / 1000 }
+                      : { duration: l.exit && dissolve ? Math.max(0.2, cutMs(cut) / 1000 - (l.exitDelay ?? 0)) : 0.35, delay: l.exitDelay ?? 0 },
+                }}
                 transition={l.delay ? { ...transition, delay: l.delay } : transition}
               >
                 <LayerBody layer={l} playing={playing} typing={l.typing ? typingFor(l) : undefined} />

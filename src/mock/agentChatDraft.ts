@@ -1,6 +1,6 @@
 import type { Frame, Layer, Storyboard } from '../types'
 
-// Example draft: the ElevenAgents Architect launch video, 31 shots in 5 acts.
+// Example draft: the ElevenAgents Architect launch video, 30 shots in 5 acts.
 // Shots 5–7 are rebuilt from layers (prompt box, cursor, the dark analysis
 // panels) so the prompt and cursor carry across cuts; every other shot is a
 // still from public/shots/elevenagents, filled edge to edge.
@@ -148,7 +148,6 @@ export function agentChatDraft(): Storyboard {
   // their own cuts (the prompt rises and types, then Send), so their holds are
   // what is left of the slot after the cut in.
   const stills: [string, string, number][] = [
-    ['01-logo-bars', 'TenAgents logo', 0],
     ['02-your-agents', 'Your agents', 1.1],
     ['03-agents-at-work', 'Agents at work', 2.3],
     ['04-wordmark-architect', 'Wordmark: Builder', 4.8],
@@ -188,20 +187,18 @@ export function agentChatDraft(): Storyboard {
     id: `s${file.slice(0, 2)}`,
     name,
     hold: Math.round((slotEnd(file) - start) * 10) / 10,
-    background: file.startsWith('01') ? '#F5F2F0' : '#111111',
+    background: '#111111',
     // Covers the 1440×900 frame: the 16:9 still is scaled to the frame's height and trimmed 80px each side.
-    layers: file.startsWith('01')
-      ? [{ id: 'logo', name: 'Play logo', kind: 'image', src: '/shots/logo-play.svg', x: 697, y: 423, w: 46, h: 53, ...base }]
-      : [
-          { id: `img-${file.slice(0, 2)}`, name: 'Still', kind: 'image', src: `/shots/elevenagents/${file}.jpg`, x: -80, y: 0, w: 1600, h: 900, ...base },
-          ...(file.includes('wordmark') ? wordmark(file.slice(0, 2)) : []),
-        ],
+    layers: [
+      { id: `img-${file.slice(0, 2)}`, name: 'Still', kind: 'image', src: `/shots/elevenagents/${file}.jpg`, x: -80, y: 0, w: 1600, h: 900, ...base },
+      ...(file.includes('wordmark') ? wordmark(file.slice(0, 2)) : []),
+    ],
   })
   const S = Object.fromEntries(stills.map(([f, n, t]) => [f.slice(0, 2), still(f, n, t)]))
 
   // Shots 5–7: the built screens. Each slot is [start of this shot, start of the next].
   const frames: Frame[] = [
-    S['01'], S['02'], S['03'], S['04'],
+    S['02'], S['03'], S['04'],
     {
       id: 'c2', name: 'Prompt typing close-up', hold: 1.1, background: '#A3B3C6',
       // The wordmark fades out as the gradient washes in from the right; the white panel slides in
@@ -223,15 +220,17 @@ export function agentChatDraft(): Storyboard {
   const ids = frames.map((f) => f.id)
   const act = (id: string, name: string, from: number, to: number) => ({ id, name, label: name, frameIds: ids.slice(from - 1, to) })
 
-  // Smart animate everywhere except around the built shots (5–7), which carry their own cuts.
-  // Each cut takes 0.3s out of the hold of the shot it leads into, so the reel stays 1:07.
+  // Stills crossfade into each other everywhere except around the built shots (5–7), which
+  // carry their own cuts. Each cut takes its time out of the hold of the shot it leads into,
+  // so the reel keeps its length; quick shots get a shorter fade so they still land.
   const cuts: Storyboard['cuts'] = {}
   const built = ['c2', 'c3', 'c4']
   ids.slice(1).forEach((id, i) => {
     if (built.includes(id) || built.includes(ids[i])) return
-    cuts[`${ids[i]}->${id}`] = { feel: 'snappy', note: '', duration: 300 }
     const f = frames.find((fr) => fr.id === id)!
-    f.hold = Math.round((f.hold - 0.3) * 10) / 10
+    const fade = Math.min(0.5, Math.round(f.hold * 0.6 * 10) / 10)
+    cuts[`${ids[i]}->${id}`] = { feel: 'smooth', note: '', animation: 'dissolve', duration: fade * 1000 }
+    f.hold = Math.round((f.hold - fade) * 10) / 10
   })
   cuts['c2->c3'] = { feel: 'smooth', note: 'The question types in as the box pulls out', duration: 1000 }
   cuts['c3->c4'] = { feel: 'snappy', note: 'Hard cut on Send: the card is there, the panels pop in around it, the steps tick', duration: 500 }
@@ -243,7 +242,7 @@ export function agentChatDraft(): Storyboard {
   frames.find((f) => f.id === 's08')!.hold -= 0.6
 
   return {
-    acts: [act('a1', 'Intro', 1, 4), act('a2', 'Demo', 5, 12), act('a3', 'Features', 13, 20), act('a4', 'Build-up', 21, 29), act('a5', 'Outro', 30, 31)],
+    acts: [act('a1', 'Intro', 1, 3), act('a2', 'Demo', 4, 11), act('a3', 'Features', 12, 19), act('a4', 'Build-up', 20, 28), act('a5', 'Outro', 29, 30)],
     frames: Object.fromEntries(frames.map((f) => [f.id, f])),
     cuts,
   }
