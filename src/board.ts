@@ -14,6 +14,9 @@ export const FEELS: Record<Feel, { label: string; bezier: Bezier; ms: number }> 
   cinematic: { label: 'Cinematic', bezier: [0.45, 0, 0.15, 1], ms: 1800 },
 }
 
+// The easing for every piece of Sequence's own UI motion (not the per-cut feels above).
+export const UI_EASE: Bezier = [0.5, 0, 0, 1]
+
 export const ANIMATIONS: Record<CutAnimation, string> = { smart: 'Smart animate', dissolve: 'Dissolve', instant: 'Instant' }
 
 export const DEFAULT_CUT: Cut = { feel: 'smooth', note: '' }

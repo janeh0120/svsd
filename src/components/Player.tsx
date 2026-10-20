@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useState } from 'react'
-import { DEFAULT_CAMERA, DEFAULT_CUT, FRAME_H, FRAME_W, cutMs, cutTransition, getCut, order } from '../board'
+import { DEFAULT_CAMERA, DEFAULT_CUT, FRAME_H, FRAME_W, cutMs, cutTransition, getCut, order, UI_EASE } from '../board'
 import { Icon } from '../editor/icons'
 import { useApp } from '../context'
 import type { Storyboard } from '../types'
@@ -59,7 +59,7 @@ export function Player({ board, autoPlay = false, compact = false, startId }: { 
     return () => cancelAnimationFrame(raf)
   }, [playing, idx]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!frame) return compact ? <div className="aspect-[1.6] rounded-lg bg-[#2B2B2B]" /> : null
+  if (!frame) return compact ? <div className="aspect-[1.6] rounded-tile bg-[#2B2B2B]" /> : null
 
   const play = () => {
     if (!playing && idx === ids.length - 1) setI(0)
@@ -124,7 +124,7 @@ export function Player({ board, autoPlay = false, compact = false, startId }: { 
                   transition:
                     dissolve && !l.exit
                       ? { duration: 0, delay: cutMs(cut) / 1000 }
-                      : { duration: l.exit && dissolve ? Math.max(0.2, cutMs(cut) / 1000 - (l.exitDelay ?? 0)) : 0.35, delay: l.exitDelay ?? 0 },
+                      : { duration: l.exit && dissolve ? Math.max(0.2, cutMs(cut) / 1000 - (l.exitDelay ?? 0)) : 0.35, delay: l.exitDelay ?? 0, ease: UI_EASE },
                 }}
                 transition={l.delay ? { ...transition, delay: l.delay } : transition}
               >
@@ -151,7 +151,7 @@ export function Player({ board, autoPlay = false, compact = false, startId }: { 
   if (compact) {
     return (
       <div>
-        <div className="rounded-lg bg-[#2B2B2B] p-3">
+        <div className="rounded-tile bg-[#2B2B2B] p-3">
           <div className="overflow-hidden rounded-sm">{stage}</div>
         </div>
         <div className="mt-2 flex items-center gap-2">
@@ -169,7 +169,7 @@ export function Player({ board, autoPlay = false, compact = false, startId }: { 
 
   return (
     <div className="w-full">
-      <div className="overflow-hidden rounded-xl">{stage}</div>
+      <div className="overflow-hidden rounded-tile">{stage}</div>
       <div className="mt-3 flex items-center gap-3">
         <button onClick={play} className="flex size-8 shrink-0 items-center justify-center rounded-full bg-raised text-[12px] text-ink">
           {playing ? '❚❚' : '▶'}

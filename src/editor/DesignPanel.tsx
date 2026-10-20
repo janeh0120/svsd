@@ -90,7 +90,7 @@ function LayerDesign({ frame, layer: l }: { frame: Frame; layer: Layer }) {
 
       {l.kind === 'text' && (
         <Section title="Typography" actions={[<Icon.Styles key="s" size={13} />]}>
-          <input value={l.text ?? ''} onChange={(e) => set({ text: e.target.value })} className="mb-1.5 h-7 w-full rounded-md bg-control px-2 outline-none" />
+          <input value={l.text ?? ''} onChange={(e) => set({ text: e.target.value })} className="mb-1.5 h-7 w-full rounded-control bg-control px-2 outline-none" />
           <Dropdown value={l.fontFamily ?? 'Inter'} options={['Inter', 'Helvetica', 'Georgia', 'Menlo']} onChange={(fontFamily) => set({ fontFamily })} full />
           <div className="mt-1.5 grid grid-cols-2 gap-1.5">
             <Dropdown
@@ -166,7 +166,7 @@ function FrameDesign({ frame, onPick }: { frame: Frame; onPick: (layerId: string
       <Section title="Layers">
         <div className="-mx-1">
           {[...frame.layers].reverse().map((l) => (
-            <button key={l.id} onClick={() => onPick(l.id)} className="flex h-7 w-full items-center gap-2 rounded-md px-1 text-left hover:bg-control-hover">
+            <button key={l.id} onClick={() => onPick(l.id)} className="flex h-7 w-full items-center gap-2 rounded-control px-1 text-left hover:bg-control-hover">
               <span className="w-3 text-center text-[11px] text-muted">{KIND_GLYPH[l.kind]}</span>
               <span className="truncate">{l.name}</span>
             </button>
@@ -209,7 +209,7 @@ function Section({ title, actions = [], muted = false, children }: { title: stri
 }
 
 function Seg({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <div className={`flex h-7 rounded-md bg-control p-0.5 ${className}`}>{children}</div>
+  return <div className={`flex h-7 rounded-control bg-control p-0.5 ${className}`}>{children}</div>
 }
 
 function SegBtn({ icon, title, active = false, onClick }: { icon: ReactNode; title: string; active?: boolean; onClick?: () => void }) {
@@ -217,7 +217,7 @@ function SegBtn({ icon, title, active = false, onClick }: { icon: ReactNode; tit
     <button
       title={title}
       onClick={onClick}
-      className={`flex flex-1 items-center justify-center rounded-[5px] ${active ? 'bg-raised text-ink shadow-[0_0_0_1px_var(--line)]' : 'text-muted hover:text-ink'}`}
+      className={`flex flex-1 items-center justify-center rounded-sm ${active ? 'bg-raised text-ink shadow-[0_0_0_1px_var(--line)]' : 'text-muted hover:text-ink'}`}
     >
       {icon}
     </button>
@@ -246,7 +246,7 @@ function Num({
   muted?: boolean
 }) {
   return (
-    <label className={`flex h-7 min-w-0 items-center gap-1.5 rounded-md bg-control px-2 ${muted ? 'text-subtle' : ''}`}>
+    <label className={`flex h-7 min-w-0 items-center gap-1.5 rounded-control bg-control px-2 ${muted ? 'text-subtle' : ''}`}>
       {prefix !== undefined && <span className="flex w-3 shrink-0 justify-center text-[11px] text-muted">{prefix}</span>}
       <input
         type={typeof value === 'number' ? 'number' : 'text'}
@@ -262,7 +262,7 @@ function Num({
 
 function Dropdown({ value, options, onChange, full = false }: { value: string; options: (string | [string, string])[]; onChange: (v: string) => void; full?: boolean }) {
   return (
-    <label className={`relative flex h-7 items-center rounded-md border border-line px-2 focus-within:border-accent-line ${full ? 'w-full' : ''}`}>
+    <label className={`relative flex h-7 items-center rounded-control border border-line px-2 focus-within:border-accent-line ${full ? 'w-full' : ''}`}>
       <select value={value} onChange={(e) => onChange(e.target.value)} className="w-full min-w-0 appearance-none bg-transparent outline-none">
         {options.map((o) => {
           const [k, label] = typeof o === 'string' ? [o, o] : o
@@ -284,7 +284,7 @@ function ColorRow({ value, onChange, onRemove }: { value: string; onChange: (c: 
   const hex = /^#[0-9a-f]{6}$/i.test(value)
   return (
     <div className="flex items-center gap-1.5">
-      <label className="flex h-7 min-w-0 flex-1 items-center gap-2 rounded-md bg-control px-2">
+      <label className="flex h-7 min-w-0 flex-1 items-center gap-2 rounded-control bg-control px-2">
         {hex ? (
           <input type="color" value={value} onChange={(e) => onChange(e.target.value)} className="size-4 cursor-pointer rounded border-0 bg-transparent p-0" />
         ) : (
@@ -307,7 +307,7 @@ function ColorRow({ value, onChange, onRemove }: { value: string; onChange: (c: 
 
 function MediaRow({ label, src }: { label: string; src?: string }) {
   return (
-    <div className="flex h-7 items-center gap-2 rounded-md bg-control px-2">
+    <div className="flex h-7 items-center gap-2 rounded-control bg-control px-2">
       <span className="size-4 shrink-0 rounded-sm bg-line-strong" />
       <span className="flex-1 truncate">{label}</span>
       <span className="truncate text-[11px] text-muted">{src?.split('/').pop()}</span>

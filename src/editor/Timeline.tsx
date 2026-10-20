@@ -166,14 +166,14 @@ export function Timeline({ height, collapsed, onToggle }: { height: number; coll
             onPointerDown={trim(kind, id, 'start')}
             onClick={(e) => e.stopPropagation()}
             title={kind === 'chapter' ? 'Drag to change the cut into this chapter' : 'Drag to change the cut into this shot'}
-            className={`absolute inset-y-0 left-0 z-10 w-2 cursor-ew-resize rounded-l-[3px] bg-inverse/70 after:absolute after:inset-y-[30%] after:left-[3px] after:w-px after:bg-raised ${show ? 'opacity-100' : 'opacity-0 group-hover/clip:opacity-100'}`}
+            className={`absolute inset-y-0 left-0 z-10 w-2 cursor-ew-resize rounded-l-thumb bg-inverse/70 after:absolute after:inset-y-[30%] after:left-[3px] after:w-px after:bg-raised ${show ? 'opacity-100' : 'opacity-0 group-hover/clip:opacity-100'}`}
           />
         )}
         <span
           onPointerDown={trim(kind, id, 'end')}
           onClick={(e) => e.stopPropagation()}
           title={kind === 'chapter' ? 'Drag to stretch the whole chapter' : 'Drag to change how long this shot holds'}
-          className={`absolute inset-y-0 right-0 z-10 w-2 cursor-ew-resize rounded-r-[3px] bg-inverse/70 after:absolute after:inset-y-[30%] after:right-[3px] after:w-px after:bg-raised ${show ? 'opacity-100' : 'opacity-0 group-hover/clip:opacity-100'}`}
+          className={`absolute inset-y-0 right-0 z-10 w-2 cursor-ew-resize rounded-r-thumb bg-inverse/70 after:absolute after:inset-y-[30%] after:right-[3px] after:w-px after:bg-raised ${show ? 'opacity-100' : 'opacity-0 group-hover/clip:opacity-100'}`}
         />
       </>
     )
@@ -259,7 +259,7 @@ export function Timeline({ height, collapsed, onToggle }: { height: number; coll
                 <button
                   key={chapter.id}
                   onClick={() => (comment ? startComment({ kind: 'chapter', chapterId: chapter.id }) : go({ kind: 'chapter', chapterId: chapter.id }, from))}
-                  className="group/clip absolute top-0 h-full truncate rounded-md border px-2 text-[12px]"
+                  className="group/clip absolute top-0 h-full truncate rounded-control border px-2 font-display text-[12px]"
                   style={{
                     left: x(from),
                     width: Math.max(8, x(to) - x(from) - 2),
@@ -282,7 +282,7 @@ export function Timeline({ height, collapsed, onToggle }: { height: number; coll
                 <button
                   key={s.id}
                   onClick={(e) => (comment ? annotateAt(e) : go({ kind: 'frame', frameId: s.id }, s.from))}
-                  className="group/clip absolute top-0 h-full overflow-hidden rounded-[3px] bg-line"
+                  className="group/clip absolute top-0 h-full overflow-hidden rounded-thumb bg-line"
                   style={{
                     left: x(s.from),
                     width: Math.max(2, x(s.end) - x(s.from) - 2),
@@ -291,7 +291,7 @@ export function Timeline({ height, collapsed, onToggle }: { height: number; coll
                 >
                   <FrameThumb frame={board.frames[s.id]} width={Math.max(2, x(s.end) - x(s.from) - 2)} height={THUMB_H} />
                   {/* Drawn over the thumbnail with the clip's own radius; the old inset shadow sat under the image and barely showed. */}
-                  <span className={`pointer-events-none absolute inset-0 rounded-[3px] ring-inset transition-shadow ${selected ? 'ring-2 ring-accent' : 'group-hover/clip:ring-2 group-hover/clip:ring-accent'}`} />
+                  <span className={`pointer-events-none absolute inset-0 rounded-thumb ring-inset transition-shadow ${selected ? 'ring-2 ring-accent' : 'group-hover/clip:ring-2 group-hover/clip:ring-accent'}`} />
                   {handles('frame', s.id, i === 0, selected)}
                 </button>
               )
@@ -317,7 +317,7 @@ export function Timeline({ height, collapsed, onToggle }: { height: number; coll
           {total > 0 && (
             <div className="pointer-events-none absolute top-0 bottom-0" style={{ left: x(playhead) }}>
               <div
-                className="absolute top-0.5 flex h-5 -translate-x-1/2 items-center rounded-full bg-accent px-2 text-[11px] font-medium text-on-accent tabular-nums"
+                className="absolute top-0.5 flex h-5 -translate-x-1/2 items-center rounded-tile bg-accent px-2 text-[11px] font-medium text-on-accent tabular-nums"
               >
                 {(playhead / 1000).toFixed(2)}
               </div>

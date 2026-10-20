@@ -23,27 +23,27 @@ export function PropertiesPanel({ width, onCollapse }: { width: number; onCollap
   return (
     <aside className="flex shrink-0 flex-col bg-surface pl-2" style={{ width: width + 8 }}>
       <div className="flex h-10 shrink-0 items-center gap-1 px-3">
-        <button onClick={onCollapse} title="Hide panel" className="-ml-1.5 flex size-7 items-center justify-center rounded-md text-muted hover:bg-control-hover">
+        <button onClick={onCollapse} title="Hide panel" className="-ml-1.5 flex size-7 items-center justify-center rounded-control text-muted hover:bg-control-hover">
           <Icon.PanelRight size={14} />
         </button>
         <button
           onClick={() => dispatch({ type: 'preview', open: true })}
           title="Preview the reel"
-          className="ml-auto flex h-7 items-center gap-1.5 rounded-full border border-line px-3 font-medium hover:bg-control-hover"
+          className="ml-auto flex h-7 items-center gap-1.5 rounded-tile border border-line px-3 font-medium hover:bg-control-hover"
         >
           <Icon.Play size={14} className="relative -top-px" />
           Preview
         </button>
-        <button className="h-7 rounded-full bg-accent px-3 font-medium text-on-accent hover:brightness-95" title="Coming soon">
+        <button className="h-7 rounded-tile bg-accent px-3 font-medium text-on-accent hover:brightness-95" title="Coming soon">
           Export
         </button>
       </div>
-      <div className="flex h-10 shrink-0 items-center gap-1 rule-b px-2">
+      <div className="flex h-10 shrink-0 items-center rule-b px-2">
         {(['design', 'animate'] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`h-7 rounded-full px-3 capitalize ${tab === t ? 'bg-control font-medium' : 'text-muted hover:text-ink'}`}
+            className={`h-7 rounded-tile px-3 capitalize ${tab === t ? 'bg-control font-medium' : 'text-muted hover:text-ink'}`}
           >
             {t}
           </button>
@@ -180,7 +180,7 @@ function MotionSection({ cutId, cut, label, between }: { cutId: string; cut: Cut
               /* clipboard unavailable */
             }
           }}
-          className="flex size-7 shrink-0 items-center justify-center rounded-md hover:bg-control-hover"
+          className="flex size-7 shrink-0 items-center justify-center rounded-control hover:bg-control-hover"
         >
           <Icon.Copy size={12} />
         </button>
@@ -200,7 +200,7 @@ function CameraSection({ frameId }: { frameId: string }) {
       <CameraEditor frame={frame} camera={frame.camera ?? DEFAULT_CAMERA} onChange={(camera) => dispatch({ type: 'frame', frameId, patch: { camera } })} />
       <button
         onClick={() => dispatch({ type: 'frame', frameId, patch: { camera: DEFAULT_CAMERA } })}
-        className="h-7 w-full rounded-full bg-control text-[11px] text-muted hover:bg-control-hover"
+        className="h-7 w-full rounded-tile bg-control text-[11px] text-muted hover:bg-control-hover"
         title="Reset to the whole shot"
       >
         Adjust the area to control zoom.
@@ -213,7 +213,7 @@ function CameraSection({ frameId }: { frameId: string }) {
 function BezierInput({ value, onChange }: { value: [number, number, number, number]; onChange: (b: [number, number, number, number]) => void }) {
   const [draft, setDraft] = useState<string | null>(null)
   return (
-    <label className="flex h-7 min-w-0 flex-1 items-center gap-1.5 rounded-md bg-control px-2">
+    <label className="flex h-7 min-w-0 flex-1 items-center gap-1.5 rounded-control bg-control px-2">
       <CurveGlyph />
       <input
         value={draft ?? value.join(', ')}
@@ -274,21 +274,21 @@ function PickerField({ title, trigger, bare, noChevron, children }: { title: str
 
   return (
     <>
-      <button ref={button} onClick={toggle} className={`flex h-7 w-full items-center gap-1.5 rounded-md px-2 font-medium ${noChevron ? "justify-center" : ""} ${bare ? 'text-muted hover:text-ink' : 'border border-line focus-visible:border-accent-line'}`}>
+      <button ref={button} onClick={toggle} className={`flex h-7 w-full items-center gap-1.5 rounded-control px-2 font-medium ${noChevron ? "justify-center" : ""} ${bare ? 'text-muted hover:text-ink' : 'border border-line focus-visible:border-accent-line'}`}>
         {trigger}
         {!noChevron && <Icon.ChevronDown size={12} className="shrink-0 text-muted" />}
       </button>
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="fixed z-50 max-h-[70vh] w-56 overflow-y-auto rounded-xl bg-raised p-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.45)]" style={{ left: at.x, top: at.y }}>
+          <div className="fixed z-50 max-h-[70vh] w-56 overflow-y-auto rounded-tile bg-raised p-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.45)]" style={{ left: at.x, top: at.y }}>
             <div className="flex h-8 items-center px-2">
               <span className="font-display text-[13px] font-semibold">{title}</span>
-              <button onClick={() => setOpen(false)} title="Close" className="ml-auto flex size-6 items-center justify-center rounded-md text-muted hover:text-ink">
+              <button onClick={() => setOpen(false)} title="Close" className="ml-auto flex size-6 items-center justify-center rounded-control text-muted hover:text-ink">
                 ✕
               </button>
             </div>
-            {children(() => setOpen(false), 'flex h-8 w-full items-center gap-2.5 rounded-md px-2 text-left hover:bg-control-hover')}
+            {children(() => setOpen(false), 'flex h-8 w-full items-center gap-2.5 rounded-control px-2 text-left hover:bg-control-hover')}
           </div>
         </>
       )}
@@ -477,7 +477,7 @@ function Labeled({ label, children }: { label: string; children: ReactNode }) {
 
 function Field({ prefix, value, onChange, suffix, step = 1 }: { prefix: ReactNode; value: number; onChange: (v: number) => void; suffix?: string; step?: number }) {
   return (
-    <label className="flex h-7 min-w-0 items-center gap-1.5 rounded-md bg-control px-2">
+    <label className="flex h-7 min-w-0 items-center gap-1.5 rounded-control bg-control px-2">
       <span className="flex w-3 shrink-0 justify-center text-[11px] text-muted">{prefix}</span>
       <input
         type="number"
@@ -498,7 +498,7 @@ export function CollapsedAnimatePanel({ onExpand }: { onExpand: () => void }) {
       <button
         onClick={onExpand}
         title="Show panel"
-        className="absolute top-1.5 right-2 z-30 flex size-7 items-center justify-center rounded-md border border-line bg-raised text-muted shadow-sm hover:text-ink"
+        className="absolute top-1.5 right-2 z-30 flex size-7 items-center justify-center rounded-control border border-line bg-raised text-muted shadow-sm hover:text-ink"
       >
         <Icon.PanelRight size={14} />
       </button>

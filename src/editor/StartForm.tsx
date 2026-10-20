@@ -42,13 +42,13 @@ export function StartForm() {
   }
   const ready = prompt.trim().length > 0 || sites.length > 0 || boards.length > 0
 
-  const tile = 'flex flex-col items-center justify-center gap-1.5 rounded-lg bg-control px-2 py-4 text-center text-[11px] leading-tight text-muted hover:bg-control-hover hover:text-ink'
-  const pill = 'flex h-8 items-center justify-center gap-1.5 rounded-full bg-control text-[12px] hover:bg-control-hover'
+  const tile = 'flex w-[calc((100%-12px)/3)] flex-col items-center justify-center gap-1.5 whitespace-nowrap rounded-tile bg-control px-3 py-4 text-center text-[11px] leading-tight text-muted hover:bg-control-hover hover:text-ink'
+  const pill = 'flex h-8 w-[calc((100%-12px)/3)] items-center justify-center gap-1.5 whitespace-nowrap rounded-tile bg-control px-3 text-[12px] hover:bg-control-hover'
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-3">
-        <div className="rounded-lg border border-line bg-surface p-3 focus-within:border-line-strong">
+        <div className="rounded-tile border border-line bg-surface p-3 focus-within:border-line-strong">
           <p className="font-display text-[12px] font-medium text-muted">Prompt</p>
           <textarea
             rows={5}
@@ -64,7 +64,7 @@ export function StartForm() {
 
         <section>
           <h3 className="mb-1.5 px-0.5 font-display text-[12px] font-medium text-muted">Inputs</h3>
-          <div className="grid grid-cols-3 gap-1.5">
+          <div className="flex flex-wrap gap-1.5">
             <button onClick={() => upload.current?.click()} className={tile}>
               <Icon.Upload size={16} />
               Upload files
@@ -95,7 +95,7 @@ export function StartForm() {
               }}
               onBlur={addLink}
               placeholder={adding === 'app' ? 'Paste a Figma, Miro or Mural link' : 'Paste a website URL and press Enter'}
-              className="mt-1.5 h-8 w-full rounded-lg bg-control px-3 outline-none placeholder:text-subtle focus:ring-1 focus:ring-line-strong"
+              className="mt-1.5 h-8 w-full rounded-tile bg-control px-3 outline-none placeholder:text-subtle focus:ring-1 focus:ring-line-strong"
             />
           )}
           {(files.length > 0 || sites.length > 0 || boards.length > 0) && (
@@ -105,7 +105,7 @@ export function StartForm() {
                 ...sites.map((n) => ({ n, Glyph: Icon.Globe, remove: setSites })),
                 ...boards.map((n) => ({ n, Glyph: Icon.Apps, remove: setBoards })),
               ].map(({ n, Glyph, remove }, i) => (
-                <span key={`${n}${i}`} className="flex h-6 max-w-full items-center gap-1.5 rounded-md border border-line bg-control px-1.5 text-[11px]">
+                <span key={`${n}${i}`} className="flex h-6 max-w-full items-center gap-1.5 rounded-control border border-line bg-control px-1.5 text-[11px]">
                   <Glyph size={11} />
                   <span className="truncate">{n}</span>
                   <button
@@ -123,7 +123,7 @@ export function StartForm() {
 
         <section>
           <h3 className="mb-1.5 px-0.5 font-display text-[12px] font-medium text-muted">Properties</h3>
-          <div className="grid grid-cols-3 gap-1.5">
+          <div className="flex flex-wrap gap-1.5">
             <button onClick={() => setAspect(next(ASPECTS, aspect))} title="Aspect ratio" className={pill}>
               <span className="block h-[9px] w-4 rounded-[2px] border border-current" />
               {aspect}
@@ -152,7 +152,7 @@ export function StartForm() {
         <button
           onClick={generate}
           disabled={!ready}
-          className="flex h-10 w-full items-center justify-center gap-1.5 rounded-full bg-accent font-medium text-on-accent hover:brightness-95 disabled:opacity-40"
+          className="flex h-10 w-full items-center justify-center gap-1.5 rounded-tile bg-accent font-medium text-on-accent hover:brightness-95 disabled:opacity-40"
         >
           <Icon.Sparkle size={14} />
           Generate

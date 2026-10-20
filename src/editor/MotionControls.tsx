@@ -35,7 +35,7 @@ export function BezierEditor({ value, onChange }: { value: Bezier; onChange: (b:
   }
 
   return (
-    <div className="rounded-lg bg-control">
+    <div className="rounded-tile bg-control">
       <svg ref={svg} viewBox="0 0 100 100" className="block aspect-square w-full touch-none select-none">
         {/* Guide lines at start and end values */}
         <line x1={px(0)} y1={py(1)} x2={px(1)} y2={py(1)} style={{ stroke: 'var(--line-strong)' }} strokeWidth={0.6} />
@@ -97,7 +97,7 @@ export function EasePreview({ bezier, ms, animation }: { bezier: Bezier; ms: num
 
   const block = 'absolute top-1/2 left-1/2 size-8 -mt-4 -ml-4 bg-secondary'
   return (
-    <div className="relative h-24 overflow-hidden rounded-lg bg-control">
+    <div className="relative h-24 overflow-hidden rounded-tile bg-control">
       {animation === 'smart' ? (
         <>
           <motion.div className={block} style={{ x, scale, borderRadius: radius }} />
@@ -153,7 +153,7 @@ export function CameraEditor({ frame, camera, onChange }: { frame: Frame; camera
 
   const corner = 'absolute size-2.5 rounded-full border border-raised bg-muted shadow'
   return (
-    <div ref={box} className="relative w-full overflow-hidden rounded-lg select-none" style={{ aspectRatio: `${FRAME_W} / ${FRAME_H}` }}>
+    <div ref={box} className="relative w-full overflow-hidden rounded-tile select-none" style={{ aspectRatio: `${FRAME_W} / ${FRAME_H}` }}>
       <FrameView frame={frame} />
       <div className="absolute inset-0 bg-black/30" style={{ clipPath: holePath(camera) }} />
       <div

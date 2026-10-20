@@ -70,7 +70,7 @@ function AgentPanel() {
             busy || state.working ? 'opacity-100' : 'opacity-0'
           }`}
         />
-        <div className="relative flex min-h-20 flex-col rounded-lg border border-line bg-surface p-2.5 focus-within:border-line-strong">
+        <div className="relative flex min-h-20 flex-col rounded-tile border border-line bg-surface p-2.5 focus-within:border-line-strong">
           {pending.length > 0 && (
             <div className="mb-1.5 flex flex-wrap gap-1">
               {pending.map((p) => (
@@ -98,7 +98,7 @@ function AgentPanel() {
             className="min-h-0 w-full flex-1 resize-none outline-none placeholder:text-subtle"
           />
           <div className="flex items-center gap-1.5">
-            <button className="flex size-5 items-center justify-center rounded-full border border-line text-muted">
+            <button className="flex size-5 items-center justify-center rounded-control border border-line text-muted">
               <Icon.Plus size={12} />
             </button>
             <AnnotateButton />
@@ -129,14 +129,14 @@ function AnnotateButton() {
         onClick={() => !disabled && dispatch({ type: 'mode', mode: on ? 'select' : 'comment' })}
         aria-label="Select an element or annotate"
         aria-pressed={on}
-        className={`flex size-5 items-center justify-center rounded-md ${
+        className={`flex size-5 items-center justify-center rounded-control ${
           on ? 'bg-accent-soft text-accent-text' : disabled ? 'text-subtle' : 'text-muted hover:bg-control-hover'
         }`}
       >
         <Icon.Pointer size={13} />
       </button>
       {hover && (
-        <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-60 rounded-lg bg-inverse p-2.5 text-on-inverse shadow-xl">
+        <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-60 rounded-tile bg-inverse p-2.5 text-on-inverse shadow-xl">
           <div className="flex items-center gap-2">
             <span className="font-medium">{on ? 'Stop annotating' : 'Select an element or annotate'}</span>
             <kbd className="ml-auto shrink-0 text-[11px] text-on-inverse/60">⇧⌘S</kbd>
@@ -159,7 +159,7 @@ function AttachmentChip({ pinId }: { pinId: string }) {
   const frameId = targetFrame(pin.target, state.board)
   const frame = frameId ? state.board.frames[frameId] : undefined
   return (
-    <span className="flex h-6 max-w-full items-center gap-1.5 rounded-md border border-line bg-control pr-1 pl-0.5" title={pin.text}>
+    <span className="flex h-6 max-w-full items-center gap-1.5 rounded-control border border-line bg-control pr-1 pl-0.5" title={pin.text}>
       <button
         className="flex min-w-0 items-center gap-1.5"
         onClick={() => {
@@ -167,7 +167,7 @@ function AttachmentChip({ pinId }: { pinId: string }) {
           document.getElementById(domId(pin.target))?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'nearest' })
         }}
       >
-        <span className="relative h-[18px] w-7 shrink-0 overflow-hidden rounded-[3px] bg-line">
+        <span className="relative h-[18px] w-7 shrink-0 overflow-hidden rounded-thumb bg-line">
           {frame && <FrameThumb frame={frame} width={28} height={18} />}
         </span>
         <span className="truncate text-[11px]">{targetLabel(pin.target, state.board)}</span>
@@ -210,7 +210,7 @@ function ChatItem({ m }: { m: Message }) {
 
   return (
     <div className={`flex ${m.author === 'you' ? 'justify-end' : ''}`}>
-      <p className={`max-w-[90%] rounded-lg whitespace-pre-line ${m.author === 'you' ? 'bg-control px-3 py-2' : ''}`}>{m.text}</p>
+      <p className={`max-w-[90%] rounded-tile whitespace-pre-line ${m.author === 'you' ? 'bg-control px-3 py-2' : ''}`}>{m.text}</p>
     </div>
   )
 }

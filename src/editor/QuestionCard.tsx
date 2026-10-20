@@ -47,7 +47,7 @@ export function QuestionCard({ m }: { m: Message }) {
 
   if (done && questions.length === 1) {
     return (
-      <div className="rounded-xl border border-line px-3 py-2">
+      <div className="rounded-tile border border-line px-3 py-2">
         <p className="font-display font-medium">{q.text}</p>
         <p className="mt-0.5 text-muted">{answerLabel(answers[0], q.options)}</p>
       </div>
@@ -55,7 +55,7 @@ export function QuestionCard({ m }: { m: Message }) {
   }
 
   return (
-    <div className="rounded-xl border border-line bg-raised p-1 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
+    <div className="rounded-tile border border-line bg-raised p-1 shadow-[0_1px_3px_rgba(0,0,0,0.06)]">
       <div className="flex min-h-9 items-center gap-2 px-2 py-2">
         <p className="min-w-0 flex-1 font-display leading-snug font-medium">{q.text}</p>
         {questions.length > 1 && (
@@ -83,9 +83,9 @@ export function QuestionCard({ m }: { m: Message }) {
                 key={opt}
                 onMouseEnter={() => setActive(i)}
                 onClick={() => answer(m.id, view, { option: i })}
-                className={`flex h-9 w-full items-center gap-2 rounded-lg px-1.5 text-left ${active === i ? 'border-transparent bg-control text-ink' : 'text-muted'}`}
+                className={`flex h-9 w-full items-center gap-2 rounded-tile px-1.5 text-left ${active === i ? 'border-transparent bg-control text-ink' : 'text-muted'}`}
               >
-                <span className={`flex size-6 shrink-0 items-center justify-center rounded-md text-[11px] ${active === i ? 'bg-control-hover text-ink' : 'bg-control'}`}>
+                <span className={`flex size-6 shrink-0 items-center justify-center rounded-control text-[11px] ${active === i ? 'bg-control-hover text-ink' : 'bg-control'}`}>
                   {i + 1}
                 </span>
                 <span className="min-w-0 flex-1 truncate">{opt}</span>
@@ -93,7 +93,7 @@ export function QuestionCard({ m }: { m: Message }) {
               </button>
             ))}
             <div className="flex h-9 items-center gap-2 px-1.5">
-              <span className="flex size-6 shrink-0 items-center justify-center rounded-md bg-control text-muted">
+              <span className="flex size-6 shrink-0 items-center justify-center rounded-control bg-control text-muted">
                 <Icon.Pencil size={12} />
               </span>
               <input
@@ -106,7 +106,7 @@ export function QuestionCard({ m }: { m: Message }) {
                 placeholder="Something else"
                 className="min-w-0 flex-1 bg-transparent outline-none placeholder:text-subtle placeholder:text-ellipsis text-ellipsis"
               />
-              <button onClick={() => answer(m.id, view, 'skip')} className="h-6 shrink-0 rounded-full bg-control px-2.5 text-[11px] text-muted hover:bg-control-hover">
+              <button onClick={() => answer(m.id, view, 'skip')} className="h-6 shrink-0 rounded-tile bg-control px-2.5 text-[11px] text-muted hover:bg-control-hover">
                 Skip
               </button>
             </div>

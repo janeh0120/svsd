@@ -7,9 +7,11 @@ import { CollapsedAnimatePanel, PropertiesPanel } from './PropertiesPanel'
 import { Timeline } from './Timeline'
 
 // Both sidebars start at the same width; each can be resized on its own.
-const DEFAULTS = { left: 240, right: 240, bottom: 176 }
+const DEFAULTS = { left: 248, right: 248, bottom: 176 }
 type Sizes = typeof DEFAULTS
-const KEY = 'svsd.panel-sizes.v4'
+// While the start form is showing, the left panel opens wide enough for its buttons on one line.
+const START_WIDTH = 340
+const KEY = 'svsd.panel-sizes.v7'
 
 // Panel sizes are a per-viewer convenience, so they live in localStorage.
 function usePanelSizes() {
@@ -54,6 +56,13 @@ export function Editor() {
   const { state, dispatch } = useApp()
   const [sizes, set] = usePanelSizes()
   const [animateOpen, setAnimateOpen] = useAnimateOpen()
+  const [startWidth, setStartWidth] = useState(START_WIDTH)
+  const starting = state.phase === 'empty'
+  // After Generate the left panel drops back to its default width.
+  const setLeft = set('left')
+  useEffect(() => {
+    if (!starting) setLeft(DEFAULTS.left)
+  }, [starting])
   const [timelineCollapsed, setTimelineCollapsed] = useState(false)
 
   useEffect(() => {
@@ -88,8 +97,16 @@ export function Editor() {
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-surface p-2 text-[12px] text-ink">
       <div className="flex min-h-0 flex-1">
-        <LeftPanel width={sizes.left} />
-        <Resizer axis="x" value={sizes.left} min={200} max={420} sign={1} onChange={set('left')} onReset={() => set('left')(DEFAULTS.left)} />
+        <LeftPanel width={starting ? startWidth : sizes.left} />
+        <Resizer
+          axis="x"
+          value={starting ? startWidth : sizes.left}
+          min={200}
+          max={420}
+          sign={1}
+          onChange={starting ? setStartWidth : set('left')}
+          onReset={() => (starting ? setStartWidth(START_WIDTH) : set('left')(DEFAULTS.left))}
+        />
         <Canvas />
         {animateOpen ? (
           <>

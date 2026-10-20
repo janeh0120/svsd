@@ -1,6 +1,6 @@
 import { motion } from 'motion/react'
 import { Fragment, createContext, useContext, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
-import { DEFAULT_CUT, FRAME_H, FRAME_W, cutKey, cutMs, cutTransition, frameTitle, getCut, order, sameTarget, timing } from '../board'
+import { DEFAULT_CUT, FRAME_H, FRAME_W, cutKey, cutMs, cutTransition, frameTitle, getCut, order, sameTarget, timing, UI_EASE } from '../board'
 import { LayerBody, arrival, layerBox, layerStyle } from '../components/Layer'
 import { onZoomRequest, publishZoom } from './canvasZoom'
 import { useApp } from '../context'
@@ -222,7 +222,7 @@ export function Canvas() {
       </div>
       {lasso && (
         <div
-          className="pointer-events-none fixed z-40 rounded-md border border-dashed border-accent-line bg-accent/15"
+          className="pointer-events-none fixed z-40 rounded-control border border-dashed border-accent-line bg-accent/15"
           style={{ left: Math.min(lasso.x0, lasso.x1), top: Math.min(lasso.y0, lasso.y1), width: Math.abs(lasso.x1 - lasso.x0), height: Math.abs(lasso.y1 - lasso.y0) }}
         />
       )}
@@ -252,7 +252,7 @@ function ChapterGroup({ chapter, prevChapter }: { chapter: Chapter; prevChapter?
       className="relative shrink-0 scroll-m-6"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4, ease: 'easeOut' }}
+      transition={{ duration: 0.4, ease: UI_EASE }}
     >
       {/* The name sits above the box in its own outlined tag. Double-click to rename; the timeline block follows. */}
       <div className="mb-2 flex h-7 items-center">
@@ -262,7 +262,7 @@ function ChapterGroup({ chapter, prevChapter }: { chapter: Chapter; prevChapter?
         ))}
       </div>
       <div
-        className={`relative rounded-xl border p-4 ${selected ? 'chapter-spin border-transparent' : 'border-line'} ${state.mode === 'comment' ? 'hover:border-accent-line' : ''}`}
+        className={`relative rounded-tile border p-4 ${selected ? 'chapter-spin border-transparent' : 'border-line'} ${state.mode === 'comment' ? 'hover:border-accent-line' : ''}`}
         // Selected: no fill, just a border that runs off-white → lime → pink → off-white (the padding-box layer is the canvas colour, so only the border shows the gradient).
         style={
           selected
@@ -279,7 +279,7 @@ function ChapterGroup({ chapter, prevChapter }: { chapter: Chapter; prevChapter?
           {chapter.frameIds.map((id, i) => (
             <Fragment key={id}>
               {i > 0 && <Connector from={chapter.frameIds[i - 1]} to={id} inset={CARD_INSET} />}
-              <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15 + i * 0.12, duration: 0.3 }}>
+              <motion.div initial={{ opacity: 0, scale: 0.96 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: 0.15 + i * 0.12, duration: 0.3, ease: UI_EASE }}>
                 <FrameCard frameId={id} />
               </motion.div>
             </Fragment>
@@ -296,7 +296,7 @@ function ChapterTag({ chapter, selected }: { chapter: Chapter; selected: boolean
   const [draft, setDraft] = useState(chapter.name)
   const tone = selected ? 'border-accent-line text-accent-text' : 'border-line text-muted'
   // The serif's ink sits about 1px below the middle of its line box, so the bottom padding is 2px taller to centre it.
-  const box = `h-7 rounded-md border px-3 pb-[2px] text-center text-[13px] leading-none ${tone}`
+  const box = `h-7 rounded-tile border px-3 pb-[2px] text-center text-[13px] leading-none ${tone}`
 
   const commit = () => {
     const name = draft.trim()
@@ -492,7 +492,7 @@ function FrameCard({ frameId }: { frameId: string }) {
     <div
       id={`frame-${frameId}`}
       onClick={onFrameClick}
-      className="group/card shrink-0 rounded-xl border-2 border-transparent p-1.5 pt-0"
+      className="group/card shrink-0 rounded-tile border-2 border-transparent p-1.5 pt-0"
     >
       <div className="mb-1 flex h-7 cursor-default items-center gap-1.5 px-0.5 text-[12px] select-none" style={{ width: CARD_W }}>
         <span className={`font-medium transition-colors ${lit ? 'text-accent-text' : 'text-muted group-hover/card:text-accent-text'}`}>{n}</span>
@@ -516,7 +516,7 @@ function FrameCard({ frameId }: { frameId: string }) {
         )}
       </div>
       <div className="relative" style={{ width: CARD_W, height: CARD_H }}>
-        <div className="absolute inset-0 overflow-hidden rounded-md">
+        <div className="absolute inset-0 overflow-hidden rounded-control">
           <div
             ref={inner}
             className="absolute top-0 left-0 origin-top-left"
@@ -554,7 +554,7 @@ function FrameCard({ frameId }: { frameId: string }) {
             ))}
           </div>
           {/* The ring is drawn over the image with the thumbnail's own radius, so the two always match. */}
-          <div className={`pointer-events-none absolute inset-0 rounded-md ring-inset transition-shadow ${frameSelected ? 'ring-2 ring-accent' : 'ring-1 ring-line group-hover/card:ring-2 group-hover/card:ring-accent'}`} />
+          <div className={`pointer-events-none absolute inset-0 rounded-control ring-inset transition-shadow ${frameSelected ? 'ring-2 ring-accent' : 'ring-1 ring-line group-hover/card:ring-2 group-hover/card:ring-accent'}`} />
           {isCurrent && span && (
             <div className="absolute inset-x-0 bottom-0 h-[3px] bg-black/20">
               <div
@@ -688,22 +688,22 @@ function Toolbar({ pointer, setPointer }: { pointer: PointerMode; setPointer: (m
     }
   }, [])
   return (
-    <div ref={bar} style={left === null ? undefined : { left }} className="absolute bottom-3 left-1/2 z-30 flex h-8 -translate-x-1/2 items-center gap-0.5 rounded-lg bg-raised px-1 shadow-[0_1px_4px_rgba(0,0,0,0.12)]">
+    <div ref={bar} style={left === null ? undefined : { left }} className="absolute bottom-3 left-1/2 z-30 flex h-8 -translate-x-1/2 items-center gap-0.5 rounded-tile bg-raised px-1 shadow-[0_1px_4px_rgba(0,0,0,0.12)]">
       <div className="relative flex items-center">
         <button
           onClick={() => setTool('pointer')}
           title={current.label}
-          className={`flex size-6 items-center justify-center rounded-md ${active === 'pointer' ? 'bg-accent text-on-accent' : 'hover:bg-control-hover'}`}
+          className={`flex size-6 items-center justify-center rounded-control ${active === 'pointer' ? 'bg-accent text-on-accent' : 'hover:bg-control-hover'}`}
         >
           <Current size={14} />
         </button>
-        <button onClick={() => setMenu((m) => !m)} title="Cursor, hand or AI" className="flex h-6 w-4 items-center justify-center rounded-md hover:bg-control-hover">
+        <button onClick={() => setMenu((m) => !m)} title="Cursor, hand or AI" className="flex h-6 w-4 items-center justify-center rounded-control hover:bg-control-hover">
           <Icon.ChevronDown size={12} />
         </button>
         {menu && (
           <>
             <div className="fixed inset-0 z-40" onClick={() => setMenu(false)} />
-            <div className="absolute bottom-full left-0 z-50 mb-2 w-64 rounded-lg bg-raised p-1 shadow-xl ring-1 ring-line">
+            <div className="absolute bottom-full left-0 z-50 mb-2 w-64 rounded-tile bg-raised p-1 shadow-xl ring-1 ring-line">
               {POINTER_MODES.map(({ id, label, hint, key, icon: I }) => (
                 <button
                   key={id}
@@ -712,7 +712,7 @@ function Toolbar({ pointer, setPointer }: { pointer: PointerMode; setPointer: (m
                     setTool('pointer')
                     setMenu(false)
                   }}
-                  className="flex w-full items-start gap-2 rounded-md p-2 text-left hover:bg-control-hover"
+                  className="flex w-full items-start gap-2 rounded-control p-2 text-left hover:bg-control-hover"
                 >
                   <I size={14} className={`mt-0.5 shrink-0 ${pointer === id ? 'text-accent-text' : 'text-muted'}`} />
                   <span className="min-w-0 flex-1">
@@ -735,7 +735,7 @@ function Toolbar({ pointer, setPointer }: { pointer: PointerMode; setPointer: (m
             setTool(id)
             if (pointer !== 'select') setPointer('select')
           }}
-          className={`flex size-6 items-center justify-center rounded-md ${active === id ? 'bg-accent text-on-accent' : 'hover:bg-control-hover'}`}
+          className={`flex size-6 items-center justify-center rounded-control ${active === id ? 'bg-accent text-on-accent' : 'hover:bg-control-hover'}`}
         >
           <I size={14} />
         </button>

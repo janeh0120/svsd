@@ -47,7 +47,7 @@ export function PinMarker({ pin, style, className = '' }: { pin: Pin; style?: CS
         pos &&
         createPortal(
           <div
-            className="fixed z-50 cursor-auto rounded-lg border border-line bg-raised p-2 text-left text-[12px] text-ink shadow-xl focus-within:border-line-strong"
+            className="fixed z-50 cursor-auto rounded-tile border border-line bg-raised p-2 text-left text-[12px] text-ink shadow-xl focus-within:border-line-strong"
             style={{ ...pos, width: POPOVER_W }}
             onClick={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}
@@ -88,13 +88,13 @@ export function PinMarker({ pin, style, className = '' }: { pin: Pin; style?: CS
                   <button
                     onClick={() => picker.current?.click()}
                     title="Add an image or video reference"
-                    className="flex h-5 items-center gap-1 rounded-full border border-line pr-2 pl-1.5 text-[11px] text-muted hover:text-ink"
+                    className="flex h-5 items-center gap-1 rounded-tile border border-line pr-2 pl-1.5 text-[11px] text-muted hover:text-ink"
                   >
                     <Icon.Plus size={12} />
                     Reference
                   </button>
                   {refs.map((name, i) => (
-                    <span key={i} className="max-w-24 truncate rounded-md bg-control px-1.5 py-0.5 text-[11px]">
+                    <span key={i} className="max-w-24 truncate rounded-control bg-control px-1.5 py-0.5 text-[11px]">
                       {name}
                     </span>
                   ))}
@@ -102,7 +102,7 @@ export function PinMarker({ pin, style, className = '' }: { pin: Pin; style?: CS
                     onClick={save}
                     disabled={!text.trim() || state.working}
                     title="Send to the agent"
-                    className="ml-auto flex size-5 items-center justify-center rounded-full bg-accent text-on-accent disabled:opacity-40"
+                    className="ml-auto flex size-5 items-center justify-center rounded-control bg-accent text-on-accent disabled:opacity-40"
                   >
                     <Icon.Send size={12} />
                   </button>
@@ -121,8 +121,8 @@ function TargetChip({ pin }: { pin: Pin }) {
   const frameId = targetFrame(pin.target, state.board)
   const frame = frameId ? state.board.frames[frameId] : undefined
   return (
-    <span className="inline-flex h-6 max-w-full items-center gap-1.5 rounded-md border border-line bg-control pr-1.5 pl-0.5">
-      <span className="relative h-[18px] w-7 shrink-0 overflow-hidden rounded-[3px] bg-line">
+    <span className="inline-flex h-6 max-w-full items-center gap-1.5 rounded-control border border-line bg-control pr-1.5 pl-0.5">
+      <span className="relative h-[18px] w-7 shrink-0 overflow-hidden rounded-thumb bg-line">
         {frame && <FrameThumb frame={frame} width={28} height={18} />}
       </span>
       <span className="truncate text-[11px]">{targetLabel(pin.target, state.board)}</span>

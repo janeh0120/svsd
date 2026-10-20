@@ -35,6 +35,14 @@
 
 /* Roles as Tailwind colors: bg-surface, text-muted, border-line, bg-accent… */
 @theme inline {
+  /* Shape follows role: tile = buttons, tabs, surfaces and cards (no pills),
+     control = icon-only buttons and fields, thumb = tiny clips and handles.
+     Circles (rounded-full) are only for status marks, play and send. */
+  --radius-tile: 12px;
+  --ease-ui: cubic-bezier(0.5, 0, 0, 1);
+  --default-transition-timing-function: cubic-bezier(0.5, 0, 0, 1); /* every transition-* utility */
+  --radius-control: 6px;
+  --radius-thumb: 3px;
   --color-canvas: var(--canvas);
   --color-surface: var(--surface);
   --color-raised: var(--raised);
