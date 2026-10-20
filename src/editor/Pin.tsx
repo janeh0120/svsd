@@ -54,7 +54,7 @@ export function PinMarker({ pin, style, className = '' }: { pin: Pin; style?: CS
           >
             {/* Same shape as the agent input: what it's about as a chip, the
                 text, + on the left and send on the right. Esc cancels. */}
-              <div className="flex min-h-20 flex-col">
+              <div className="flex flex-col">
                 <div className="mb-1.5">
                   <TargetChip pin={pin} />
                 </div>
@@ -71,7 +71,7 @@ export function PinMarker({ pin, style, className = '' }: { pin: Pin; style?: CS
                     if (e.key === 'Escape') dispatch({ type: 'pinRemove', id: pin.id })
                   }}
                   placeholder={placeholderFor(pin)}
-                  className="min-h-0 w-full flex-1 resize-none outline-none placeholder:text-subtle"
+                  className="mb-2 max-h-40 min-h-[2lh] w-full resize-none [field-sizing:content] outline-none placeholder:text-subtle"
                 />
                 <div className="flex items-center gap-1.5">
                   <input
