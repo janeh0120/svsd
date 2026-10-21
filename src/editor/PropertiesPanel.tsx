@@ -206,9 +206,7 @@ function MotionSection({ cut, onChange, label, between, noAnimation }: { cut: Cu
       <Labeled label="Easing">
         <EasingPicker cut={cut} saved={saved} onRemove={(id) => setSaved(saved.filter((e) => e.id !== id))} onChange={onChange} />
       </Labeled>
-      <Labeled label="Duration">
-        <Field prefix={<Icon.Loop size={11} />} value={cutMs(cut)} suffix="ms" step={50} disabled={cut.custom === 'spring'} onChange={(v) => onChange({ duration: Math.max(0, v) })} />
-      </Labeled>
+      <ScrubDuration ms={cutMs(cut)} disabled={cut.custom === 'spring'} onChange={(v) => onChange({ duration: v })} />
       {cut.custom === 'bezier' && (
         <>
           <BezierEditor value={bezier} onChange={(b) => onChange({ bezier: b })} />
@@ -482,6 +480,77 @@ function Section({ title, action, children }: { title: string; action?: ReactNod
 }
 
 // Label on the left, control on the right.
+// Duration as a scrub field: press and drag left or right to change it (shift for fine steps), or click to type
+// seconds. The lighter fill shows how long it is against a 3 s scale.
+const SCRUB_MAX = 3000
+function ScrubDuration({ ms, onChange, disabled }: { ms: number; onChange: (ms: number) => void; disabled?: boolean }) {
+  const [editing, setEditing] = useState(false)
+  const [dragging, setDragging] = useState(false)
+  const secs = (v: number) => `${+(v / 1000).toFixed(2)}s`
+
+  const down = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (disabled || editing || e.button !== 0) return
+    const el = e.currentTarget
+    el.setPointerCapture(e.pointerId)
+    const x0 = e.clientX
+    const v0 = ms
+    let moved = false
+    const move = (ev: PointerEvent) => {
+      const dx = ev.clientX - x0
+      if (!moved && Math.abs(dx) < 3) return
+      if (!moved) {
+        moved = true
+        setDragging(true)
+        document.body.classList.add('cursor-scrub')
+      }
+      // 10 ms per pixel, snapped to 10 ms (50 ms steps would feel notchy); shift slows it to 2 ms per pixel.
+      const next = v0 + dx * (ev.shiftKey ? 2 : 10)
+      onChange(Math.max(0, Math.min(10000, Math.round(next / 10) * 10)))
+    }
+    const up = () => {
+      el.removeEventListener('pointermove', move)
+      el.removeEventListener('pointerup', up)
+      el.removeEventListener('pointercancel', up)
+      document.body.classList.remove('cursor-scrub')
+      setDragging(false)
+      if (!moved) setEditing(true)
+    }
+    el.addEventListener('pointermove', move)
+    el.addEventListener('pointerup', up)
+    el.addEventListener('pointercancel', up)
+  }
+
+  return (
+    <div
+      onPointerDown={down}
+      title={disabled ? 'A spring takes as long as it needs to settle' : 'Drag left or right to change the duration'}
+      className={`relative flex h-9 select-none items-center justify-between overflow-hidden rounded-tile bg-control px-3 ${disabled ? 'opacity-60' : 'cursor-scrub'}`}
+    >
+      <span aria-hidden className="pointer-events-none absolute inset-y-0 left-0 bg-control-hover" style={{ width: `${Math.min(1, ms / SCRUB_MAX) * 100}%`, transition: dragging ? 'none' : 'width 160ms cubic-bezier(0.5,0,0,1)' }} />
+      <span className="relative text-muted">Duration</span>
+      {editing ? (
+        <input
+          autoFocus
+          defaultValue={+(ms / 1000).toFixed(2)}
+          onFocus={(e) => e.currentTarget.select()}
+          onBlur={(e) => {
+            const v = Number(e.currentTarget.value)
+            if (e.currentTarget.value !== '' && !Number.isNaN(v)) onChange(Math.max(0, Math.round(v * 1000)))
+            setEditing(false)
+          }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.currentTarget.blur()
+            if (e.key === 'Escape') setEditing(false)
+          }}
+          className="relative w-14 bg-transparent text-right outline-none"
+        />
+      ) : (
+        <span className="relative tabular-nums">{secs(ms)}</span>
+      )}
+    </div>
+  )
+}
+
 function Labeled({ label, children }: { label: string; children: ReactNode }) {
   return (
     <div className="flex items-center gap-2">

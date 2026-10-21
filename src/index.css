@@ -177,6 +177,10 @@ h2 {
 @utility cursor-ai {
   cursor: crosshair;
 }
+/* Scrub cursor: a black left/right pair of arrows with a white outline, for dragging a value. */
+@utility cursor-scrub {
+  cursor: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath d='M10 6 3 12l7 6zM14 6l7 6-7 6z' fill='black' stroke='white' stroke-width='1.6' stroke-linejoin='round' paint-order='stroke'/%3E%3C/svg%3E") 12 12, ew-resize;
+}
 @utility cursor-hand {
   cursor: grab;
 }
