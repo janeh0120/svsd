@@ -59,11 +59,12 @@ export function Editor() {
   const [animateOpen, setAnimateOpen] = useAnimateOpen()
   const [startWidth, setStartWidth] = useState(START_WIDTH)
   const starting = state.phase === 'empty'
-  // After Generate the left panel drops back to its default width.
+  // After Generate the left panel keeps the width it had when the prompt was sent;
+  // only the user resizing it changes it from there.
   const setLeft = set('left')
   useEffect(() => {
-    if (!starting) setLeft(DEFAULTS.left)
-  }, [starting])
+    if (!starting) setLeft(startWidth)
+  }, [starting]) // eslint-disable-line react-hooks/exhaustive-deps
   const [loopMode, setLoopMode] = useState<LoopMode>('shot')
   const [speed, setSpeed] = useState(1)
   const [timelineCollapsed, setTimelineCollapsed] = useState(false)

@@ -11,7 +11,8 @@ const VARIATIONS = ['1', '2', '3', '4']
 
 const next = (list: string[], v: string) => list[(list.indexOf(v) + 1) % list.length]
 
-// The empty project's agent panel: one form for the brief (prompt, inputs, properties) and Generate.
+// The empty project's agent panel: quick-start inputs and properties sit at the bottom,
+// just above the same chat box the agent uses once the project has started.
 export function StartForm() {
   const { chat } = useApp()
   const [prompt, setPrompt] = useState('')
@@ -47,22 +48,8 @@ export function StartForm() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      <div className="min-h-0 flex-1 space-y-5 overflow-y-auto p-3">
-        <div className="rounded-tile border border-line bg-surface p-3 focus-within:border-line-strong">
-          <p className="font-display text-[12px] font-medium text-muted">Prompt</p>
-          <textarea
-            rows={5}
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) generate()
-            }}
-            placeholder="Attach your product and tell us your video idea..."
-            className="mt-1.5 w-full resize-none bg-transparent outline-none placeholder:text-subtle"
-          />
-        </div>
-
-        <section>
+      <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto p-3">
+        <section className="mt-auto">
           <h3 className="mb-1.5 px-0.5 font-display text-[12px] font-medium text-muted">Inputs</h3>
           <div className="flex flex-wrap gap-1.5">
             <button onClick={() => upload.current?.click()} className={tile}>
@@ -148,15 +135,36 @@ export function StartForm() {
         </section>
       </div>
 
-      <div className="p-3">
-        <button
-          onClick={generate}
-          disabled={!ready}
-          className="flex h-10 w-full items-center justify-center gap-1.5 rounded-tile bg-accent font-medium text-on-accent hover:brightness-95 disabled:opacity-40"
-        >
-          <Icon.Sparkle size={14} />
-          Generate
-        </button>
+      <div className="px-3 pb-3">
+        <div className="flex min-h-20 flex-col rounded-tile border border-line bg-surface p-2.5 focus-within:border-line-strong">
+          <textarea
+            rows={2}
+            autoFocus
+            value={prompt}
+            onChange={(e) => setPrompt(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault()
+                generate()
+              }
+            }}
+            placeholder="Attach your product and tell us your video idea..."
+            className="min-h-0 w-full flex-1 resize-none outline-none placeholder:text-subtle"
+          />
+          <div className="flex items-center gap-1.5">
+            <button onClick={() => upload.current?.click()} title="Upload files" className="flex size-5 items-center justify-center rounded-control border border-line text-muted">
+              <Icon.Plus size={12} />
+            </button>
+            <button
+              onClick={generate}
+              disabled={!ready}
+              className="ml-auto flex size-5 items-center justify-center rounded-full bg-accent text-on-accent disabled:opacity-40"
+              title="Send"
+            >
+              <Icon.Send size={12} />
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   )
