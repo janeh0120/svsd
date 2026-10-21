@@ -68,7 +68,7 @@ function AgentPanel() {
             busy || state.working ? 'opacity-100' : 'opacity-0'
           }`}
         />
-        <div className="relative flex min-h-20 flex-col rounded-tile border border-line bg-surface p-2.5 focus-within:border-line-strong">
+        <div className="relative flex min-h-[84px] flex-col gap-2 rounded-tile border border-line bg-surface p-2.5 focus-within:border-line-strong">
           {pending.length > 0 && (
             <div className="mb-1.5 flex flex-wrap gap-1">
               {pending.map((p) => (

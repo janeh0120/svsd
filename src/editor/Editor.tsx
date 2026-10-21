@@ -178,7 +178,7 @@ export function Editor() {
                 speed={speed}
               />
               {state.previewLoop && (
-                <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-white/70">
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-ink/70">
                   <Segmented
                     value={loopMode}
                     onChange={setLoopMode}
@@ -219,7 +219,7 @@ function Segmented<T extends string | number>({ value, onChange, options }: { va
         <button
           key={String(v)}
           onClick={() => onChange(v)}
-          className={`h-7 rounded-control px-3 transition-colors ${v === value ? 'bg-white/20 font-medium text-white' : 'hover:text-white'}`}
+          className={`h-7 rounded-control px-3 transition-colors ${v === value ? 'bg-white/20 font-medium text-ink' : 'hover:text-ink'}`}
         >
           {label}
         </button>

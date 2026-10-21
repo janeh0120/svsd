@@ -211,7 +211,7 @@ export function Player({ board, autoPlay = false, compact = false, startId, loop
             />
           ))}
         </div>
-        <span className="shrink-0 text-right text-[11px] whitespace-nowrap text-white/60">
+        <span className="shrink-0 text-right text-[11px] whitespace-nowrap text-ink/60">
           Shot {idx + 1}/{ids.length} · {((total * speed) / 1000).toFixed(1)}s
         </span>
       </div>

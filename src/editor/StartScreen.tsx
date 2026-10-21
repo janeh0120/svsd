@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from 'motion/react'
+import { motion, useReducedMotion, type TargetAndTransition } from 'motion/react'
 import { useRef, useState } from 'react'
 import { useApp } from '../context'
 import { Icon } from './icons'
@@ -44,6 +44,20 @@ export function StartScreen() {
     card: { exit: { opacity: 0, y: 28, scale: 0.98, transition: out(0.45) } },
     glow: { exit: { opacity: 0, y: 120, transition: out(0.7) } },
   }
+  // On load the gradient is lifted up from below the viewport like something with real weight: a
+  // slow, effortful start, a soft slowdown that carries it 3px past its resting place, then a slow sink
+  // back. The band runs 4px below the viewport so the overshoot never shows the page behind it. Only transform moves, so the layout is untouched. Reduced motion just fades it in.
+  const heavy: [number, number, number, number] = [0.65, 0, 0.35, 1]
+  const sink: [number, number, number, number] = [0.45, 0, 0.55, 1]
+  const rise: { initial: TargetAndTransition; animate: TargetAndTransition } = reduce
+    ? { initial: { opacity: 0 }, animate: { opacity: 1, transition: { duration: 0.6 } } }
+    : {
+        initial: { y: 560 },
+        animate: {
+          y: [560, -3, 0],
+          transition: { duration: 1.3, delay: 0.15, times: [0, 0.82, 1], ease: [heavy, sink] },
+        },
+      }
 
   const addFiles = (list: FileList | null) => list && setFiles((f) => [...f, ...Array.from(list).map((x) => x.name)])
   const addLink = () => {
@@ -69,7 +83,7 @@ export function StartScreen() {
   return (
     <motion.div variants={exit.page} exit="exit" className="fixed inset-0 z-50 overflow-hidden bg-canvas text-ink">
       {/* The same grainy gradient the agent glows with while it works, here filling the bottom of the page. */}
-      <motion.div variants={exit.glow} aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 z-0 h-[460px]">
+      <motion.div variants={exit.glow} {...rise} aria-hidden className="pointer-events-none absolute inset-x-0 -bottom-1 z-0 h-[464px]">
         <div className="agent-glow start-glow absolute inset-x-0 bottom-0 h-full" />
       </motion.div>
 
@@ -100,10 +114,10 @@ export function StartScreen() {
 
         {/* Headline and card sit in the middle of the screen (the bottom padding mirrors the nav), above the gradient. */}
         <main className="flex w-full flex-1 flex-col items-center justify-center pb-[90px]">
-          <motion.h1 variants={exit.title} className="text-[76px] font-normal leading-[110px] text-white">
+          <motion.h1 variants={exit.title} className="text-[76px] font-normal leading-[110px] text-ink">
             Make your next big reveal.
           </motion.h1>
-          <motion.p variants={exit.lead} className="mt-[37px] text-[18px] leading-[24px] text-white">
+          <motion.p variants={exit.lead} className="mt-[37px] text-[18px] leading-[24px] text-ink">
             Create engaging product videos without the motion design learning curve.
           </motion.p>
 
