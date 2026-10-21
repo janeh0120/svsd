@@ -1,3 +1,4 @@
+import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { Player, type LoopMode } from '../components/Player'
 import { useApp } from '../context'
@@ -5,13 +6,12 @@ import { Icon } from './icons'
 import { Canvas } from './Canvas'
 import { LeftPanel } from './LeftPanel'
 import { CollapsedAnimatePanel, PropertiesPanel } from './PropertiesPanel'
+import { StartScreen } from './StartScreen'
 import { Timeline } from './Timeline'
 
 // Both sidebars start at the same width; each can be resized on its own.
 const DEFAULTS = { left: 248, right: 248, bottom: 176 }
 type Sizes = typeof DEFAULTS
-// While the start form is showing, the left panel opens wide enough for its buttons on one line.
-const START_WIDTH = 340
 const KEY = 'svsd.panel-sizes.v7'
 
 // Panel sizes are a per-viewer convenience, so they live in localStorage.
@@ -57,20 +57,32 @@ export function Editor() {
   const { state, dispatch } = useApp()
   const [sizes, set] = usePanelSizes()
   const [animateOpen, setAnimateOpen] = useAnimateOpen()
-  const [startWidth, setStartWidth] = useState(START_WIDTH)
   const starting = state.phase === 'empty'
-  // After Generate the left panel keeps the width it had when the prompt was sent;
+  // When the brief is sent, the left panel opens as wide as the right one;
   // only the user resizing it changes it from there.
   const setLeft = set('left')
   useEffect(() => {
-    if (!starting) setLeft(startWidth)
+    if (!starting) setLeft(sizes.right)
   }, [starting]) // eslint-disable-line react-hooks/exhaustive-deps
+  // The editor builds itself in under the start page as it leaves: left panel from the left,
+  // timeline from below, the rest fading in around them.
+  const reduce = useReducedMotion()
+  const ease = [0.5, 0, 0, 1] as const
+  const arrive = (axis: 'x' | 'y', from: number): Variants => ({
+    start: axis === 'x' ? { opacity: 0, x: from } : { opacity: 0, y: from },
+    run: { opacity: 1, x: 0, y: 0, transition: reduce ? { duration: 0 } : { duration: 0.7, ease } },
+  })
+  const stage: Variants = {
+    start: { opacity: 0 },
+    run: { opacity: 1, transition: reduce ? { duration: 0 } : { duration: 0.6, ease, delayChildren: 0.3, staggerChildren: 0.1 } },
+  }
   const [loopMode, setLoopMode] = useState<LoopMode>('shot')
   const [speed, setSpeed] = useState(1)
   const [timelineCollapsed, setTimelineCollapsed] = useState(false)
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (starting) return
       // ⇧⌘S toggles annotate mode from anywhere, even while typing.
       if (e.key.toLowerCase() === 's' && e.shiftKey && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
@@ -96,64 +108,81 @@ export function Editor() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [state.preview, state.composing, state.mode, state.board.chapters.length, dispatch])
+  }, [starting, state.preview, state.composing, state.mode, state.board.chapters.length, dispatch])
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-surface p-2 text-[12px] text-ink">
-      <div className="flex min-h-0 flex-1">
-        <LeftPanel width={starting ? startWidth : sizes.left} />
-        <Resizer
-          axis="x"
-          value={starting ? startWidth : sizes.left}
-          min={200}
-          max={420}
-          sign={1}
-          onChange={starting ? setStartWidth : set('left')}
-          onReset={() => (starting ? setStartWidth(START_WIDTH) : set('left')(DEFAULTS.left))}
-        />
-        <Canvas />
-        {animateOpen ? (
-          <>
-            <Resizer axis="x" value={sizes.right} min={200} max={420} sign={-1} onChange={set('right')} onReset={() => set('right')(DEFAULTS.right)} />
-            <PropertiesPanel width={sizes.right} onCollapse={() => setAnimateOpen(false)} />
-          </>
-        ) : (
-          <CollapsedAnimatePanel onExpand={() => setAnimateOpen(true)} />
-        )}
-      </div>
-      {!timelineCollapsed && <Resizer axis="y" value={sizes.bottom} min={150} max={400} sign={-1} onChange={set('bottom')} onReset={() => set('bottom')(DEFAULTS.bottom)} />}
-      <Timeline height={sizes.bottom} collapsed={timelineCollapsed} onToggle={() => setTimelineCollapsed((c) => !c)} />
-      {state.preview && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-10" onClick={() => dispatch({ type: 'preview', open: false })}>
-          <div className="w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
-            <Player key={state.previewLoop ? loopMode : 'full'} board={state.board} autoPlay startId={state.previewFrom} loop={state.previewLoop && loopMode} speed={speed} />
-            {state.previewLoop && (
-              <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-white/70">
-                <Segmented
-                  value={loopMode}
-                  onChange={setLoopMode}
-                  options={[
-                    ['shot', 'Shot only'],
-                    ['cut', 'With transition'],
-                  ]}
-                />
-                <span className="ml-auto" title="Playback speed"><Icon.Gauge size={20} strokeWidth={1.4} /></span>
-                <Segmented
-                  value={speed}
-                  onChange={setSpeed}
-                  options={[
-                    [1, '1×'],
-                    [0.5, '0.5×'],
-                    [0.25, '0.25×'],
-                    [0.1, '0.1×'],
-                  ]}
-                />
-              </div>
-            )}
-          </div>
+    <>
+      {/* A blank project opens on the full-screen start page, which lifts away over the editor. */}
+      <AnimatePresence>{starting && <StartScreen key="start" />}</AnimatePresence>
+      <motion.div
+        variants={stage}
+        initial={false}
+        animate={starting ? 'start' : 'run'}
+        inert={starting}
+        className="flex h-screen flex-col overflow-hidden bg-surface p-2 text-[12px] text-ink"
+      >
+        <div className="flex min-h-0 flex-1">
+          <motion.div variants={arrive('x', -32)} className="flex shrink-0">
+            <LeftPanel width={sizes.left} />
+          </motion.div>
+          <Resizer axis="x" value={sizes.left} min={200} max={420} sign={1} onChange={set('left')} onReset={() => set('left')(DEFAULTS.left)} />
+          <Canvas />
+          {animateOpen ? (
+            <>
+              <Resizer axis="x" value={sizes.right} min={200} max={420} sign={-1} onChange={set('right')} onReset={() => set('right')(DEFAULTS.right)} />
+              <PropertiesPanel width={sizes.right} onCollapse={() => setAnimateOpen(false)} />
+            </>
+          ) : (
+            <CollapsedAnimatePanel onExpand={() => setAnimateOpen(true)} />
+          )}
         </div>
-      )}
-    </div>
+        {!timelineCollapsed && (
+          <Resizer axis="y" value={sizes.bottom} min={150} max={400} sign={-1} onChange={set('bottom')} onReset={() => set('bottom')(DEFAULTS.bottom)} />
+        )}
+        <motion.div variants={arrive('y', 32)} className="shrink-0">
+          <Timeline height={sizes.bottom} collapsed={timelineCollapsed} onToggle={() => setTimelineCollapsed((c) => !c)} />
+        </motion.div>
+        {state.preview && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-10" onClick={() => dispatch({ type: 'preview', open: false })}>
+            <div className="w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
+              <Player
+                key={state.previewLoop ? loopMode : 'full'}
+                board={state.board}
+                autoPlay
+                startId={state.previewFrom}
+                loop={state.previewLoop && loopMode}
+                speed={speed}
+              />
+              {state.previewLoop && (
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-white/70">
+                  <Segmented
+                    value={loopMode}
+                    onChange={setLoopMode}
+                    options={[
+                      ['shot', 'Shot only'],
+                      ['cut', 'With transition'],
+                    ]}
+                  />
+                  <span className="ml-auto" title="Playback speed">
+                    <Icon.Gauge size={20} strokeWidth={1.4} />
+                  </span>
+                  <Segmented
+                    value={speed}
+                    onChange={setSpeed}
+                    options={[
+                      [1, '1×'],
+                      [0.5, '0.5×'],
+                      [0.25, '0.25×'],
+                      [0.1, '0.1×'],
+                    ]}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </motion.div>
+    </>
   )
 }
 

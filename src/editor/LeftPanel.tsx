@@ -5,7 +5,6 @@ import { domId, useApp } from '../context'
 import type { Message } from '../types'
 import { Icon } from './icons'
 import { QuestionCard } from './QuestionCard'
-import { StartForm } from './StartForm'
 
 export function LeftPanel({ width }: { width: number }) {
   const { state } = useApp()
@@ -48,9 +47,6 @@ function AgentPanel() {
     else return
     setText('')
   }
-
-  // A blank project starts from a brief form instead of the chat.
-  if (state.phase === 'empty') return <StartForm />
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">

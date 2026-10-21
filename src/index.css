@@ -257,6 +257,25 @@ h2 {
     agent-glow-rise 1.6s ease-in-out infinite alternate,
     agent-glow-wave 2.4s linear infinite;
 }
+/* Start page version of the glow: same gradient, grain and drift, but a wider wave (960px)
+   so the soft top edge rolls gently across a full-width band. */
+.agent-glow.start-glow {
+  mask-size:
+    960px 100%,
+    100% 100%;
+  animation:
+    agent-glow 9s ease-in-out infinite alternate,
+    agent-glow-rise 1.6s ease-in-out infinite alternate,
+    start-glow-wave 9600ms linear infinite;
+}
+@keyframes start-glow-wave {
+  from {
+    mask-position: 0 0, 0 0;
+  }
+  to {
+    mask-position: 960px 0, 0 0;
+  }
+}
 @keyframes agent-glow-wave {
   from {
     mask-position: 0 0, 0 0;
