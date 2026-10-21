@@ -165,7 +165,7 @@ export function agentChatDraft(): Storyboard {
     f.hold = Math.round((f.hold - fade) * 10) / 10
   })
   cuts['c2->c3'] = { feel: 'smooth', note: 'The question types in as the box pulls out', duration: 1000 }
-  cuts['c3->c4'] = { feel: 'smooth', note: 'On Send the recording takes over: the panels orbit in around the card', animation: 'dissolve', duration: 400 }
+  cuts['c3->c4'] = { feel: 'smooth', bezier: [0.42, 0, 1, 1], note: 'On Send the recording takes over (ease in): the panels orbit in around the card', animation: 'dissolve', duration: 400 }
   // Soft transition into shot 5, as the notes describe; shot 4 gives up the same time.
   cuts['s04->c2'] = { feel: 'smooth', note: 'Wordmark fades as the gradient washes in from the right and a white panel slides in', animation: 'dissolve', duration: 700 }
   frames.find((f) => f.id === 's04')!.hold -= 0.7
