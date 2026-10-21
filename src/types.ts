@@ -16,6 +16,7 @@ export type EnterPreset =
   | 'blur'
   | 'blur-scale'
   | 'blur-slide'
+  | 'orbit'
 
 export type Layer = {
   id: string
@@ -40,6 +41,7 @@ export type Layer = {
   stroke?: string // outline color, for rectangles
   radius?: number
   src?: string
+  poster?: string // video: still shown when it is not playing (thumbnails, canvas, paused preview)
   start?: number // video: seconds into the clip where this frame begins
   typing?: boolean // text: types itself out in the preview, continuing from the previous frame's text
   shadow?: boolean

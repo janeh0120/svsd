@@ -178,7 +178,7 @@ export function Editor() {
                 speed={speed}
               />
               {state.previewLoop && (
-                <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-ink/70">
+                <div className="mt-3 flex flex-wrap items-center gap-2 text-[12px] text-ink">
                   <Segmented
                     value={loopMode}
                     onChange={setLoopMode}
@@ -214,12 +214,12 @@ export function Editor() {
 // A small segmented control for the preview's loop and speed options.
 function Segmented<T extends string | number>({ value, onChange, options }: { value: T; onChange: (v: T) => void; options: [T, string][] }) {
   return (
-    <div className="flex rounded-tile bg-white/10 p-1">
+    <div className="flex rounded-tile bg-control p-1">
       {options.map(([v, label]) => (
         <button
           key={String(v)}
           onClick={() => onChange(v)}
-          className={`h-7 rounded-control px-3 transition-colors ${v === value ? 'bg-white/20 font-medium text-ink' : 'hover:text-ink'}`}
+          className={`h-7 rounded-control px-3 transition-colors ${v === value ? 'bg-control-hover font-medium text-ink' : 'text-muted hover:text-ink'}`}
         >
           {label}
         </button>

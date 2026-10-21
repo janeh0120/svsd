@@ -42,67 +42,7 @@ export function agentChatDraft(): Storyboard {
     ]
   }
 
-  // Shot 7: four panels over a lilac gradient. A dark flow graph (top left), the call
-  // transcript (right), the system tools list (bottom left) and the white "Gathering
-  // data" card in the middle, which shot 6 holds invisible so it fades in on Send.
-  const dark = '#141418'
-  const pill = (id: string, name: string, t: string, x: number, y: number, size = 11, color = '#E4E4E8'): Layer =>
-    text(id, name, t, x, y, Math.round(t.length * size * 0.62 + size * 1.6), Math.round(size * 1.7), size, color, { fill: '#2B2B31', fontWeight: 500 })
-  const node = (key: string, title: string, x: number, y: number, w: number, h: number, stats: string[], footer: string): Layer[] => [
-    rect(`${key}-card`, `${title} node`, x, y, w, h, '#1D1D22', 9),
-    text(`${key}-title`, `${title} title`, title, x + 32, y + 8, w - 40, 24, 15, '#ECECEE', { fontWeight: 500 }),
-    ...stats.map((t, i) => pill(`${key}-stat${i}`, `${title} stat ${i + 1}`, t, x + 10 + i * (i === 0 ? 0 : 64) + (i === 2 ? -10 : 0), y + 34)),
-    text(`${key}-foot`, `${title} footer`, footer, x + 10, y + h - 24, w - 20, 18, 11, '#8F8F97'),
-  ]
-  const analysis = (): Layer[] => [
-    rect('flow', 'Flow panel', 0, 0, 643, 335, '#0E0E11'),
-    text('flow-top', 'Intent stat', '96.4%  Greet & Identity intent', 90, 0, 220, 22, 11, '#D8D8DC', { fill: '#2B2B31', fontWeight: 500 }),
-    ...node('verify', 'Verify Identity', 41, 60, 187, 85, ['81.0% →', '1s', '62.0 %'], '124 conversations'),
-    ...node('transfer', 'Transfer to number', 414, 151, 180, 84, ['98.0% →', '1s', '19.2 %'], '36 conversations'),
-    ...node('order', 'Check order status', 43, 208, 188, 88, ['97.2% →', '1s', '48.0 %'], '96 conversations'),
-    pill('edge-failed', 'Lookup failed', '19.0%  Lookup failed', 273, 132, 11, '#D8D8DC'),
-    pill('edge-escalate', 'Escalate', '2.8%  Escalate', 274, 218, 11, '#D8D8DC'),
-
-    rect('chat', 'Transcript panel', 883, 137, 570, 460, '#1A1A1E', 12),
-    rect('chat-a1', 'Agent avatar', 917, 177, 34, 34, 'radial-gradient(circle at 35% 30%, #FFFFFF 0%, #8F9BD6 40%, #3E3A78 100%)', 17),
-    pill('chat-prod1', 'PROD tag', 'PROD', 966, 188, 11, '#C9C9CF'),
-    text('chat-n1', 'Agent name', 'Customer Support Agent', 1030, 184, 240, 24, 14, '#D8D8DC', { fontWeight: 500 }),
-    text('chat-l1', 'Agent message', 'Thanks, Maria. To pull up your refund I just need to verify the account. Could you', 966, 212, 620, 22, 14, '#F0F0F2'),
-    text('chat-l2', 'Agent message, line 2', 'confirm the phone number you signed up with?', 966, 232, 620, 22, 14, '#F0F0F2'),
-    text('chat-m1', 'Timing', '0:42    LLM 204 ms ⌄    TTS 191 ms ⌄    RAG 166 ms ⌄    Version ⌄', 966, 262, 560, 20, 12, '#8A8A92'),
-    rect('chat-a2', 'Caller avatar', 917, 318, 34, 34, '#3A3A40', 17),
-    text('chat-n2', 'Caller name', 'Caller', 966, 321, 120, 24, 14, '#D8D8DC', { fontWeight: 500 }),
-    text('chat-c1', 'Caller message', "I'm calling from my work phone and I don't remember which number is on the", 966, 346, 620, 22, 14, '#F0F0F2'),
-    text('chat-c2', 'Caller message, line 2', 'account. Can I just talk to a person?', 966, 366, 620, 22, 14, '#F0F0F2'),
-    text('chat-m2', 'Timing', '0:55    ASR 44 ms    • +0.00', 966, 396, 400, 20, 12, '#8A8A92'),
-    rect('chat-a3', 'Agent avatar', 917, 453, 34, 34, 'radial-gradient(circle at 35% 30%, #FFFFFF 0%, #8F9BD6 40%, #3E3A78 100%)', 17),
-    pill('chat-prod3', 'PROD tag', 'PROD', 966, 464, 11, '#C9C9CF'),
-    text('chat-n3', 'Agent name', 'Customer Support Agent', 1030, 460, 240, 24, 14, '#D8D8DC', { fontWeight: 500 }),
-    text('chat-l3', 'Agent message', 'Of course. One moment while I connect you with a member of our team who', 966, 487, 620, 22, 14, '#F0F0F2'),
-    text('chat-l4', 'Agent message, line 2', 'hel', 966, 507, 620, 22, 14, '#F0F0F2'),
-    text('chat-m3', 'Timing', '1:02    LLM 184 ms ⌄    TTS 152 ms ⌄    Tool transfer_to_number', 966, 537, 560, 20, 12, '#8A8A92'),
-
-    rect('tools', 'System tools panel', 90, 433, 510, 480, dark, 12),
-    text('tools-title', 'System tools title', 'System tools', 106, 440, 260, 36, 27, '#F2F2F4'),
-    text('tools-count', 'Active tools', '2 active tools', 118, 492, 200, 24, 15, '#E4E4E6', { fontWeight: 500 }),
-    ...(
-      [
-        ['Transfer to number', true],
-        ['Transfer to agent', false],
-        ['Transfer to Genesys (voice)', false],
-        ['Detect Language', false],
-        ['Detect voicemail', false],
-      ] as const
-    ).flatMap(([label, on], i): Layer[] => {
-      const y = 540 + i * 53
-      return [
-        rect(`tool${i}-track`, `${label} toggle`, 120, y + 8, 38, 22, on ? '#6B6B74' : '#2A2A2F', 11),
-        rect(`tool${i}-knob`, `${label} knob`, on ? 138 : 122, y + 10, 18, 18, on ? '#FFFFFF' : '#4A4A50', 9),
-        text(`tool${i}-label`, label, label, 173, y + 4, 300, 30, 17, '#E4E4E6'),
-        ...(i < 2 ? [text(`tool${i}-gear`, `${label} settings`, '⚙', 543, y + 4, 30, 30, 17, '#8A8A90', { align: 'center' as const })] : []),
-      ]
-    }),
-  ]
+  // Shot 6 is a screen recording (public/shots/orbiting-agents.mp4). Shot 5 holds the "Gathering data" card invisible, ready to carry on.
   const gatherCard = (visible: boolean): Layer[] => {
     const o = visible ? 1 : 0
     const row = (i: number, label: string): Layer[] => [
@@ -120,18 +60,6 @@ export function agentChatDraft(): Storyboard {
       ...row(2, 'Checking escalation rules'),
     ]
   }
-
-  // Shot 7 arrives in beats after the hard cut: the white card is already there, then the flow
-  // graph, transcript and system tools pop in around it, then the card ticks through its
-  // three steps one at a time.
-  const staged = (layers: Layer[]): Layer[] =>
-    layers.map((l) => {
-      const row = l.id.match(/^g-(?:check|tick|row)(\d)$/)
-      if (row) return { ...l, delay: 0.6 + 0.35 * Number(row[1]) }
-      if (l.id.startsWith('g-')) return l
-      const delay = l.id.startsWith('chat') ? 0.3 : l.id.startsWith('tool') ? 0.45 : 0.15
-      return { ...l, enter: 'grow', delay }
-    })
 
   // The wordmark shots: the still keeps the tiled pattern; a patch hides the printed
   // wordmark and TenAgents Builder is set on top as layers.
@@ -214,7 +142,11 @@ export function agentChatDraft(): Storyboard {
       id: 'c3', name: 'Prompt send', hold: 0.7, background: '#F3F0EE',
       layers: [rect('panel', 'Background', 15, 15, 1410, 870, GRADIENT, 14), ...prompt('Why do customers ask to talk to a person?'), ...gatherCard(false), cursor(1039, 471)],
     },
-    { id: 'c4', name: 'Analysis working', hold: 1.6, background: 'linear-gradient(135deg, #B5B7C8 0%, #A3A5BE 45%, #7E79A8 100%)', layers: staged([...analysis(), ...gatherCard(true)]) },
+    {
+      id: 'c4', name: 'Analysis working', hold: 1.7, background: '#A3A5BE',
+      // The orbiting-panels recording, a 16:9 clip filled edge to edge like the stills. The canvas shows the still instead.
+      layers: [{ id: 'orbit-clip', name: 'Recording', kind: 'video', src: '/shots/orbiting-agents.mp4', poster: '/shots/orbiting-agents.png', x: -80, y: 0, w: 1600, h: 900, ...base }],
+    },
     ...['08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31'].map((n) => S[n]),
   ]
   const ids = frames.map((f) => f.id)
@@ -233,7 +165,7 @@ export function agentChatDraft(): Storyboard {
     f.hold = Math.round((f.hold - fade) * 10) / 10
   })
   cuts['c2->c3'] = { feel: 'smooth', note: 'The question types in as the box pulls out', duration: 1000 }
-  cuts['c3->c4'] = { feel: 'snappy', note: 'Hard cut on Send: the card is there, the panels pop in around it, the steps tick', duration: 500 }
+  cuts['c3->c4'] = { feel: 'smooth', note: 'On Send the recording takes over: the panels orbit in around the card', animation: 'dissolve', duration: 400 }
   // Soft transition into shot 5, as the notes describe; shot 4 gives up the same time.
   cuts['s04->c2'] = { feel: 'smooth', note: 'Wordmark fades as the gradient washes in from the right and a white panel slides in', animation: 'dissolve', duration: 700 }
   frames.find((f) => f.id === 's04')!.hold -= 0.7

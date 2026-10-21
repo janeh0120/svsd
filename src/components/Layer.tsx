@@ -96,13 +96,16 @@ function TypedText({ text, typing }: { text: string; typing: Typing }) {
     setShown(typing.from.length)
     const remaining = text.length - typing.from.length
     if (remaining <= 0) return
-    const step = typing.duration / remaining
+    // Fast typing adds several characters per tick (about 30 ms apart), so it re-renders less while other things animate.
+    const perChar = typing.duration / remaining
+    const batch = Math.max(1, Math.round(30 / perChar))
+    const step = perChar * batch
     let n = typing.from.length
     let timer = 0
     const tick = () => {
-      n += 1
+      n = Math.min(text.length, n + batch)
       setShown(n)
-      if (n < text.length) timer = window.setTimeout(tick, step * (0.6 + Math.random() * 0.8))
+      if (n < text.length) timer = window.setTimeout(tick, step * (0.85 + Math.random() * 0.3))
     }
     timer = window.setTimeout(tick, typing.delay)
     return () => clearTimeout(timer)
@@ -237,14 +240,9 @@ function VideoBody({ layer, playing }: { layer: Layer; playing: boolean }) {
   }, [playing]) // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <video
-      ref={ref}
-      src={layer.src}
-      muted
-      playsInline
-      preload="auto"
-      className="block h-full w-full object-cover select-none"
-      style={{ borderRadius: layer.radius }}
-    />
+    <div className="relative h-full w-full" style={{ borderRadius: layer.radius, overflow: 'hidden' }}>
+      <video ref={ref} src={layer.src} muted playsInline preload="auto" className="block h-full w-full object-cover select-none" />
+      {layer.poster && !playing && <img src={layer.poster} draggable={false} className="absolute inset-0 block h-full w-full object-cover select-none" />}
+    </div>
   )
 }

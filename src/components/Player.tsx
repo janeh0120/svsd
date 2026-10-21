@@ -25,6 +25,11 @@ function useWidth<T extends HTMLElement>() {
 // `compact` is the small preview in the sidebar; otherwise it's the full-screen player.
 // A shot loop replays one shot: 'shot' is just its hold (the frame at rest, micro-motions
 // included); 'cut' is the frame before it, the cut into it, then the hold.
+// Orbit entrance: how far round (degrees) it travels and how long it takes, in seconds.
+const ORBIT_DEG = 55
+const ORBIT_S = 2.2
+const LAND_EASE: [number, number, number, number] = [0.16, 1, 0.3, 1]
+
 export type LoopMode = 'shot' | 'cut'
 
 export function Player({ board, autoPlay = false, compact = false, startId, loop = false, speed = 1 }: { board: Storyboard; autoPlay?: boolean; compact?: boolean; startId?: string | null; loop?: LoopMode | false; speed?: number }) {
@@ -131,14 +136,16 @@ export function Player({ board, autoPlay = false, compact = false, startId, loop
           transition={transition}
         >
           <AnimatePresence>
-            {frame.layers.map((l) => (
+            {frame.layers.map((l) => {
+              const orbit = l.enter === 'orbit'
+              const node = (
               <motion.div
                 // Same key across frames = the layer moves (Magic motion). Dissolve keys
                 // layers per frame so the old frame fades out as the new one fades in.
-                key={dissolve ? `${frame.id}:${l.id}` : l.kind === 'image' ? `${l.id}:${l.src}` : l.kind === 'video' ? `${frame.id}:${l.id}` : l.id}
+                key={orbit ? undefined : dissolve ? `${frame.id}:${l.id}` : l.kind === 'image' ? `${l.id}:${l.src}` : l.kind === 'video' ? `${frame.id}:${l.id}` : l.id}
                 className={`absolute ${comment ? 'hover:outline-2 hover:outline-dashed hover:outline-accent-line' : ''}`}
                 data-layer={l.id}
-                initial={arrival(l) ?? { ...layerBox(l), opacity: 0, y: dissolve ? 0 : 24 }}
+                initial={orbit ? { ...layerBox(l), rotate: l.rotation + ORBIT_DEG, scaleX: (l.scaleX ?? 1) * 1.1, scaleY: (l.scaleY ?? 1) * 1.1 } : (arrival(l) ?? { ...layerBox(l), opacity: 0, y: dissolve ? 0 : 24 })}
                 animate={{ ...layerBox(l), y: 0 }}
                 // A dissolve keeps the old layer opaque underneath until the new frame has faded
                 // in on top, so the crossfade never dips through the background.
@@ -153,11 +160,33 @@ export function Player({ board, autoPlay = false, compact = false, startId, loop
                         : { ...cutTransition(exitOf(frame)), delay: l.exitDelay ?? 0 },
                   ),
                 }}
-                transition={l.delay ? { ...transition, delay: l.delay * k } : transition}
+                // A delayed layer eases out (a long soft landing) instead of using the cut's in-out curve, which would sit idle through its delay and then rush.
+                transition={orbit ? { ...transition, ease: LAND_EASE, duration: ORBIT_S * k, delay: (l.delay ?? 0) * k } : l.delay ? { ...transition, ...('ease' in transition ? { ease: LAND_EASE } : {}), delay: l.delay * k } : transition}
               >
                 <LayerBody layer={l} playing={playing} typing={l.typing ? typingFor(l) : undefined} />
               </motion.div>
-            ))}
+              )
+              return orbit ? (
+                // Orbit: the layer travels a clockwise arc about the middle of the frame and stays upright, so a rotating
+                // wrapper carries it round while the layer itself counter-rotates. Both are plain transforms.
+                <motion.div
+                  key={l.id}
+                  className="pointer-events-none absolute inset-0"
+                  style={{ originX: 0.5, originY: 0.5, willChange: 'transform' }}
+                  initial={{ rotate: -ORBIT_DEG, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ opacity: 0, transition: slow({ duration: 0.3 }) }}
+                  transition={{
+                    rotate: slow({ duration: ORBIT_S, ease: LAND_EASE, delay: l.delay ?? 0 }),
+                    opacity: slow({ duration: 0.7, ease: 'easeOut', delay: l.delay ?? 0 }),
+                  }}
+                >
+                  {node}
+                </motion.div>
+              ) : (
+                node
+              )
+            })}
           </AnimatePresence>
         </motion.div>
       </motion.div>
@@ -171,8 +200,10 @@ export function Player({ board, autoPlay = false, compact = false, startId, loop
     const before = idx > 0 && !solo ? (board.frames[ids[idx - 1]].layers.find((p) => p.id === l.id)?.text ?? '') : ''
     const from = l.text?.startsWith(before) ? before : ''
     const chars = (l.text?.length ?? 0) - from.length
-    const window = idx > 0 && !solo ? cutMs(cut) : frame.hold * 1000 * 0.75
-    return { from, delay: 100 * k, duration: Math.min(Math.max(300, window - 200), chars * 70) * k }
+    const lag = (l.delay ?? 0) * 1000
+    // A late layer keeps typing on into the hold; otherwise it finishes as the cut lands.
+    const window = idx > 0 && !solo ? cutMs(cut) + (lag ? frame.hold * 1000 * 0.75 : 0) : frame.hold * 1000 * 0.75
+    return { from, delay: 100 * k + lag * k, duration: Math.min(Math.max(300, window - 200 - lag), chars * (lag ? 14 : 70)) * k }
   }
 
   if (compact) {
@@ -207,11 +238,11 @@ export function Player({ board, autoPlay = false, compact = false, startId, loop
               key={id}
               onClick={() => setI(n)}
               style={{ flexGrow: board.frames[id].hold }}
-              className={`h-full rounded-full ${n < idx ? 'bg-raised/70' : n === idx ? 'bg-accent' : 'bg-raised/20'}`}
+              className={`h-full rounded-full ${n < idx ? 'bg-subtle' : n === idx ? 'bg-accent' : 'bg-control'}`}
             />
           ))}
         </div>
-        <span className="shrink-0 text-right text-[11px] whitespace-nowrap text-ink/60">
+        <span className="shrink-0 text-right text-[11px] whitespace-nowrap text-muted">
           Shot {idx + 1}/{ids.length} · {((total * speed) / 1000).toFixed(1)}s
         </span>
       </div>
