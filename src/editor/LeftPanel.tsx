@@ -1,3 +1,4 @@
+import { motion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import { targetFrame, targetLabel } from '../board'
 import { FrameThumb } from '../components/FrameThumb'
@@ -5,6 +6,7 @@ import { domId, useApp } from '../context'
 import type { Message } from '../types'
 import { Icon } from './icons'
 import { QuestionCard } from './QuestionCard'
+import { useUiMotion } from './uiMotion'
 
 export function LeftPanel({ width }: { width: number }) {
   const { state } = useApp()
@@ -13,9 +15,9 @@ export function LeftPanel({ width }: { width: number }) {
       {/* App bar: the Sequence logo and the file name */}
       <div className="flex h-10 shrink-0 items-center">
         <div className="flex h-full w-10 shrink-0 items-center justify-center">
-          <img src="/sequence-logo.svg" alt="Sequence" title="Sequence" draggable={false} className="h-5 w-auto select-none" />
+          <img src="/sequence-logo.svg" alt="Sequence" title="Sequence" draggable={false} className="h-5 w-[22px] select-none" />
         </div>
-        <button className="flex min-w-0 items-center gap-1.5 px-3 font-display text-[13px] font-semibold">
+        <button className="flex h-6 min-w-0 items-center gap-1.5 px-3 font-display text-[13px] font-semibold">
           <span className="truncate" title={state.name}>
             {state.name}
           </span>
@@ -129,7 +131,7 @@ function AnnotateButton() {
           on ? 'bg-accent-soft text-accent-text' : disabled ? 'text-subtle' : 'text-muted hover:bg-control-hover'
         }`}
       >
-        <Icon.Pointer size={13} />
+        <Icon.Pointer size={12} />
       </button>
       {hover && (
         <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-2 w-60 rounded-tile bg-inverse p-2.5 text-on-inverse shadow-xl">
@@ -175,14 +177,32 @@ function AttachmentChip({ pinId }: { pinId: string }) {
   )
 }
 
+// Every message lands with a short rise and fade, so the thread feels like it is being written live.
 function ChatItem({ m }: { m: Message }) {
+  const { tween } = useUiMotion()
+  return (
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={tween(0.35)}>
+      <ChatBody m={m} />
+    </motion.div>
+  )
+}
+
+function ChatBody({ m }: { m: Message }) {
+  const { tween, spring } = useUiMotion()
   if (m.kind === 'step') {
     return (
       <div className="flex items-start gap-2">
         {m.status === 'running' ? (
           <span className="mt-0.5 size-3 shrink-0 animate-spin rounded-full border-[1.5px] border-line border-t-ink" />
         ) : (
-          <span className="mt-0.5 flex size-3 shrink-0 items-center justify-center rounded-full bg-secondary-container text-[8px] text-on-secondary-container">✓</span>
+          <motion.span
+            initial={{ scale: 0.3, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={spring}
+            className="mt-0.5 flex size-3 shrink-0 items-center justify-center rounded-full bg-secondary-container text-[8px] text-on-secondary-container"
+          >
+            ✓
+          </motion.span>
         )}
         <div className="min-w-0">
           <p className={m.status === 'running' ? '' : 'text-muted'}>{m.text}</p>
@@ -195,8 +215,15 @@ function ChatItem({ m }: { m: Message }) {
   if (m.kind === 'shots') {
     return (
       <div className="grid grid-cols-3 gap-1.5">
-        {m.shots?.map((src) => (
-          <img key={src} src={src} className="aspect-[1.6] w-full rounded border border-line bg-control object-contain" />
+        {m.shots?.map((src, i) => (
+          <motion.img
+            key={src}
+            src={src}
+            initial={{ opacity: 0, scale: 0.92 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={tween(0.3, Math.min(i, 12) * 0.04)}
+            className="aspect-[1.6] w-full rounded border border-line bg-control object-contain"
+          />
         ))}
       </div>
     )

@@ -149,14 +149,18 @@ export const Icon = {
       <circle cx="12" cy="12" r="1" fill="currentColor" />
     </Svg>
   ),
+  // A triangle looks off-centre when its bounding box is centred, so it sits where the mean of the
+  // box centre and the centroid lands on the middle of the 24 grid (x 6.6 to 19.6, not 7 to 20).
   Play: (p: P) => (
     <Svg {...p}>
-      <path d={rp([[7, 4], [20, 12], [7, 20]], 2.4)} />
+      <path d={rp([[6.6, 4], [19.6, 12], [6.6, 20]], 2.4)} />
     </Svg>
   ),
+  // Two solid bars, filled like the Play triangle so the two read as the same weight.
   Pause: (p: P) => (
-    <Svg {...p}>
-      <path d="M8 5v14M16 5v14" />
+    <Svg fill="currentColor" {...p}>
+      <rect x="7" y="5" width="3" height="14" rx="1" />
+      <rect x="14" y="5" width="3" height="14" rx="1" />
     </Svg>
   ),
   Loop: (p: P) => (

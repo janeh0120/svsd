@@ -6,7 +6,7 @@ import { Icon } from './icons'
 // Each property cycles through its options on click. They only shape the brief for now.
 const ASPECTS = ['16:9', '9:16', '1:1', '4:5']
 const RESOLUTIONS = ['720p', '1080p', '4K']
-const LENGTHS = ['15s', '1m', '2m']
+const LENGTHS = ['15s', '30s', '1m', '2m']
 const AUDIO = ['Off', 'On']
 const VARIATIONS = ['1', '2', '3', '4']
 
@@ -26,7 +26,7 @@ export function StartScreen() {
   const [link, setLink] = useState('')
   const [aspect, setAspect] = useState(ASPECTS[0])
   const [resolution, setResolution] = useState(RESOLUTIONS[0])
-  const [length, setLength] = useState(LENGTHS[1])
+  const [length, setLength] = useState('1m')
   const [audio, setAudio] = useState(AUDIO[0])
   const [variations, setVariations] = useState(VARIATIONS[0])
   const upload = useRef<HTMLInputElement>(null)
@@ -60,7 +60,7 @@ export function StartScreen() {
   const ready = prompt.trim().length > 0 || sites.length > 0 || boards.length > 0
 
   const tile =
-    'flex h-[92px] w-[220px] flex-col items-center justify-center gap-2 whitespace-nowrap rounded-[15px] bg-control text-[14px] text-muted hover:bg-control-hover hover:text-ink'
+    'flex h-[92px] w-[220px] flex-col items-center justify-center gap-2 whitespace-nowrap rounded-[15px] bg-control text-[14px] leading-[20px] text-muted hover:bg-control-hover hover:text-ink'
   const pill =
     'flex h-[41px] w-[128px] items-center justify-center gap-2 whitespace-nowrap rounded-[15px] bg-control text-[15px] font-medium hover:bg-control-hover'
   const navLink = 'text-[16px] font-medium text-ink'
@@ -76,7 +76,7 @@ export function StartScreen() {
       <div className="relative z-10 flex h-full flex-col items-center">
         {/* Nav. Everything but Start creating is a placeholder: no accounts or pages yet. */}
         <motion.nav variants={exit.nav} className="flex h-[90px] w-full shrink-0 items-center justify-between px-[38px]">
-          <img src="/sequence-wordmark.svg" alt="Sequence" draggable={false} className="h-[32px] w-[141px] select-none" />
+          <img src="/sequence-wordmark.svg" alt="Sequence" draggable={false} className="h-[32px] w-[142px] select-none" />
           <div className="flex items-center">
             <div className="mr-[58px] flex gap-[31px]">
               {['Support', 'Careers', 'Blog'].map((l) => (
@@ -229,7 +229,7 @@ export function StartScreen() {
                     title="Upload files"
                     className="flex size-[26px] items-center justify-center rounded-[8px] border border-line text-muted"
                   >
-                    <Icon.Plus size={15} />
+                    <Icon.Plus size={14} />
                   </button>
                   <button
                     onClick={generate}
@@ -237,7 +237,7 @@ export function StartScreen() {
                     className="ml-auto flex size-[26px] items-center justify-center rounded-full bg-accent text-on-accent disabled:opacity-40"
                     title="Send"
                   >
-                    <Icon.Send size={15} />
+                    <Icon.Send size={14} />
                   </button>
                 </div>
               </div>

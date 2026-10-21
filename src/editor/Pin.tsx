@@ -1,3 +1,4 @@
+import { motion } from 'motion/react'
 import { useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { targetFrame, targetLabel } from '../board'
@@ -5,6 +6,7 @@ import { FrameThumb } from '../components/FrameThumb'
 import { useApp } from '../context'
 import type { Pin } from '../types'
 import { Icon } from './icons'
+import { useUiMotion } from './uiMotion'
 
 const POPOVER_W = 256
 const POPOVER_H = 150
@@ -13,6 +15,7 @@ const POPOVER_H = 150
 // portaled to the page so scrolling panels can't clip it.
 export function PinMarker({ pin, style, className = '' }: { pin: Pin; style?: CSSProperties; className?: string }) {
   const { state, dispatch, sendPin } = useApp()
+  const { popover } = useUiMotion()
   const open = state.composing === pin.id
   const [text, setText] = useState(pin.text)
   const [refs, setRefs] = useState<string[]>([]) // image or video references picked for this comment (names only, nothing is uploaded)
@@ -46,9 +49,10 @@ export function PinMarker({ pin, style, className = '' }: { pin: Pin; style?: CS
       {open &&
         pos &&
         createPortal(
-          <div
+          <motion.div
+            {...popover('top left')}
             className="fixed z-50 cursor-auto rounded-tile border border-line bg-raised p-2 text-left text-[12px] text-ink shadow-xl focus-within:border-line-strong"
-            style={{ ...pos, width: POPOVER_W }}
+            style={{ ...popover('top left').style, ...pos, width: POPOVER_W }}
             onClick={(e) => e.stopPropagation()}
             onPointerDown={(e) => e.stopPropagation()}
           >
@@ -108,7 +112,7 @@ export function PinMarker({ pin, style, className = '' }: { pin: Pin; style?: CS
                   </button>
                 </div>
               </div>
-          </div>,
+          </motion.div>,
           document.body,
         )}
     </div>

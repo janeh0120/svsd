@@ -1,3 +1,4 @@
+import { animate, motion, useMotionValue } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
 import { clock, cutKey, cutMs, getCut, order, timing } from '../board'
 import { FrameThumb } from '../components/FrameThumb'
@@ -5,6 +6,7 @@ import { domId, useApp } from '../context'
 import type { Target } from '../types'
 import { Icon } from './icons'
 import { PinMarker } from './Pin'
+import { useUiMotion } from './uiMotion'
 
 // Room either side of the reel so the playhead pill stays centred on its line at 0 and at the end.
 const EDGE = 24
@@ -19,6 +21,16 @@ export function Timeline({ height, collapsed, onToggle }: { height: number; coll
   const { state, dispatch, startComment } = useApp()
   const comment = state.mode === 'comment'
   const content = useRef<HTMLDivElement>(null)
+  // Collapsing and expanding glide; dragging the edge to resize must follow the pointer with no lag.
+  const { tween } = useUiMotion()
+  const h = useMotionValue(collapsed ? 40 : height)
+  useEffect(() => {
+    const glide = animate(h, collapsed ? 40 : height, tween(0.35))
+    return () => glide.stop()
+  }, [collapsed]) // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    if (!collapsed) h.set(height)
+  }, [height]) // eslint-disable-line react-hooks/exhaustive-deps
   const { board, playhead } = state
   const t = timing(board)
   const total = t.total
@@ -99,8 +111,12 @@ export function Timeline({ height, collapsed, onToggle }: { height: number; coll
     const r = (e.currentTarget as HTMLElement).getBoundingClientRect()
     const set = (cx: number) => seekTo((cx - r.left) / pxPerMs)
     set(e.clientX)
+    // Dragging across the ruler must never select the labels it passes over.
+    e.preventDefault()
+    document.body.style.userSelect = 'none'
     const move = (ev: PointerEvent) => set(ev.clientX)
     const up = () => {
+      document.body.style.userSelect = ''
       window.removeEventListener('pointermove', move)
       window.removeEventListener('pointerup', up)
     }
@@ -149,10 +165,12 @@ export function Timeline({ height, collapsed, onToggle }: { height: number; coll
       setLockSpan(null)
       setReadout(null)
       document.body.style.cursor = ''
+      document.body.style.userSelect = ''
       window.removeEventListener('pointermove', move)
       window.removeEventListener('pointerup', up)
     }
     document.body.style.cursor = 'ew-resize'
+    document.body.style.userSelect = 'none'
     window.addEventListener('pointermove', move)
     window.addEventListener('pointerup', up)
   }
@@ -186,7 +204,11 @@ export function Timeline({ height, collapsed, onToggle }: { height: number; coll
   const ticks = Array.from({ length: Math.floor(contentW / (minor * pxPerSec)) + 1 }, (_, i) => +(i * minor).toFixed(2))
 
   return (
-    <div id="timeline" className="flex shrink-0 flex-col bg-surface" style={{ height: collapsed ? 40 : height }}>
+    <motion.div
+      id="timeline"
+      className="flex shrink-0 select-none flex-col overflow-hidden bg-surface"
+      style={{ height: h }}
+    >
       {/* Transport */}
       <div className="relative flex h-10 shrink-0 items-center px-2">
         <span className="text-[11px] tabular-nums">
@@ -204,7 +226,7 @@ export function Timeline({ height, collapsed, onToggle }: { height: number; coll
             title={playing ? 'Pause' : 'Play'}
             className="flex size-7 items-center justify-center rounded-full bg-secondary text-on-secondary"
           >
-            {playing ? <Icon.Pause size={12} /> : <Icon.Play size={11} fill="currentColor" />}
+            {playing ? <Icon.Pause size={12} /> : <Icon.Play size={12} fill="currentColor" />}
           </button>
           <button onClick={nextFrame} title="Next shot" className="hover:text-ink">
             <Icon.FastForward size={12} />
@@ -237,7 +259,7 @@ export function Timeline({ height, collapsed, onToggle }: { height: number; coll
       </div>
 
       {/* Ruler, chapters and thumbnails share one horizontal scroll */}
-      <div ref={area} className={`min-h-0 flex-1 overflow-x-auto overflow-y-hidden ${collapsed ? 'hidden' : ''}`}>
+      <div ref={area} className={`min-h-0 flex-1 overflow-x-auto overflow-y-hidden ${collapsed ? 'pointer-events-none' : ''}`}>
         <div style={{ width: contentW + 2 * EDGE, paddingInline: EDGE }}>
         <div ref={content} className="relative" style={{ width: contentW }}>
           <div className={`relative h-8 ${comment ? 'cursor-ai hover:bg-accent-soft' : 'cursor-pointer'}`} onPointerDown={scrub}>
@@ -327,6 +349,6 @@ export function Timeline({ height, collapsed, onToggle }: { height: number; coll
         </div>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }

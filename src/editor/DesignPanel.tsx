@@ -42,22 +42,22 @@ function LayerDesign({ frame, layer: l }: { frame: Frame; layer: Layer }) {
       <Section title="Position">
         <div className="grid grid-cols-2 gap-1.5">
           <Seg>
-            <SegBtn title="Align left" onClick={() => set({ x: 0 })} icon={<Icon.AlignLeft size={13} />} />
-            <SegBtn title="Align center" onClick={() => set({ x: Math.round((FRAME_W - l.w) / 2) })} icon={<Icon.AlignCenterH size={13} />} />
-            <SegBtn title="Align right" onClick={() => set({ x: FRAME_W - l.w })} icon={<Icon.AlignRight size={13} />} />
+            <SegBtn title="Align left" onClick={() => set({ x: 0 })} icon={<Icon.AlignLeft size={14} />} />
+            <SegBtn title="Align center" onClick={() => set({ x: Math.round((FRAME_W - l.w) / 2) })} icon={<Icon.AlignCenterH size={14} />} />
+            <SegBtn title="Align right" onClick={() => set({ x: FRAME_W - l.w })} icon={<Icon.AlignRight size={14} />} />
           </Seg>
           <Seg>
-            <SegBtn title="Align top" onClick={() => set({ y: 0 })} icon={<Icon.AlignTop size={13} />} />
-            <SegBtn title="Align middle" onClick={() => set({ y: Math.round((FRAME_H - l.h) / 2) })} icon={<Icon.AlignMiddleV size={13} />} />
-            <SegBtn title="Align bottom" onClick={() => set({ y: FRAME_H - l.h })} icon={<Icon.AlignBottom size={13} />} />
+            <SegBtn title="Align top" onClick={() => set({ y: 0 })} icon={<Icon.AlignTop size={14} />} />
+            <SegBtn title="Align middle" onClick={() => set({ y: Math.round((FRAME_H - l.h) / 2) })} icon={<Icon.AlignMiddleV size={14} />} />
+            <SegBtn title="Align bottom" onClick={() => set({ y: FRAME_H - l.h })} icon={<Icon.AlignBottom size={14} />} />
           </Seg>
           <Num prefix="X" value={l.x} onChange={(x) => set({ x })} />
           <Num prefix="Y" value={l.y} onChange={(y) => set({ y })} />
           <Num prefix={<Icon.Angle size={12} />} value={l.rotation} suffix="°" onChange={(rotation) => set({ rotation })} />
           <Seg>
-            <SegBtn title="Rotate 90°" onClick={() => set({ rotation: (l.rotation + 90) % 360 })} icon={<Icon.Rotate size={13} />} />
-            <SegBtn title="Flip horizontal" onClick={() => set({ scaleX: -(l.scaleX ?? 1) })} icon={<Icon.FlipH size={13} />} />
-            <SegBtn title="Flip vertical" onClick={() => set({ scaleY: -(l.scaleY ?? 1) })} icon={<Icon.FlipV size={13} />} />
+            <SegBtn title="Rotate 90°" onClick={() => set({ rotation: (l.rotation + 90) % 360 })} icon={<Icon.Rotate size={14} />} />
+            <SegBtn title="Flip horizontal" onClick={() => set({ scaleX: -(l.scaleX ?? 1) })} icon={<Icon.FlipH size={14} />} />
+            <SegBtn title="Flip vertical" onClick={() => set({ scaleY: -(l.scaleY ?? 1) })} icon={<Icon.FlipV size={14} />} />
           </Seg>
         </div>
       </Section>
@@ -65,9 +65,9 @@ function LayerDesign({ frame, layer: l }: { frame: Frame; layer: Layer }) {
       <Section title="Layout">
         {l.kind === 'text' && (
           <Seg className="mb-1.5">
-            <SegBtn title="Auto width" active={sizing === 'width'} onClick={() => setSizing('width')} icon={<Icon.HugWidth size={13} />} />
-            <SegBtn title="Auto height" active={sizing === 'height'} onClick={() => setSizing('height')} icon={<Icon.AlignCenterH size={13} />} />
-            <SegBtn title="Fixed size" active={sizing === 'fixed'} onClick={() => setSizing('fixed')} icon={<Icon.FixedSize size={13} />} />
+            <SegBtn title="Auto width" active={sizing === 'width'} onClick={() => setSizing('width')} icon={<Icon.HugWidth size={14} />} />
+            <SegBtn title="Auto height" active={sizing === 'height'} onClick={() => setSizing('height')} icon={<Icon.AlignCenterH size={14} />} />
+            <SegBtn title="Fixed size" active={sizing === 'fixed'} onClick={() => setSizing('fixed')} icon={<Icon.FixedSize size={14} />} />
           </Seg>
         )}
         <div className="flex items-center gap-1.5">
@@ -76,12 +76,12 @@ function LayerDesign({ frame, layer: l }: { frame: Frame; layer: Layer }) {
             <Num prefix="H" value={l.h} onChange={(h) => set({ h })} muted={l.kind === 'text' && sizing !== 'fixed'} />
           </div>
           <IconBtn title="Resize to fit">
-            <Icon.Expand size={13} />
+            <Icon.Expand size={14} />
           </IconBtn>
         </div>
       </Section>
 
-      <Section title="Appearance" actions={[<Icon.Eye key="e" size={13} />, <Icon.Droplet key="d" size={13} />]}>
+      <Section title="Appearance" actions={[<Icon.Eye key="e" size={14} />, <Icon.Droplet key="d" size={14} />]}>
         <div className="grid grid-cols-2 gap-1.5 pr-8">
           <Num prefix={<Icon.Square size={12} />} value={Math.round(l.opacity * 100)} suffix="%" onChange={(v) => set({ opacity: Math.min(1, Math.max(0, v / 100)) })} />
           <Num prefix={<Icon.Corners size={12} />} value={l.radius ?? 0} onChange={(radius) => set({ radius })} muted={l.kind === 'text'} />
@@ -89,7 +89,7 @@ function LayerDesign({ frame, layer: l }: { frame: Frame; layer: Layer }) {
       </Section>
 
       {l.kind === 'text' && (
-        <Section title="Typography" actions={[<Icon.Styles key="s" size={13} />]}>
+        <Section title="Typography" actions={[<Icon.Styles key="s" size={14} />]}>
           <input value={l.text ?? ''} onChange={(e) => set({ text: e.target.value })} className="mb-1.5 h-7 w-full rounded-control bg-control px-2 outline-none" />
           <Dropdown value={l.fontFamily ?? 'Inter'} options={['Inter', 'Helvetica', 'Georgia', 'Menlo']} onChange={(fontFamily) => set({ fontFamily })} full />
           <div className="mt-1.5 grid grid-cols-2 gap-1.5">
@@ -104,20 +104,20 @@ function LayerDesign({ frame, layer: l }: { frame: Frame; layer: Layer }) {
           </div>
           <div className="mt-1.5 grid grid-cols-2 gap-1.5 pr-8">
             <Seg>
-              <SegBtn title="Align text left" active={l.align === 'left'} onClick={() => set({ align: 'left' })} icon={<Icon.TextLeft size={13} />} />
-              <SegBtn title="Align text center" active={!l.align || l.align === 'center'} onClick={() => set({ align: 'center' })} icon={<Icon.TextCenter size={13} />} />
-              <SegBtn title="Align text right" active={l.align === 'right'} onClick={() => set({ align: 'right' })} icon={<Icon.TextRight size={13} />} />
+              <SegBtn title="Align text left" active={l.align === 'left'} onClick={() => set({ align: 'left' })} icon={<Icon.TextLeft size={14} />} />
+              <SegBtn title="Align text center" active={!l.align || l.align === 'center'} onClick={() => set({ align: 'center' })} icon={<Icon.TextCenter size={14} />} />
+              <SegBtn title="Align text right" active={l.align === 'right'} onClick={() => set({ align: 'right' })} icon={<Icon.TextRight size={14} />} />
             </Seg>
             <Seg>
-              <SegBtn title="Top" icon={<Icon.AlignTop size={13} />} />
-              <SegBtn title="Middle" active icon={<Icon.AlignMiddleV size={13} />} />
-              <SegBtn title="Bottom" icon={<Icon.AlignBottom size={13} />} />
+              <SegBtn title="Top" icon={<Icon.AlignTop size={14} />} />
+              <SegBtn title="Middle" active icon={<Icon.AlignMiddleV size={14} />} />
+              <SegBtn title="Bottom" icon={<Icon.AlignBottom size={14} />} />
             </Seg>
           </div>
         </Section>
       )}
 
-      <Section title="Fill" actions={[<Icon.Styles key="s" size={13} />, <Icon.Plus key="p" size={13} />]}>
+      <Section title="Fill" actions={[<Icon.Styles key="s" size={14} />, <Icon.Plus key="p" size={14} />]}>
         {l.kind === 'text' ? (
           <ColorRow value={l.color ?? '#000000'} onChange={(color) => set({ color })} />
         ) : l.kind === 'rect' ? (
@@ -137,14 +137,14 @@ function LayerDesign({ frame, layer: l }: { frame: Frame; layer: Layer }) {
             onClick={() => l.kind === 'rect' && !l.stroke && set({ stroke: '#1E1E1E' })}
             className={l.kind === 'rect' ? '' : 'cursor-default'}
           >
-            <Icon.Plus size={13} />
+            <Icon.Plus size={14} />
           </button>,
         ]}
       >
         {l.kind === 'rect' && l.stroke && <ColorRow value={l.stroke} onChange={(stroke) => set({ stroke })} onRemove={() => set({ stroke: undefined })} />}
       </Section>
-      <Section title="Effects" muted actions={[<Icon.Plus key="p" size={13} />]} />
-      <Section title="Export" muted actions={[<Icon.Plus key="p" size={13} />]} />
+      <Section title="Effects" muted actions={[<Icon.Plus key="p" size={14} />]} />
+      <Section title="Export" muted actions={[<Icon.Plus key="p" size={14} />]} />
     </>
   )
 }
@@ -160,7 +160,7 @@ function FrameDesign({ frame, onPick }: { frame: Frame; onPick: (layerId: string
           <Num prefix="H" value={FRAME_H} muted />
         </div>
       </Section>
-      <Section title="Fill" actions={[<Icon.Styles key="s" size={13} />, <Icon.Plus key="p" size={13} />]}>
+      <Section title="Fill" actions={[<Icon.Styles key="s" size={14} />, <Icon.Plus key="p" size={14} />]}>
         <ColorRow value={frame.background} onChange={(background) => dispatch({ type: 'frame', frameId: frame.id, patch: { background } })} />
       </Section>
       <Section title="Layers">
@@ -173,7 +173,7 @@ function FrameDesign({ frame, onPick }: { frame: Frame; onPick: (layerId: string
           ))}
         </div>
       </Section>
-      <Section title="Export" muted actions={[<Icon.Plus key="p" size={13} />]} />
+      <Section title="Export" muted actions={[<Icon.Plus key="p" size={14} />]} />
     </>
   )
 }
@@ -188,10 +188,10 @@ function Header({ title }: { title: string }) {
   return (
     <div className="flex h-11 items-center gap-3 rule-b px-3">
       <span className="flex-1 font-display text-[13px] font-semibold">{title}</span>
-      <Icon.Link size={13} />
-      <Icon.Target size={13} />
-      <Icon.Component size={13} />
-      <Icon.More size={13} />
+      <Icon.Link size={14} />
+      <Icon.Target size={14} />
+      <Icon.Component size={14} />
+      <Icon.More size={14} />
     </div>
   )
 }
@@ -296,10 +296,10 @@ function ColorRow({ value, onChange, onRemove }: { value: string; onChange: (c: 
         </span>
       </label>
       <IconBtn title="Visible">
-        <Icon.Eye size={13} />
+        <Icon.Eye size={14} />
       </IconBtn>
       <button title="Remove" onClick={onRemove} className="flex size-7 shrink-0 items-center justify-center text-muted">
-        <Icon.Minus size={13} />
+        <Icon.Minus size={14} />
       </button>
     </div>
   )

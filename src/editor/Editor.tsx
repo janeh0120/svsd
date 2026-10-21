@@ -1,4 +1,4 @@
-import { AnimatePresence, motion, useReducedMotion, type Variants } from 'motion/react'
+import { AnimatePresence, motion, type Variants } from 'motion/react'
 import { useEffect, useState } from 'react'
 import { Player, type LoopMode } from '../components/Player'
 import { useApp } from '../context'
@@ -8,6 +8,7 @@ import { LeftPanel } from './LeftPanel'
 import { CollapsedAnimatePanel, PropertiesPanel } from './PropertiesPanel'
 import { StartScreen } from './StartScreen'
 import { Timeline } from './Timeline'
+import { useUiMotion } from './uiMotion'
 
 // Both sidebars start at the same width; each can be resized on its own.
 const DEFAULTS = { left: 248, right: 248, bottom: 176 }
@@ -66,7 +67,7 @@ export function Editor() {
   }, [starting]) // eslint-disable-line react-hooks/exhaustive-deps
   // The editor builds itself in under the start page as it leaves: left panel from the left,
   // timeline from below, the rest fading in around them.
-  const reduce = useReducedMotion()
+  const { reduce, spring, tween } = useUiMotion()
   const ease = [0.5, 0, 0, 1] as const
   const arrive = (axis: 'x' | 'y', from: number): Variants => ({
     start: axis === 'x' ? { opacity: 0, x: from } : { opacity: 0, y: from },
@@ -127,14 +128,23 @@ export function Editor() {
           </motion.div>
           <Resizer axis="x" value={sizes.left} min={200} max={420} sign={1} onChange={set('left')} onReset={() => set('left')(DEFAULTS.left)} />
           <Canvas />
-          {animateOpen ? (
-            <>
-              <Resizer axis="x" value={sizes.right} min={200} max={420} sign={-1} onChange={set('right')} onReset={() => set('right')(DEFAULTS.right)} />
-              <PropertiesPanel width={sizes.right} onCollapse={() => setAnimateOpen(false)} />
-            </>
-          ) : (
-            <CollapsedAnimatePanel onExpand={() => setAnimateOpen(true)} />
-          )}
+          {/* The right panel slides open and shut, and the canvas flows into the space it frees. */}
+          <AnimatePresence initial={false}>
+            {animateOpen ? (
+              <motion.div
+                key="properties"
+                className="flex shrink-0"
+                initial={{ width: 0, opacity: 0, overflow: 'hidden' }}
+                animate={{ width: 'auto', opacity: 1, transition: tween(0.32), transitionEnd: { overflow: 'visible' } }}
+                exit={{ width: 0, opacity: 0, overflow: 'hidden', transition: tween(0.24) }}
+              >
+                <Resizer axis="x" value={sizes.right} min={200} max={420} sign={-1} onChange={set('right')} onReset={() => set('right')(DEFAULTS.right)} />
+                <PropertiesPanel width={sizes.right} onCollapse={() => setAnimateOpen(false)} />
+              </motion.div>
+            ) : (
+              <CollapsedAnimatePanel key="collapsed" onExpand={() => setAnimateOpen(true)} />
+            )}
+          </AnimatePresence>
         </div>
         {!timelineCollapsed && (
           <Resizer axis="y" value={sizes.bottom} min={150} max={400} sign={-1} onChange={set('bottom')} onReset={() => set('bottom')(DEFAULTS.bottom)} />
@@ -142,9 +152,23 @@ export function Editor() {
         <motion.div variants={arrive('y', 32)} className="shrink-0">
           <Timeline height={sizes.bottom} collapsed={timelineCollapsed} onToggle={() => setTimelineCollapsed((c) => !c)} />
         </motion.div>
-        {state.preview && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-10" onClick={() => dispatch({ type: 'preview', open: false })}>
-            <div className="w-full max-w-5xl" onClick={(e) => e.stopPropagation()}>
+        <AnimatePresence>
+          {state.preview && (
+            <motion.div
+              key="preview"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1, transition: tween(0.25) }}
+              exit={{ opacity: 0, transition: tween(0.2) }}
+              className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-10"
+              onClick={() => dispatch({ type: 'preview', open: false })}
+            >
+              <motion.div
+                initial={{ opacity: 0, scale: 0.96, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0, transition: spring }}
+                exit={{ opacity: 0, scale: 0.98, y: 8, transition: tween(0.2) }}
+                className="w-full max-w-5xl"
+                onClick={(e) => e.stopPropagation()}
+              >
               <Player
                 key={state.previewLoop ? loopMode : 'full'}
                 board={state.board}
@@ -178,9 +202,10 @@ export function Editor() {
                   />
                 </div>
               )}
-            </div>
-          </div>
-        )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
     </>
   )

@@ -1,3 +1,4 @@
+import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { ANIMATIONS, DEFAULT_CAMERA, DEFAULT_SPRING, FEELS, clampSpring, cutEase, cutKey, cutMs, exitOf, getCut, order, targetLabel } from '../board'
 import { useApp } from '../context'
@@ -6,12 +7,14 @@ import { requestZoom, useCanvasZoom } from './canvasZoom'
 import { DesignPanel } from './DesignPanel'
 import { Icon } from './icons'
 import { BezierEditor, CameraEditor, EasePreview, SpringEditor } from './MotionControls'
+import { useUiMotion } from './uiMotion'
 
 // Right sidebar: Design (properties of the selected frame or layer) and
 // Animate (live preview plus motion: cuts, timing, camera).
 export function PropertiesPanel({ width, onCollapse }: { width: number; onCollapse: () => void }) {
   const { state, dispatch } = useApp()
   const [tab, setTab] = useState<'design' | 'animate'>('design')
+  const { spring, tween } = useUiMotion()
 
   // A connector is pure motion, so selecting one goes to Animate; a frame or layer goes to Design.
   useEffect(() => {
@@ -40,22 +43,17 @@ export function PropertiesPanel({ width, onCollapse }: { width: number; onCollap
       </div>
       <div className="flex h-10 shrink-0 items-center rule-b px-1">
         {(['design', 'animate'] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`h-7 rounded-tile px-2 capitalize ${tab === t ? 'bg-control font-medium' : 'text-muted hover:text-ink'}`}
-          >
-            {t}
+          <button key={t} onClick={() => setTab(t)} className={`relative h-7 rounded-tile px-2 capitalize ${tab === t ? 'font-medium' : 'text-muted hover:text-ink'}`}>
+            {tab === t && <motion.span layoutId="props-tab" transition={spring} className="absolute inset-0 rounded-tile bg-control" />}
+            <span className="relative">{t}</span>
           </button>
         ))}
         <ZoomMenu />
       </div>
       <div className="-mr-2 -ml-2 min-h-0 flex-1 overflow-y-auto px-2">
-        {tab === 'design' ? (
-          <DesignPanel />
-        ) : (
-          <AnimateSelection />
-        )}
+        <motion.div key={tab} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={tween(0.22)}>
+          {tab === 'design' ? <DesignPanel /> : <AnimateSelection />}
+        </motion.div>
       </div>
     </aside>
   )
@@ -316,6 +314,7 @@ function CurveGlyph({ bezier = [0.65, 0, 0.35, 1] }: { bezier?: number[] }) {
 // A field that opens a floating list: a titled panel with a close button, anchored under the field.
 // `children` get a `close` function and the shared row style.
 function PickerField({ title, trigger, bare, noChevron, children }: { title: string; trigger: ReactNode; bare?: boolean; noChevron?: boolean; children: (close: () => void, row: string) => ReactNode }) {
+  const { popover } = useUiMotion()
   const [open, setOpen] = useState(false)
   const [at, setAt] = useState({ x: 0, y: 0 })
   const button = useRef<HTMLButtonElement>(null)
@@ -339,20 +338,27 @@ function PickerField({ title, trigger, bare, noChevron, children }: { title: str
         {trigger}
         {!noChevron && <Icon.ChevronDown size={12} className="shrink-0 text-muted" />}
       </button>
-      {open && (
-        <>
-          <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="fixed z-50 max-h-[70vh] w-56 overflow-y-auto rounded-tile bg-raised p-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.45)]" style={{ left: at.x, top: at.y }}>
-            <div className="flex h-8 items-center px-2">
-              <span className="font-display text-[13px] font-semibold">{title}</span>
-              <button onClick={() => setOpen(false)} title="Close" className="ml-auto flex size-6 items-center justify-center rounded-control text-muted hover:text-ink">
-                ✕
-              </button>
-            </div>
-            {children(() => setOpen(false), 'flex h-8 w-full items-center gap-2.5 rounded-control px-2 text-left hover:bg-control-hover')}
-          </div>
-        </>
-      )}
+      <AnimatePresence>
+        {open && (
+          <>
+            <div key="scrim" className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
+            <motion.div
+              key="menu"
+              {...popover('top right')}
+              className="fixed z-50 max-h-[70vh] w-56 overflow-y-auto rounded-tile bg-raised p-1.5 shadow-[0_8px_30px_rgba(0,0,0,0.45)]"
+              style={{ ...popover('top right').style, left: at.x, top: at.y }}
+            >
+              <div className="flex h-8 items-center px-2">
+                <span className="font-display text-[13px] font-semibold">{title}</span>
+                <button onClick={() => setOpen(false)} title="Close" className="ml-auto flex size-6 items-center justify-center rounded-control text-muted hover:text-ink">
+                  ✕
+                </button>
+              </div>
+              {children(() => setOpen(false), 'flex h-8 w-full items-center gap-2.5 rounded-control px-2 text-left hover:bg-control-hover')}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </>
   )
 }

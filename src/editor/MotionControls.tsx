@@ -208,7 +208,7 @@ function FrameView({ frame }: { frame: Frame }) {
 }
 
 // Step response of a spring (0 → 1), sampled for plotting.
-function springCurve(spring: Spring, samples = 120) {
+export function springCurve(spring: Spring, samples = 120) {
   const { stiffness, damping, mass } = clampSpring(spring)
   const dt = 1 / 240
   let x = 0

@@ -1,4 +1,4 @@
-import { motion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { Fragment, createContext, useContext, useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { DEFAULT_CUT, FRAME_H, FRAME_W, cutKey, cutMs, cutTransition, frameTitle, getCut, order, sameTarget, timing, UI_EASE } from '../board'
 import { LayerBody, arrival, layerBox, layerStyle } from '../components/Layer'
@@ -6,8 +6,10 @@ import { onZoomRequest, publishZoom } from './canvasZoom'
 import { useApp } from '../context'
 import { pinsFor } from '../store'
 import type { Chapter, Layer } from '../types'
+import { CutGlyph } from './CutGlyph'
 import { Icon } from './icons'
 import { PinMarker } from './Pin'
+import { useUiMotion } from './uiMotion'
 
 const CARD_W = 280
 const SCALE = CARD_W / FRAME_W
@@ -363,6 +365,7 @@ function Connector({
   const { state, dispatch, startComment } = useApp()
   const gradient = useId()
   const key = cutKey(from, to)
+  const cut = getCut(state.board, from, to)
   const target = { kind: 'cut' as const, key }
   const selected = sameTarget(state.selection, target)
   const comment = state.mode === 'comment'
@@ -421,6 +424,17 @@ function Connector({
         className="absolute z-10 flex size-6 -translate-x-1/2 -translate-y-1/2 items-center justify-center"
         style={{ left: x1, top: y1 }}
       />
+      {/* The easing this cut uses, in the middle of the wire. */}
+      <button
+        onClick={pick}
+        title="Edit the animation between these shots"
+        className={`absolute z-10 flex size-[18px] -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-control border bg-raised ${
+          selected ? 'border-accent-line text-accent-text' : 'border-line text-muted group-hover/link:border-line-strong group-hover/link:text-ink'
+        }`}
+        style={{ left: mid, top: y }}
+      >
+        <CutGlyph cut={cut} size={10} />
+      </button>
       {pinsFor(state.pins, target).map((p) => (
         <PinMarker key={p.id} pin={p} style={{ left: mid, top: y }} />
       ))}
@@ -504,7 +518,7 @@ function FrameCard({ frameId }: { frameId: string }) {
         <span className={`mr-3 min-w-0 flex-1 truncate transition-colors ${lit ? 'text-accent-text' : 'text-ink group-hover/card:text-accent-text'}`}>{frameTitle(frame)}</span>
         {span && (
           <span className={`shrink-0 text-[11px] tabular-nums transition-colors ${lit ? 'text-accent-text' : 'text-muted group-hover/card:text-accent-text'}`}>
-            {`${span.from.toFixed(1)}\u00a0–\u00a0${span.to.toFixed(1)}s\u00a0\u00a0\u00a0·\u00a0\u00a0\u00a0${(span.to - span.from).toFixed(1)}s`}
+            {`${(span.to - span.from).toFixed(1)}s`}
           </span>
         )}
         {(state.phase === 'animating' || state.phase === 'ready') && (
@@ -516,7 +530,7 @@ function FrameCard({ frameId }: { frameId: string }) {
             title="Loop this shot's animation"
             className={`flex size-4 shrink-0 items-center justify-center rounded-full ${lit ? 'bg-accent text-on-accent' : 'bg-secondary-container text-on-secondary-container group-hover/card:bg-accent group-hover/card:text-on-accent'} transition-colors`}
           >
-            <Icon.Play size={7} fill="currentColor" className="ml-px" />
+            <Icon.Play size={8} fill="currentColor" />
           </button>
         )}
       </div>
@@ -665,6 +679,7 @@ const POINTER_MODES: { id: PointerMode; label: string; hint: string; key?: strin
 
 // Bottom-center tool bar, as in the reference: pointer (cursor, hand or AI), frame, shape, pen, text.
 function Toolbar({ pointer, setPointer }: { pointer: PointerMode; setPointer: (m: PointerMode) => void }) {
+  const { spring, popover } = useUiMotion()
   const [tool, setTool] = useState('pointer')
   const [menu, setMenu] = useState(false)
   const tools = [
@@ -698,40 +713,47 @@ function Toolbar({ pointer, setPointer }: { pointer: PointerMode; setPointer: (m
         <button
           onClick={() => setTool('pointer')}
           title={current.label}
-          className={`flex size-6 items-center justify-center rounded-control ${active === 'pointer' ? 'bg-accent text-on-accent' : 'hover:bg-control-hover'}`}
+          className={`relative flex size-6 items-center justify-center rounded-control ${active === 'pointer' ? 'text-on-accent' : 'hover:bg-control-hover'}`}
         >
-          <Current size={14} />
+          {active === 'pointer' && <motion.span layoutId="tool-active" transition={spring} className="absolute inset-0 rounded-control bg-accent" />}
+          <Current size={14} className="relative" />
         </button>
         <button onClick={() => setMenu((m) => !m)} title="Cursor, hand or AI" className="flex h-6 w-4 items-center justify-center rounded-control hover:bg-control-hover">
           <Icon.ChevronDown size={12} />
         </button>
-        {menu && (
-          <>
-            <div className="fixed inset-0 z-40" onClick={() => setMenu(false)} />
-            <div className="absolute bottom-full left-0 z-50 mb-2 w-64 rounded-tile bg-raised p-1 shadow-xl ring-1 ring-line">
-              {POINTER_MODES.map(({ id, label, hint, key, icon: I }) => (
-                <button
-                  key={id}
-                  onClick={() => {
-                    setPointer(id)
-                    setTool('pointer')
-                    setMenu(false)
-                  }}
-                  className="flex w-full items-start gap-2 rounded-control p-2 text-left hover:bg-control-hover"
-                >
-                  <I size={14} className={`mt-0.5 shrink-0 ${pointer === id ? 'text-accent-text' : 'text-muted'}`} />
-                  <span className="min-w-0 flex-1">
-                    <span className="flex items-center gap-2">
-                      <span className="font-medium">{label}</span>
-                      {key && <kbd className="ml-auto text-[11px] text-subtle">{key}</kbd>}
+        <AnimatePresence>
+          {menu && (
+            <>
+              <div key="scrim" className="fixed inset-0 z-40" onClick={() => setMenu(false)} />
+              <motion.div
+                key="menu"
+                {...popover('bottom left', true)}
+                className="absolute bottom-full left-0 z-50 mb-2 w-64 rounded-tile bg-raised p-1 shadow-xl ring-1 ring-line"
+              >
+                {POINTER_MODES.map(({ id, label, hint, key, icon: I }) => (
+                  <button
+                    key={id}
+                    onClick={() => {
+                      setPointer(id)
+                      setTool('pointer')
+                      setMenu(false)
+                    }}
+                    className="flex w-full items-start gap-2 rounded-control p-2 text-left hover:bg-control-hover"
+                  >
+                    <I size={14} className={`mt-0.5 shrink-0 ${pointer === id ? 'text-accent-text' : 'text-muted'}`} />
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-center gap-2">
+                        <span className="font-medium">{label}</span>
+                        {key && <kbd className="ml-auto text-[11px] text-subtle">{key}</kbd>}
+                      </span>
+                      <span className="block text-[11px] leading-snug text-subtle">{hint}</span>
                     </span>
-                    <span className="block text-[11px] leading-snug text-subtle">{hint}</span>
-                  </span>
-                </button>
-              ))}
-            </div>
-          </>
-        )}
+                  </button>
+                ))}
+              </motion.div>
+            </>
+          )}
+        </AnimatePresence>
       </div>
       {tools.map(({ id, icon: I }) => (
         <button
@@ -740,9 +762,10 @@ function Toolbar({ pointer, setPointer }: { pointer: PointerMode; setPointer: (m
             setTool(id)
             if (pointer !== 'select') setPointer('select')
           }}
-          className={`flex size-6 items-center justify-center rounded-control ${active === id ? 'bg-accent text-on-accent' : 'hover:bg-control-hover'}`}
+          className={`relative flex size-6 items-center justify-center rounded-control ${active === id ? 'text-on-accent' : 'hover:bg-control-hover'}`}
         >
-          <I size={14} />
+          {active === id && <motion.span layoutId="tool-active" transition={spring} className="absolute inset-0 rounded-control bg-accent" />}
+          <I size={14} className="relative" />
         </button>
       ))}
     </div>

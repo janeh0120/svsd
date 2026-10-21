@@ -199,7 +199,7 @@ export function Player({ board, autoPlay = false, compact = false, startId, loop
       <div className="overflow-hidden rounded-tile">{stage}</div>
       <div className="mt-3 flex items-center gap-3">
         <button onClick={play} title={playing ? 'Pause' : 'Play'} className="flex size-7 shrink-0 items-center justify-center rounded-full bg-secondary text-on-secondary">
-          {playing ? <Icon.Pause size={12} /> : <Icon.Play size={11} fill="currentColor" />}
+          {playing ? <Icon.Pause size={12} /> : <Icon.Play size={12} fill="currentColor" />}
         </button>
         <div className="flex h-1.5 flex-1 gap-1">
           {ids.map((id, n) => (
