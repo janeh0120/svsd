@@ -87,7 +87,7 @@ export function Player({ board, autoPlay = false, compact = false, startId, loop
     return () => cancelAnimationFrame(raf)
   }, [playing, idx, round]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!frame) return compact ? <div className="aspect-[1.6] rounded-tile bg-[#2B2B2B]" /> : null
+  if (!frame) return compact ? <div className="aspect-video rounded-tile bg-[#2B2B2B]" /> : null
 
   const play = () => {
     if (!playing && idx === ids.length - 1) setI(0)

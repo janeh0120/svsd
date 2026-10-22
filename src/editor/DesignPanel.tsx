@@ -2,6 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { FRAME_H, FRAME_W } from '../board'
 import { useApp } from '../context'
 import type { Frame, Layer } from '../types'
+import { useClipContent, setClipContent } from './clipContent'
 import { Icon } from './icons'
 
 // The Design tab: Figma-style properties for the selected frame or layer. The
@@ -151,6 +152,7 @@ function LayerDesign({ frame, layer: l }: { frame: Frame; layer: Layer }) {
 
 function FrameDesign({ frame, onPick }: { frame: Frame; onPick: (layerId: string) => void }) {
   const { dispatch } = useApp()
+  const clip = useClipContent()
   return (
     <>
       <Header title="Shot" />
@@ -159,6 +161,11 @@ function FrameDesign({ frame, onPick }: { frame: Frame; onPick: (layerId: string
           <Num prefix="W" value={FRAME_W} muted />
           <Num prefix="H" value={FRAME_H} muted />
         </div>
+        <label className="mt-2.5 flex cursor-pointer items-center gap-2">
+          <input type="checkbox" checked={!clip} onChange={(e) => setClipContent(!e.target.checked)} className="size-3.5 accent-accent" />
+          <span>Show off-canvas layers</span>
+        </label>
+        <p className="mt-1 pl-[22px] text-[11px] leading-snug text-muted">Editing view only. The video always crops to the shot.</p>
       </Section>
       <Section title="Fill" actions={[<Icon.Styles key="s" size={14} />, <Icon.Plus key="p" size={14} />]}>
         <ColorRow value={frame.background} onChange={(background) => dispatch({ type: 'frame', frameId: frame.id, patch: { background } })} />

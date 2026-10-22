@@ -3,6 +3,7 @@ import { Fragment, createContext, useContext, useEffect, useId, useLayoutEffect,
 import { DEFAULT_CUT, FRAME_H, FRAME_W, cutKey, cutMs, cutTransition, frameTitle, getCut, order, sameTarget, timing, UI_EASE } from '../board'
 import { LayerBody, arrival, layerBox, layerStyle } from '../components/Layer'
 import { onZoomRequest, publishZoom } from './canvasZoom'
+import { useClipContent } from './clipContent'
 import { useApp } from '../context'
 import { pinsFor } from '../store'
 import type { Chapter, Layer } from '../types'
@@ -504,6 +505,7 @@ function FrameCard({ frameId }: { frameId: string }) {
     (p) => (p.target.kind === 'layer' || p.target.kind === 'frame') && p.target.frameId === frameId && p.x !== undefined,
   )
 
+  const clip = useClipContent()
   const n = order(state.board).indexOf(frameId) + 1
   const span = t ? { from: (t.start - (n > 1 ? cutInMs(state, frameId) : 0)) / 1000, to: t.end / 1000 } : null
 
@@ -535,7 +537,7 @@ function FrameCard({ frameId }: { frameId: string }) {
         )}
       </div>
       <div className="relative" style={{ width: CARD_W, height: CARD_H }}>
-        <div className="absolute inset-0 overflow-hidden rounded-control">
+        <div className={`absolute inset-0 rounded-control ${clip || playing ? 'overflow-hidden' : 'overflow-visible'}`}>
           <div
             ref={inner}
             className="absolute top-0 left-0 origin-top-left"

@@ -2,7 +2,7 @@ import type { Transition } from 'motion/react'
 import type { Camera, Cut, CutAnimation, Feel, Frame, Layer, Spring, Storyboard, Target } from './types'
 
 export const FRAME_W = 1440
-export const FRAME_H = 900
+export const FRAME_H = 810
 
 type Bezier = [number, number, number, number]
 

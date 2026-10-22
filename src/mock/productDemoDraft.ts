@@ -3,10 +3,10 @@ import type { Frame, Layer, Storyboard } from '../types'
 // A view `s`× zoomed around (cx, cy) of a 1440×900 screen, kept covering the frame.
 function place(cx: number, cy: number, s: number) {
   const w = 1440 * s
-  const h = 900 * s
+  const h = 900 * s // the screens are drawn 1440×900; the 810-tall frame shows them cover-fit
   return {
     x: Math.round(Math.min(0, Math.max(1440 - w, 720 - cx * s))),
-    y: Math.round(Math.min(0, Math.max(900 - h, 450 - cy * s))),
+    y: Math.round(Math.min(0, Math.max(810 - h, 405 - cy * s))),
     w: Math.round(w),
     h: Math.round(h),
   }
@@ -30,7 +30,7 @@ export function productDemoDraft(): Storyboard {
 
   // On-screen line, in a dark pill at the bottom of the frame.
   const caption = (t: string) =>
-    text('caption', 'Caption', t, 270, 772, 900, 84, 38, { fill: '#1E1E1E', fontWeight: 600 })
+    text('caption', 'Caption', t, 270, 682, 900, 84, 38, { fill: '#1E1E1E', fontWeight: 600 })
 
   const black = '#0B0B0B'
   const ui = '#F5F5F5'
@@ -41,7 +41,7 @@ export function productDemoDraft(): Storyboard {
     { id: 'h3', hold: 2, background: '#F4EFE4', layers: [shot('demo-storyboard-sketch'), caption('Designers think in storyboards.')] },
 
     // Intro
-    { id: 'i1', hold: 1.5, background: black, layers: [text('title', 'Product name', PRODUCT, 170, 360, 1100, 180, 150)] },
+    { id: 'i1', hold: 1.5, background: black, layers: [text('title', 'Product name', PRODUCT, 170, 315, 1100, 180, 150)] },
     { id: 'i2', hold: 2.5, background: ui, layers: [shot('demo-empty'), caption('Motion, edited as a storyboard.')] },
 
     // Prompt the agent
@@ -66,8 +66,8 @@ export function productDemoDraft(): Storyboard {
     { id: 'o1', hold: 2.5, background: ui, layers: [shot('demo-ready'), caption('From prompt to reel, without a timeline.')] },
     {
       id: 'o2', hold: 3, background: black, layers: [
-        text('title', 'Product name', PRODUCT, 170, 300, 1100, 180, 150),
-        text('tagline', 'Tagline', 'Motion you can storyboard.', 170, 500, 1100, 80, 48, { color: '#B3B3B3', fontWeight: 400 }),
+        text('title', 'Product name', PRODUCT, 170, 255, 1100, 180, 150),
+        text('tagline', 'Tagline', 'Motion you can storyboard.', 170, 455, 1100, 80, 48, { color: '#B3B3B3', fontWeight: 400 }),
       ],
     },
   ]

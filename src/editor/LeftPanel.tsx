@@ -222,7 +222,7 @@ function ChatBody({ m }: { m: Message }) {
             initial={{ opacity: 0, scale: 0.92 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={tween(0.3, Math.min(i, 12) * 0.04)}
-            className="aspect-[1.6] w-full rounded border border-line bg-control object-contain"
+            className="aspect-video w-full rounded border border-line bg-control object-contain"
           />
         ))}
       </div>
@@ -233,7 +233,7 @@ function ChatBody({ m }: { m: Message }) {
 
   return (
     <div className={`flex ${m.author === 'you' ? 'justify-end' : ''}`}>
-      <p className={`max-w-[90%] rounded-tile whitespace-pre-line ${m.author === 'you' ? 'bg-control px-3 py-2' : ''}`}>{m.text}</p>
+      <p className={`max-w-[90%] min-w-0 rounded-tile break-words whitespace-pre-line ${m.author === 'you' ? 'bg-control px-3 py-2' : ''}`}>{m.text}</p>
     </div>
   )
 }

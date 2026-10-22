@@ -1,6 +1,6 @@
 export type Feel = 'snappy' | 'smooth' | 'bouncy' | 'cinematic'
 
-// Layers live in a 1440×900 frame. A layer keeps its id across frames, so
+// Layers live in a 1440×810 (16:9) frame. A layer keeps its id across frames, so
 // playback can move it from one frame to the next (like Magic Move).
 export type EnterPreset =
   | 'rise'

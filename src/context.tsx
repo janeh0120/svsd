@@ -69,7 +69,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       dispatch({ type: 'rename', name: 'Agent Demo Reel' })
       await step(`Reading ${url}`, 'Pages, product copy and features', 1300)
       const shots = [...new Set(Object.values(draft.frames).flatMap((f) => f.layers.filter((l) => l.kind === 'image').map((l) => l.src!)))]
-      await step('Capturing screens', `${shots.length} screens at 1440 × 900`, 1300)
+      await step('Capturing screens', `${shots.length} screens at 1440 × 810`, 1300)
       say({
         author: 'agent',
         kind: 'shots',

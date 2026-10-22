@@ -64,12 +64,12 @@ export function agentChatDraft(): Storyboard {
   // The wordmark shots: the still keeps the tiled pattern; a patch hides the printed
   // wordmark and TenAgents Builder is set on top as layers.
   const wordmark = (key: string): Layer[] => [
-    rect(`wm-patch-${key}`, 'Wordmark cover', 420, 405, 600, 95, '#F5F3F1'),
+    rect(`wm-patch-${key}`, 'Wordmark cover', 450, 365, 540, 86, '#F5F3F1'),
     // In: the logo spins up, then Ten and Agents blur up from below and Builder grows in. Out: it unwinds in reverse.
-    { id: `wm-logo-${key}`, name: 'Play logo', kind: 'image', src: '/shots/logo-play.svg', x: 446, y: 428, w: 40, h: 46, ...base, enter: 'spin', delay: 0.1, exit: 'spin', exitDelay: 0.15 },
-    { ...text(`wm-ten-${key}`, 'Ten', 'Ten', 497, 418, 130, 68, 56, '#111111', { fontWeight: 700, letterSpacing: -2 }), enter: 'blur-slide', delay: 0.2, exit: 'blur', exitDelay: 0.1 },
-    { ...text(`wm-agents-${key}`, 'Agents', 'Agents', 604, 418, 210, 68, 56, '#111111', { letterSpacing: -2 }), enter: 'blur-slide', delay: 0.32, exit: 'blur', exitDelay: 0.05 },
-    { ...text(`wm-builder-${key}`, 'Builder', 'Builder', 790, 418, 230, 68, 56, '#6E759F', { fontWeight: 300, letterSpacing: -2 }), enter: 'blur-scale', delay: 0.46, exit: 'blur-scale' },
+    { id: `wm-logo-${key}`, name: 'Play logo', kind: 'image', src: '/shots/logo-play.svg', x: 473, y: 385, w: 36, h: 41, ...base, enter: 'spin', delay: 0.1, exit: 'spin', exitDelay: 0.15 },
+    { ...text(`wm-ten-${key}`, 'Ten', 'Ten', 519, 376, 117, 61, 50, '#111111', { fontWeight: 700, letterSpacing: -2 }), enter: 'blur-slide', delay: 0.2, exit: 'blur', exitDelay: 0.1 },
+    { ...text(`wm-agents-${key}`, 'Agents', 'Agents', 616, 376, 189, 61, 50, '#111111', { letterSpacing: -2 }), enter: 'blur-slide', delay: 0.32, exit: 'blur', exitDelay: 0.05 },
+    { ...text(`wm-builder-${key}`, 'Builder', 'Builder', 783, 376, 207, 61, 50, '#6E759F', { fontWeight: 300, letterSpacing: -2 }), enter: 'blur-scale', delay: 0.46, exit: 'blur-scale' },
   ]
 
   // Source timing: each shot holds until the next one starts. Shots 5–7 carry
@@ -116,9 +116,9 @@ export function agentChatDraft(): Storyboard {
     name,
     hold: Math.round((slotEnd(file) - start) * 10) / 10,
     background: '#111111',
-    // Covers the 1440×900 frame: the 16:9 still is scaled to the frame's height and trimmed 80px each side.
+    // The 16:9 still fills the 1440×810 frame exactly.
     layers: [
-      { id: `img-${file.slice(0, 2)}`, name: 'Still', kind: 'image', src: `/shots/elevenagents/${file}.jpg`, x: -80, y: 0, w: 1600, h: 900, ...base },
+      { id: `img-${file.slice(0, 2)}`, name: 'Still', kind: 'image', src: `/shots/elevenagents/${file}.jpg`, x: 0, y: 0, w: 1440, h: 810, ...base },
       ...(file.includes('wordmark') ? wordmark(file.slice(0, 2)) : []),
     ],
   })
@@ -132,7 +132,7 @@ export function agentChatDraft(): Storyboard {
       // The wordmark fades out as the gradient washes in from the right; the white panel slides in
       // from the left, then the agent chip fades in and the caret starts blinking.
       layers: [
-        { ...rect('panel', 'Background', -2, -2, 1444, 904, GRADIENT), enter: 'slide-right' },
+        { ...rect('panel', 'Background', -2, -2, 1444, 814, GRADIENT), enter: 'slide-right' },
         ...prompt('Why do custom', { f: 2.52, x: 157, y: 140 }).map((l): Layer =>
           ['chip', 'avatar', 'chipText', 'chipX'].includes(l.id) ? { ...l, enter: 'fade', delay: 0.4 } : { ...l, enter: 'slide-left' },
         ),
@@ -140,12 +140,12 @@ export function agentChatDraft(): Storyboard {
     },
     {
       id: 'c3', name: 'Prompt send', hold: 0.7, background: '#F3F0EE',
-      layers: [rect('panel', 'Background', 15, 15, 1410, 870, GRADIENT, 14), ...prompt('Why do customers ask to talk to a person?'), ...gatherCard(false), cursor(1039, 471)],
+      layers: [rect('panel', 'Background', 15, 15, 1410, 780, GRADIENT, 14), ...prompt('Why do customers ask to talk to a person?'), ...gatherCard(false), cursor(1039, 471)],
     },
     {
       id: 'c4', name: 'Analysis working', hold: 1.7, background: '#A3A5BE',
       // The orbiting-panels recording, a 16:9 clip filled edge to edge like the stills. The canvas shows the still instead.
-      layers: [{ id: 'orbit-clip', name: 'Recording', kind: 'video', src: '/shots/orbiting-agents.mp4', poster: '/shots/orbiting-agents.png', x: -80, y: 0, w: 1600, h: 900, ...base }],
+      layers: [{ id: 'orbit-clip', name: 'Recording', kind: 'video', src: '/shots/orbiting-agents.mp4', poster: '/shots/orbiting-agents.png', x: 0, y: 0, w: 1440, h: 810, ...base }],
     },
     ...['08', '09', '10', '11', '12', '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', '23', '24', '25', '26', '27', '28', '29', '30', '31'].map((n) => S[n]),
   ]
